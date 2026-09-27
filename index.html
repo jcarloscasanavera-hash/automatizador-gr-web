@@ -67,9 +67,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.0 · PDF MAESTRO + MARCADORES</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.1 · OCR EN DOS PASADAS</strong></div>
   <div class="muted" style="margin-top:3px">
-    Varios PDF por ruta · ROI superior derecha · una sola conversión al DPI final · dividir/agrupar sin repetir OCR
+    1 OCR rápido por página · solo VERIFICAR recibe OCR reforzado · PDF maestro + marcadores
   </div>
 </div>
 
@@ -376,155 +376,156 @@ async function startQueue(){
 async function processJob(job){
   job.pages=[];
   job.masterBytes=null;
-
-  setJobStatus(job.id,'PROCESANDO','st-run');
+  setJobStatus(job.id,'PASADA 1','st-run');
   document.getElementById(`pw-${job.id}`).style.display='block';
   document.getElementById(`actions-${job.id}`).style.display='none';
 
-  // Abrir PDFs y contar páginas
   const sources=[];
   let totalPages=0;
-
   for(const f of job.files){
     await waitIfPaused();
     if(cancelRequested)return;
-
     const bytes=new Uint8Array(await f.arrayBuffer());
     const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
-
     sources.push({file:f,pdf});
     totalPages+=pdf.numPages;
   }
 
-  // PDF maestro definitivo: aquí se rasteriza UNA sola vez al DPI elegido.
-  const master=await PDFDocument.create();
   const seenGR=new Map();
-
   let done=0;
   let verifySeq=1;
 
+  // PASADA 1: un solo OCR rápido por página si no hay texto interno.
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
-
       await waitIfPaused();
-
-      if(cancelRequested){
-        setJobStatus(job.id,'CANCELADO','st-err');
-        return;
-      }
+      if(cancelRequested){setJobStatus(job.id,'CANCELADO','st-err');return;}
 
       const page=await source.pdf.getPage(pn);
-
-      // 1. Texto interno si existe
       let baseGR=detectFromTextLayer(await page.getTextContent(),page);
       let detection='TEXTO';
 
-      // 2. OCR solo si hace falta
       if(!baseGR){
-        baseGR=await detectByOCR(page);
-        detection=baseGR?'OCR':'';
+        baseGR=await detectByOCRFast(page);
+        detection=baseGR?'OCR RÁPIDO':'';
       }
 
       let marker;
-
       if(baseGR){
         const count=(seenGR.get(baseGR)||0)+1;
         seenGR.set(baseGR,count);
-
-        marker=count===1 ? baseGR : `${baseGR}_${count}`;
+        marker=count===1?baseGR:`${baseGR}_${count}`;
         stats.detected++;
-
       }else{
         marker=`VERIFICAR_${String(verifySeq++).padStart(3,'0')}`;
         stats.verify++;
       }
 
-      // Rasterizar la página UNA sola vez al DPI final elegido.
-      const viewport=page.getViewport({scale:job.dpi/72});
+      job.pages.push({sourcePdf:source.pdf,sourceFile:source.file.name,sourcePage:pn,baseGR:baseGR||null,marker,detection,pageIndex:null});
 
-      const canvas=document.createElement('canvas');
-      canvas.width=Math.ceil(viewport.width);
-      canvas.height=Math.ceil(viewport.height);
-
-      const ctx=canvas.getContext('2d');
-      await page.render({canvasContext:ctx,viewport}).promise;
-
-      // JPEG calidad 0.65, similar a la idea del .py.
-      const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.65));
-
-      if(!blob)throw new Error('No se pudo generar JPEG de la página.');
-
-      const jpgBytes=new Uint8Array(await blob.arrayBuffer());
-      const img=await master.embedJpg(jpgBytes);
-
-      const baseViewport=page.getViewport({scale:1});
-      const outPage=master.addPage([baseViewport.width,baseViewport.height]);
-
-      outPage.drawImage(img,{
-        x:0,
-        y:0,
-        width:baseViewport.width,
-        height:baseViewport.height
-      });
-
-      const pageIndex=master.getPageCount()-1;
-
-      job.pages.push({
-        pageIndex,
-        marker,
-        baseGR:baseGR||null,
-        sourceFile:source.file.name,
-        sourcePage:pn,
-        detection
-      });
-
-      addResultRow(
-        job.name,
-        source.file.name,
-        pn,
-        marker,
-        baseGR ? `CORRECTO · ${detection}` : 'VERIFICAR',
-        baseGR ? 'ok' : 'warn'
-      );
+      addResultRow(job.name,source.file.name,pn,marker,baseGR?`CORRECTO · ${detection}`:'VERIFICAR',baseGR?'ok':'warn');
 
       done++;
       globalPages++;
-
-      const pct=Math.round(done/totalPages*100);
-
+      const pct=Math.round((done/totalPages)*45);
       document.getElementById(`bar-${job.id}`).style.width=`${pct}%`;
-      document.getElementById(`pt-${job.id}`).textContent=
-        `${done} / ${totalPages} páginas · ${pct}% · ${marker}`;
-
+      document.getElementById(`pt-${job.id}`).textContent=`Pasada 1: ${done} / ${totalPages} páginas · ${marker}`;
       updateSummary();
-
-      if(done%2===0)await yieldUI();
+      if(done%3===0)await yieldUI();
     }
   }
 
-  setJobStatus(job.id,'CREANDO MARCADORES','st-run');
-  document.getElementById(`pt-${job.id}`).textContent='Insertando marcadores en el PDF maestro...';
+  // CONVERSIÓN ÚNICA AL DPI FINAL.
+  setJobStatus(job.id,'CONVIRTIENDO','st-run');
+  const master=await PDFDocument.create();
 
-  addBookmarks(master,job.pages.map(p=>({
-    title:p.marker,
-    pageIndex:p.pageIndex
-  })));
+  for(let i=0;i<job.pages.length;i++){
+    await waitIfPaused();
+    if(cancelRequested){setJobStatus(job.id,'CANCELADO','st-err');return;}
 
-  job.masterBytes=await master.save({
-    useObjectStreams:true,
-    addDefaultPage:false
-  });
+    const info=job.pages[i];
+    const page=await info.sourcePdf.getPage(info.sourcePage);
+    const viewport=page.getViewport({scale:job.dpi/72});
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.ceil(viewport.width);
+    canvas.height=Math.ceil(viewport.height);
+    const ctx=canvas.getContext('2d');
+    await page.render({canvasContext:ctx,viewport}).promise;
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.65));
+    if(!blob)throw new Error('No se pudo generar JPEG de la página.');
+    const jpgBytes=new Uint8Array(await blob.arrayBuffer());
+    const img=await master.embedJpg(jpgBytes);
+    const baseViewport=page.getViewport({scale:1});
+    const outPage=master.addPage([baseViewport.width,baseViewport.height]);
+    outPage.drawImage(img,{x:0,y:0,width:baseViewport.width,height:baseViewport.height});
+    info.pageIndex=master.getPageCount()-1;
 
+    const pct=45+Math.round(((i+1)/job.pages.length)*35);
+    document.getElementById(`bar-${job.id}`).style.width=`${pct}%`;
+    document.getElementById(`pt-${job.id}`).textContent=`Convirtiendo al DPI final: ${i+1} / ${job.pages.length}`;
+  }
+
+  // PASADA 2: solo sobre las páginas que quedaron VERIFICAR.
+  const pending=job.pages.filter(p=>!p.baseGR);
+  if(pending.length){
+    setJobStatus(job.id,'PASADA 2','st-run');
+    for(let i=0;i<pending.length;i++){
+      await waitIfPaused();
+      if(cancelRequested){setJobStatus(job.id,'CANCELADO','st-err');return;}
+
+      const info=pending[i];
+      const resolved=await detectByOCRReinforced(info.sourcePdf,info.sourcePage,job.dpi);
+      if(resolved){
+        stats.verify=Math.max(0,stats.verify-1);
+        stats.detected++;
+        info.baseGR=resolved;
+        info.detection='OCR REFORZADO';
+      }
+
+      const pct=80+Math.round(((i+1)/pending.length)*15);
+      document.getElementById(`bar-${job.id}`).style.width=`${pct}%`;
+      document.getElementById(`pt-${job.id}`).textContent=`Pasada 2: ${i+1} / ${pending.length} VERIFICAR`;
+    }
+  }
+
+  rebuildMarkers(job.pages);
+
+  setJobStatus(job.id,'MARCADORES','st-run');
+  document.getElementById(`pt-${job.id}`).textContent='Insertando marcadores definitivos...';
+  addBookmarks(master,job.pages.map(p=>({title:p.marker,pageIndex:p.pageIndex})));
+
+  job.masterBytes=await master.save({useObjectStreams:true,addDefaultPage:false});
   stats.masters++;
-
-  setJobStatus(job.id,'FINALIZADO','st-done');
   document.getElementById(`bar-${job.id}`).style.width='100%';
-  document.getElementById(`pt-${job.id}`).textContent=
-    `${totalPages} páginas · ${seenGR.size} GR base · ${job.pages.filter(x=>!x.baseGR).length} VERIFICAR`;
-
+  setJobStatus(job.id,'FINALIZADO','st-done');
+  document.getElementById(`pt-${job.id}`).textContent=`${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} reconocidas · ${job.pages.filter(p=>!p.baseGR).length} VERIFICAR`;
   document.getElementById(`actions-${job.id}`).style.display='flex';
-
+  rebuildResultsTable();
   updateResultStats();
+}
+
+function rebuildMarkers(pages){
+  const counts=new Map();
+  let verify=1;
+  for(const p of pages){
+    if(p.baseGR){
+      const count=(counts.get(p.baseGR)||0)+1;
+      counts.set(p.baseGR,count);
+      p.marker=count===1?p.baseGR:`${p.baseGR}_${count}`;
+    }else{
+      p.marker=`VERIFICAR_${String(verify++).padStart(3,'0')}`;
+    }
+  }
+}
+
+function rebuildResultsTable(){
+  const tbody=document.getElementById('resultRows');
+  tbody.innerHTML='';
+  for(const job of jobs.values()){
+    for(const p of job.pages){
+      addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CORRECTO · ${p.detection}`:'VERIFICAR',p.baseGR?'ok':'warn');
+    }
+  }
 }
 
 function detectFromTextLayer(content,page){
@@ -558,17 +559,41 @@ function detectFromTextLayer(content,page){
   return null;
 }
 
-async function detectByOCR(page){
+async function detectByOCRFast(page){
   const worker=await getOCRWorker();
-
-  // OCR rápido sobre ROI fija superior derecha.
   const scale=180/72;
   const viewport=page.getViewport({scale});
-
   const full=document.createElement('canvas');
   full.width=Math.ceil(viewport.width);
   full.height=Math.ceil(viewport.height);
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
 
+  const sx=Math.floor(full.width*0.55);
+  const sy=0;
+  const sw=Math.max(1,full.width-sx);
+  const sh=Math.max(1,Math.floor(full.height*0.25));
+
+  const crop=document.createElement('canvas');
+  crop.width=sw;
+  crop.height=sh;
+  const cctx=crop.getContext('2d',{willReadFrequently:true});
+  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+  const r=await worker.recognize(crop);
+  const candidates=findCandidates(normalize(r.data.text||''));
+  return candidates.length===1?candidates[0]:null;
+}
+
+async function detectByOCRReinforced(pdf,pageNumber,dpi){
+  const worker=await getOCRWorker();
+  const page=await pdf.getPage(pageNumber);
+  const effectiveDpi=Math.max(220,Math.min(300,dpi));
+  const scale=effectiveDpi/72;
+  const viewport=page.getViewport({scale});
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
   const ctx=full.getContext('2d',{willReadFrequently:true});
   await page.render({canvasContext:ctx,viewport}).promise;
 
@@ -581,77 +606,43 @@ async function detectByOCR(page){
     const crop=document.createElement('canvas');
     crop.width=sw;
     crop.height=sh;
-
     const cctx=crop.getContext('2d',{willReadFrequently:true});
     cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
 
     if(mode!=='normal'){
       const img=cctx.getImageData(0,0,sw,sh);
       const d=img.data;
-
       for(let i=0;i<d.length;i+=4){
         const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
         let v=gray;
-
-        if(mode==='contrast'){
-          v=Math.max(0,Math.min(255,(gray-128)*1.5+128));
-        }else if(mode==='threshold'){
-          v=gray>170?255:0;
-        }
-
+        if(mode==='contrast')v=Math.max(0,Math.min(255,(gray-128)*1.65+128));
+        else if(mode==='threshold')v=gray>170?255:0;
+        else if(mode==='soft')v=Math.max(0,Math.min(255,(gray-128)*1.30+128));
         d[i]=d[i+1]=d[i+2]=v;
       }
-
       cctx.putImageData(img,0,0);
     }
 
     const r=await worker.recognize(crop);
     const candidates=findCandidates(normalize(r.data.text||''));
-
-    return {
-      gr:candidates.length===1?candidates[0]:null,
-      confidence:r.data.confidence||0
-    };
+    return candidates.length===1?candidates[0]:null;
   }
 
-  // Lectura normal
   const a=await readVariant('normal');
-
-  if(a.gr && a.confidence>=40){
-    return a.gr;
-  }
-
-  // Solo si falla: contraste
   const b=await readVariant('contrast');
+  if(a&&b&&a===b)return a;
 
-  if(a.gr && b.gr && a.gr===b.gr){
-    return a.gr;
-  }
-
-  if(b.gr && b.confidence>=45){
-    return b.gr;
-  }
-
-  // Solo si sigue dudoso: binarización
   const c=await readVariant('threshold');
+  const votes3=new Map();
+  for(const g of [a,b,c])if(g)votes3.set(g,(votes3.get(g)||0)+1);
+  for(const [gr,count] of votes3.entries())if(count>=2)return gr;
 
-  const votes=new Map();
-
-  for(const r of [a,b,c]){
-    if(r.gr)votes.set(r.gr,(votes.get(r.gr)||0)+1);
-  }
-
-  let winner=null;
-  let max=0;
-
-  for(const [gr,count] of votes.entries()){
-    if(count>max){
-      winner=gr;
-      max=count;
-    }
-  }
-
-  return winner && max>=2 ? winner : null;
+  const d=await readVariant('soft');
+  const votes4=new Map();
+  for(const g of [a,b,c,d])if(g)votes4.set(g,(votes4.get(g)||0)+1);
+  let winner=null,max=0;
+  for(const [gr,count] of votes4.entries())if(count>max){winner=gr;max=count;}
+  return winner&&max>=3?winner:null;
 }
 
 async function getOCRWorker(){
