@@ -104,9 +104,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.2 · OCR 300 DPI + CONSOLA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.3 · OCR 300 DPI CORREGIDO + DEBUG</strong></div>
   <div class="muted" style="margin-top:3px">
-    OCR principal 300 DPI · refuerzo solo en VERIFICAR · tiempos + consola de eventos
+    OCR 300 DPI · compactación estilo .py · PSM corregido · debug OCR bruto
   </div>
 </div>
 
@@ -509,8 +509,20 @@ async function processJob(job){
       let detection='TEXTO';
 
       if(!baseGR){
-        baseGR=await detectByOCRFast(page); // ahora a 300 DPI
+        baseGR=await detectByOCRFast(page);
         detection=baseGR?'OCR 300 DPI':'';
+
+        const dbg=detectByOCRFast.lastDebug;
+        if(dbg && (done<5 || !baseGR)){
+          logEvent(
+            `DEBUG OCR · ${source.file.name} pág. ${pn} · conf ${Math.round(dbg.confidence)} · bruto: "${dbg.raw}"`,
+            'info'
+          );
+          logEvent(
+            `DEBUG COMPACTO · pág. ${pn} · "${dbg.compact}" · candidatos: ${dbg.candidates.join(', ')||'NINGUNO'}`,
+            baseGR?'ok':'warn'
+          );
+        }
       }
 
       let marker;
@@ -592,6 +604,20 @@ async function processJob(job){
         info.sourcePage,
         300
       );
+
+      const reinforcedDebug=detectByOCRReinforced.lastDebug||[];
+      if(!resolved){
+        for(const d of reinforcedDebug){
+          logEvent(
+            `DEBUG REFORZADO · ${info.sourceFile} pág. ${info.sourcePage} · ${d.mode} · conf ${Math.round(d.confidence)} · bruto: "${d.raw}"`,
+            'warn'
+          );
+          logEvent(
+            `DEBUG REFORZADO COMPACTO · ${d.mode} · "${d.compact}" · candidatos: ${d.candidates.join(', ')||'NINGUNO'}`,
+            'warn'
+          );
+        }
+      }
 
       if(resolved){
         stats.verify=Math.max(0,stats.verify-1);
@@ -792,8 +818,50 @@ function detectFromTextLayer(content,page){
 async function detectByOCRFast(page){
   const worker=await getOCRWorker();
 
-  // PASADA 1: exactamente una lectura OCR, render a 300 DPI.
-  // Solo ROI superior derecha: 55%-100% del ancho, 0%-25% de altura.
+  const scale=300/72;
+  const viewport=page.getViewport({scale});
+
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
+
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
+
+  // ROI idéntica al .py: 55% derecho y 25% superior.
+  const sx=Math.floor(full.width*0.55);
+  const sy=0;
+  const sw=Math.max(1,full.width-sx);
+  const sh=Math.max(1,Math.floor(full.height*0.25));
+
+  const crop=document.createElement('canvas');
+  crop.width=sw;
+  crop.height=sh;
+
+  const cctx=crop.getContext('2d',{willReadFrequently:true});
+  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+  const r=await worker.recognize(crop);
+  const raw=String(r.data.text||'');
+  const compact=raw.toUpperCase().replace(/\s+/g,'');
+  const candidates=findCandidates(raw);
+
+  detectByOCRFast.lastDebug={
+    raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
+    compact:compact.slice(0,220),
+    confidence:r.data.confidence||0,
+    candidates:[...candidates]
+  };
+
+  return candidates.length===1 ? candidates[0] : null;
+}
+
+detectByOCRFast.lastDebug=null;
+
+async function detectByOCRReinforced(pdf,pageNumber,dpi){
+  const worker=await getOCRWorker();
+  const page=await pdf.getPage(pageNumber);
+
   const scale=300/72;
   const viewport=page.getViewport({scale});
 
@@ -809,78 +877,96 @@ async function detectByOCRFast(page){
   const sw=Math.max(1,full.width-sx);
   const sh=Math.max(1,Math.floor(full.height*0.25));
 
-  const crop=document.createElement('canvas');
-  crop.width=sw;
-  crop.height=sh;
-
-  const cctx=crop.getContext('2d',{willReadFrequently:true});
-  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
-
-  const r=await worker.recognize(crop);
-  const candidates=findCandidates(normalize(r.data.text||''));
-
-  return candidates.length===1 ? candidates[0] : null;
-}
-
-async function detectByOCRReinforced(pdf,pageNumber,dpi){
-  const worker=await getOCRWorker();
-  const page=await pdf.getPage(pageNumber);
-  const effectiveDpi=300;
-  const scale=effectiveDpi/72;
-  const viewport=page.getViewport({scale});
-  const full=document.createElement('canvas');
-  full.width=Math.ceil(viewport.width);
-  full.height=Math.ceil(viewport.height);
-  const ctx=full.getContext('2d',{willReadFrequently:true});
-  await page.render({canvasContext:ctx,viewport}).promise;
-
-  const sx=Math.floor(full.width*0.55);
-  const sy=0;
-  const sw=Math.max(1,full.width-sx);
-  const sh=Math.max(1,Math.floor(full.height*0.25));
+  const debug=[];
 
   async function readVariant(mode){
     const crop=document.createElement('canvas');
     crop.width=sw;
     crop.height=sh;
+
     const cctx=crop.getContext('2d',{willReadFrequently:true});
     cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
 
     if(mode!=='normal'){
       const img=cctx.getImageData(0,0,sw,sh);
       const d=img.data;
+
       for(let i=0;i<d.length;i+=4){
         const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
         let v=gray;
-        if(mode==='contrast')v=Math.max(0,Math.min(255,(gray-128)*1.65+128));
-        else if(mode==='threshold')v=gray>170?255:0;
-        else if(mode==='soft')v=Math.max(0,Math.min(255,(gray-128)*1.30+128));
+
+        if(mode==='contrast'){
+          v=Math.max(0,Math.min(255,(gray-128)*1.65+128));
+        }else if(mode==='threshold'){
+          v=gray>170?255:0;
+        }else if(mode==='soft'){
+          v=Math.max(0,Math.min(255,(gray-128)*1.30+128));
+        }
+
         d[i]=d[i+1]=d[i+2]=v;
       }
+
       cctx.putImageData(img,0,0);
     }
 
     const r=await worker.recognize(crop);
-    const candidates=findCandidates(normalize(r.data.text||''));
-    return candidates.length===1?candidates[0]:null;
+    const raw=String(r.data.text||'');
+    const candidates=findCandidates(raw);
+
+    debug.push({
+      mode,
+      raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
+      compact:raw.toUpperCase().replace(/\s+/g,'').slice(0,220),
+      confidence:r.data.confidence||0,
+      candidates:[...candidates]
+    });
+
+    return candidates.length===1 ? candidates[0] : null;
   }
 
   const a=await readVariant('normal');
   const b=await readVariant('contrast');
-  if(a&&b&&a===b)return a;
+
+  if(a && b && a===b){
+    detectByOCRReinforced.lastDebug=debug;
+    return a;
+  }
 
   const c=await readVariant('threshold');
+
   const votes3=new Map();
-  for(const g of [a,b,c])if(g)votes3.set(g,(votes3.get(g)||0)+1);
-  for(const [gr,count] of votes3.entries())if(count>=2)return gr;
+  for(const g of [a,b,c]){
+    if(g)votes3.set(g,(votes3.get(g)||0)+1);
+  }
+
+  for(const [gr,count] of votes3.entries()){
+    if(count>=2){
+      detectByOCRReinforced.lastDebug=debug;
+      return gr;
+    }
+  }
 
   const d=await readVariant('soft');
+
   const votes4=new Map();
-  for(const g of [a,b,c,d])if(g)votes4.set(g,(votes4.get(g)||0)+1);
+  for(const g of [a,b,c,d]){
+    if(g)votes4.set(g,(votes4.get(g)||0)+1);
+  }
+
   let winner=null,max=0;
-  for(const [gr,count] of votes4.entries())if(count>max){winner=gr;max=count;}
-  return winner&&max>=3?winner:null;
+
+  for(const [gr,count] of votes4.entries()){
+    if(count>max){
+      winner=gr;
+      max=count;
+    }
+  }
+
+  detectByOCRReinforced.lastDebug=debug;
+  return winner&&max>=3 ? winner : null;
 }
+
+detectByOCRReinforced.lastDebug=[];
 
 async function getOCRWorker(){
   if(ocrWorker)return ocrWorker;
@@ -898,7 +984,7 @@ async function getOCRWorker(){
   await ocrWorker.setParameters({
     tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
     preserve_interword_spaces:'1',
-    tessedit_pageseg_mode:'7'
+    tessedit_pageseg_mode:'6'
   });
 
   setQueueText('Procesando');
@@ -914,12 +1000,20 @@ async function terminateOCR(){
 }
 
 function findCandidates(text){
-  const matches=text.match(GR_REGEX)||[];
+  const source=String(text||'').toUpperCase();
+  const variants=[
+    source,
+    source.replace(/\s+/g,'')
+  ];
+
   const out=[];
 
-  for(const m of matches){
-    const g=m.toUpperCase().replace(/\s+/g,'');
-    if(!out.includes(g))out.push(g);
+  for(const variant of variants){
+    const matches=variant.match(GR_REGEX)||[];
+    for(const m of matches){
+      const g=m.toUpperCase().replace(/\s+/g,'');
+      if(!out.includes(g))out.push(g);
+    }
   }
 
   return out;
@@ -1310,7 +1404,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.2 OCR 300 DPI + consola","ok");
+logEvent("Sistema listo · V1.3 OCR 300 DPI corregido + debug","ok");
 addJob();
 </script>
 </body>
