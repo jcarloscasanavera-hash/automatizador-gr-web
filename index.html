@@ -2,157 +2,511 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Automatizador GR Web V2</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automatizador GR Web</title>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#202124}
-.contenedor{max-width:1250px;margin:0 auto;padding:24px}.cabecera,.resumen,.panel{background:#fff;border:1px solid #dadce0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.cabecera{padding:22px 26px;margin-bottom:18px}.cabecera h1{margin:0 0 6px;font-size:26px}.cabecera p{margin:0;color:#5f6368}
-.barra{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}button{border:0;border-radius:7px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px}button:disabled{opacity:.45;cursor:not-allowed}
-.principal{background:#1a73e8;color:#fff}.iniciar{background:#188038;color:#fff}.secundario{background:#fff;color:#1a73e8;border:1px solid #dadce0}.eliminar{background:#fce8e6;color:#b3261e}.pausa{background:#f9ab00}.cancelar{background:#d93025;color:#fff}
-.trabajo{background:#fff;margin-bottom:14px;border-radius:10px;border:1px solid #dadce0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.trabajo-cab{padding:11px 16px;background:#eef3f8;display:flex;justify-content:space-between;align-items:center}
-.trabajo-cuerpo{display:grid;grid-template-columns:2fr 2fr 120px 145px;gap:14px;padding:16px;align-items:end}
-.campo label{display:block;margin-bottom:6px;font-size:12px;font-weight:700;color:#5f6368}.selector{display:flex;gap:7px}.valor{flex:1;min-height:39px;padding:9px 10px;border:1px solid #dadce0;border-radius:6px;background:#fafafa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-select{width:100%;height:39px;padding:7px;border:1px solid #dadce0;border-radius:6px;background:#fff}.estado{min-height:39px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#f1f3f4;font-weight:700;font-size:13px;text-align:center;padding:6px}
-.incompleto{background:#fef7e0;color:#b06000}.listo,.finalizado{background:#e6f4ea;color:#137333}.procesando{background:#e8f0fe;color:#174ea6}.error{background:#fce8e6;color:#b3261e}
-.progreso-wrap{padding:0 16px 16px;display:none}.progreso{height:18px;border-radius:999px;background:#e8eaed;overflow:hidden}.progreso>div{height:100%;width:0;background:#1a73e8;transition:width .15s}.detalle{margin-top:7px;font-size:13px;color:#5f6368}
-.resumen,.panel{padding:16px 20px;margin-top:18px}.aviso{margin-top:16px;padding:12px 15px;background:#e8f0fe;border-radius:7px;color:#174ea6;font-size:13px}
-.metricas{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin:14px 0}.metrica{border:1px solid #dadce0;border-radius:9px;padding:12px;background:#fafafa}.metrica .n{display:block;font-size:24px;font-weight:800;margin-top:4px}
-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}th,td{border:1px solid #dadce0;padding:8px;text-align:left}th{background:#f1f3f4}.ok{color:#137333;font-weight:700}.rev{color:#b06000;font-weight:700}
-input[type=file]{display:none}@media(max-width:900px){.trabajo-cuerpo{grid-template-columns:1fr}.metricas{grid-template-columns:1fr 1fr}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#202124}
+.app{max-width:1320px;margin:auto;padding:22px}
+.card{background:#fff;border:1px solid #d9dee4;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.header{padding:22px 26px;margin-bottom:16px}
+.header h1{margin:0 0 5px;font-size:26px}.muted{color:#5f6368}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+button{border:0;border-radius:7px;padding:10px 15px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:#1a73e8;color:#fff}.green{background:#188038;color:#fff}
+.amber{background:#f9ab00;color:#202124}.red{background:#d93025;color:#fff}
+.light{background:#fff;color:#1a73e8;border:1px solid #cfd5dc}.danger{background:#fce8e6;color:#b3261e}
+.job{margin-bottom:14px;overflow:hidden}
+.jobhead{display:flex;justify-content:space-between;align-items:center;background:#eef3f8;padding:11px 16px}
+.jobgrid{display:grid;grid-template-columns:160px 2fr 1.5fr 115px 135px;gap:12px;padding:15px;align-items:end}
+label{display:block;font-size:12px;font-weight:700;color:#5f6368;margin-bottom:5px}
+input[type=text],select{width:100%;height:39px;border:1px solid #cfd5dc;border-radius:6px;padding:8px;background:#fff}
+.filebox{display:flex;gap:7px}.filelist{min-height:39px;max-height:95px;overflow:auto;flex:1;border:1px solid #cfd5dc;border-radius:6px;background:#fafafa;padding:8px;font-size:13px}
+.fileitem{display:flex;justify-content:space-between;gap:10px;padding:2px 0}.fileitem span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{min-height:39px;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:800;padding:5px;background:#f1f3f4}
+.st-ready,.st-done{background:#e6f4ea;color:#137333}.st-wait{background:#fef7e0;color:#a15c00}.st-run{background:#e8f0fe;color:#174ea6}.st-err{background:#fce8e6;color:#b3261e}
+.progressWrap{display:none;padding:0 15px 15px}.progress{height:17px;background:#e8eaed;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:#1a73e8;transition:width .15s}.progressText{font-size:13px;color:#5f6368;margin-top:6px}
+.summary{padding:15px 19px;margin-top:15px;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}
+.metric{background:#fafafa;border:1px solid #e1e5ea;border-radius:8px;padding:10px}.metric b{display:block;font-size:20px;margin-top:3px}
+.results{display:none;padding:16px 18px;margin-top:15px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #d9dee4;padding:7px;text-align:left}th{background:#f1f3f4}
+.ok{color:#137333;font-weight:700}.warn{color:#a15c00;font-weight:700}.bad{color:#b3261e;font-weight:700}
+.note{margin-top:15px;padding:11px 14px;border-radius:7px;background:#e8f0fe;color:#174ea6;font-size:13px}
+.small{font-size:12px}
+@media(max-width:1000px){.jobgrid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="contenedor">
-  <div class="cabecera">
-    <h1>AUTOMATIZADOR GR WEB</h1>
-    <p>Procesamiento local · Cola independiente · Lectura de texto antes de OCR</p>
+<div class="app">
+
+<div class="card header">
+  <h1>AUTOMATIZADOR GR WEB</h1>
+  <div class="muted">Procesamiento local · múltiples PDF por ruta · consolidación de GR · OCR de respaldo</div>
+</div>
+
+<div class="toolbar">
+  <button class="primary" id="btnAdd" onclick="addJob()">+ AGREGAR RUTA / LOTE</button>
+  <button class="green" id="btnStart" onclick="startQueue()">INICIAR COLA</button>
+  <button class="amber" id="btnPause" onclick="togglePause()" disabled>PAUSAR</button>
+  <button class="red" id="btnCancel" onclick="cancelQueue()" disabled>CANCELAR TODO</button>
+</div>
+
+<div id="jobs"></div>
+
+<div class="card summary">
+  <div class="metric">Rutas configuradas<b id="mJobs">0</b></div>
+  <div class="metric">Rutas listas<b id="mReady">0</b></div>
+  <div class="metric">Páginas procesadas<b id="mPages">0</b></div>
+  <div class="metric">Estado cola<b id="mQueue" style="font-size:15px">Esperando</b></div>
+</div>
+
+<div id="results" class="card results">
+  <h3 style="margin-top:0">Resumen de la última ejecución</h3>
+  <div class="summary" style="padding:0;margin:0">
+    <div class="metric">GR generadas<b id="rGR">0</b></div>
+    <div class="metric">Páginas correctas<b id="rOK">0</b></div>
+    <div class="metric">VERIFICAR<b id="rVerify">0</b></div>
+    <div class="metric">Errores<b id="rErrors">0</b></div>
   </div>
-  <div class="barra">
-    <button class="principal" onclick="agregarTrabajo()">+ AGREGAR TRABAJO</button>
-    <button id="btnIniciar" class="iniciar" onclick="iniciarCola()">INICIAR COLA</button>
-    <button id="btnPausa" class="pausa" onclick="alternarPausa()" disabled>PAUSAR</button>
-    <button id="btnCancelar" class="cancelar" onclick="cancelarCola()" disabled>CANCELAR TODO</button>
+  <div style="overflow:auto;max-height:420px;margin-top:12px">
+    <table>
+      <thead><tr><th>Ruta</th><th>Origen</th><th>Página</th><th>Resultado</th><th>GR / detalle</th></tr></thead>
+      <tbody id="resultRows"></tbody>
+    </table>
   </div>
-  <div id="lista"></div>
-  <div class="resumen">
-    <strong>Resumen</strong>
-    <div style="margin-top:10px">Trabajos configurados: <span id="total">0</span></div>
-    <div>Trabajos listos: <span id="listos">0</span></div>
-    <div>Estado de la cola: <span id="cola">Esperando</span></div>
-  </div>
-  <div id="panel" class="panel" style="display:none">
-    <h3 style="margin-top:0">Resultado del análisis</h3>
-    <div class="metricas">
-      <div class="metrica">Páginas analizadas<span class="n" id="mPag">0</span></div>
-      <div class="metrica">GR detectadas<span class="n" id="mDet">0</span></div>
-      <div class="metrica">Pendientes de OCR<span class="n" id="mOcr">0</span></div>
-      <div class="metrica">Errores<span class="n" id="mErr">0</span></div>
-    </div>
-    <div style="overflow:auto;max-height:420px">
-      <table><thead><tr><th>Trabajo</th><th>Página</th><th>Resultado</th><th>GR / observación</th></tr></thead><tbody id="tabla"></tbody></table>
-    </div>
-  </div>
-  <div class="aviso">Los PDF permanecen en tu computadora. Esta versión primero intenta leer el texto interno del PDF; lo que no pueda reconocer quedará marcado para OCR en la siguiente etapa.</div>
+</div>
+
+<div class="note">
+  Los PDF se leen y procesan en tu navegador. No se almacenan en GitHub ni en Google Drive.
+  Cada ruta/lote puede contener varios PDF; si una misma GR aparece en varios archivos del mismo lote, sus páginas se consolidan en un único PDF.
+</div>
+
 </div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-let contador=0, colaActiva=false, pausado=false, cancelar=false;
-const trabajos=new Map(), resultados=[];
-const REGEX_GR=/\bT[A-Z0-9]+-\d+\b/gi;
 
-function agregarTrabajo(){
-  contador++; const id=contador;
-  trabajos.set(id,{id,archivo:null,carpeta:null,dpi:200,estado:'Incompleto',resultados:[]});
-  const d=document.createElement('div'); d.className='trabajo'; d.id=`t-${id}`;
-  d.innerHTML=`
-  <div class="trabajo-cab"><strong>TRABAJO ${id}</strong><button class="eliminar" onclick="eliminarTrabajo(${id})">ELIMINAR</button></div>
-  <div class="trabajo-cuerpo">
-    <div class="campo"><label>ARCHIVO ORIGEN</label><div class="selector"><div class="valor" id="an-${id}">Ningún archivo seleccionado</div><button class="secundario" onclick="document.getElementById('af-${id}').click()">SELECCIONAR</button><input type="file" id="af-${id}" accept="application/pdf,.pdf" onchange="seleccionarArchivo(${id},this.files)"></div></div>
-    <div class="campo"><label>CARPETA DESTINO</label><div class="selector"><div class="valor" id="cn-${id}">Ninguna carpeta seleccionada</div><button class="secundario" onclick="seleccionarCarpeta(${id})">SELECCIONAR</button></div></div>
-    <div class="campo"><label>DPI SALIDA</label><select onchange="cambiarDpi(${id},this.value)"><option>150</option><option selected>200</option><option>300</option></select></div>
-    <div class="campo"><label>ESTADO</label><div class="estado incompleto" id="es-${id}">INCOMPLETO</div></div>
-  </div>
-  <div class="progreso-wrap" id="pw-${id}"><div class="progreso"><div id="bar-${id}"></div></div><div class="detalle" id="det-${id}">Esperando</div></div>`;
-  document.getElementById('lista').appendChild(d); resumen();
+let nextId=0;
+const jobs=new Map();
+let queueRunning=false, paused=false, cancelRequested=false;
+let pageCounter=0, resultStats={gr:0,ok:0,verify:0,errors:0};
+let ocrWorker=null;
+
+// Longitud variable: no se exige una cantidad fija de caracteres.
+// Se exige estructura T + bloque alfanumérico + guion + bloque numérico.
+const GR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
+
+function addJob(){
+  if(queueRunning)return;
+  const id=++nextId;
+  jobs.set(id,{id,name:'',files:[],folder:null,dpi:200,status:'Incompleto',groups:new Map(),verify:[]});
+  const el=document.createElement('div');
+  el.className='card job'; el.id=`job-${id}`;
+  el.innerHTML=`
+    <div class="jobhead">
+      <strong>RUTA / LOTE ${id}</strong>
+      <button class="danger" onclick="removeJob(${id})">ELIMINAR</button>
+    </div>
+    <div class="jobgrid">
+      <div>
+        <label>NOMBRE RUTA / LOTE</label>
+        <input type="text" id="name-${id}" placeholder="Ej. R1, R2, SLA"
+          oninput="setName(${id},this.value)">
+      </div>
+      <div>
+        <label>ARCHIVOS ORIGEN</label>
+        <div class="filebox">
+          <div class="filelist" id="files-${id}">Ningún PDF seleccionado</div>
+          <button class="light" onclick="document.getElementById('picker-${id}').click()">SELECCIONAR</button>
+          <input hidden type="file" id="picker-${id}" accept=".pdf,application/pdf" multiple
+            onchange="setFiles(${id},this.files)">
+        </div>
+        <div class="small muted" style="margin-top:4px">Puedes seleccionar varios PDF a la vez. Una selección nueva reemplaza la anterior.</div>
+      </div>
+      <div>
+        <label>CARPETA DESTINO</label>
+        <div class="filebox">
+          <div class="filelist" id="folder-${id}" style="max-height:39px">Ninguna carpeta seleccionada</div>
+          <button class="light" onclick="pickFolder(${id})">SELECCIONAR</button>
+        </div>
+      </div>
+      <div>
+        <label>DPI SALIDA</label>
+        <select id="dpi-${id}" onchange="setDpi(${id},this.value)">
+          <option value="150">150</option>
+          <option value="200" selected>200</option>
+          <option value="300">300</option>
+        </select>
+      </div>
+      <div>
+        <label>ESTADO</label>
+        <div class="status st-wait" id="status-${id}">INCOMPLETO</div>
+      </div>
+    </div>
+    <div class="progressWrap" id="pw-${id}">
+      <div class="progress"><div class="bar" id="bar-${id}"></div></div>
+      <div class="progressText" id="pt-${id}">Esperando</div>
+    </div>`;
+  document.getElementById('jobs').appendChild(el);
+  updateSummary();
 }
-function seleccionarArchivo(id,files){
-  if(!files||!files.length||colaActiva)return;
-  const f=files[0];
-  if(f.type!=='application/pdf'&&!f.name.toLowerCase().endsWith('.pdf')){alert('Debes seleccionar un PDF.');return;}
-  const t=trabajos.get(id); t.archivo=f;
-  document.getElementById(`an-${id}`).textContent=`${f.name} · ${tam(f.size)}`; revisar(id);
+
+function setName(id,v){jobs.get(id).name=v.trim(); checkReady(id)}
+function setDpi(id,v){jobs.get(id).dpi=Number(v); checkReady(id)}
+
+function setFiles(id,fileList){
+  if(queueRunning)return;
+  const files=[...fileList].filter(f=>f.name.toLowerCase().endsWith('.pdf'));
+  jobs.get(id).files=files;
+  const box=document.getElementById(`files-${id}`);
+  if(!files.length){box.textContent='Ningún PDF seleccionado'}
+  else{
+    box.innerHTML=files.map(f=>`<div class="fileitem"><span>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('');
+  }
+  checkReady(id);
 }
-async function seleccionarCarpeta(id){
-  if(colaActiva)return;
+
+async function pickFolder(id){
+  if(queueRunning)return;
+  if(!window.showDirectoryPicker){alert('Este navegador no permite seleccionar carpetas directamente. Usa Chrome o Edge actualizado.');return}
   try{
     const h=await window.showDirectoryPicker({mode:'readwrite'});
-    const t=trabajos.get(id); t.carpeta=h;
-    document.getElementById(`cn-${id}`).textContent=h.name; revisar(id);
-  }catch(e){if(e.name!=='AbortError'){console.error(e);alert('No se pudo acceder a la carpeta.');}}
+    const ok=await ensureWritePermission(h);
+    if(!ok){alert('No se concedió permiso de escritura para la carpeta.');return}
+    jobs.get(id).folder=h;
+    document.getElementById(`folder-${id}`).textContent=h.name;
+    checkReady(id);
+  }catch(e){if(e.name!=='AbortError'){console.error(e);alert('No se pudo acceder a la carpeta.')}}
 }
-function cambiarDpi(id,v){trabajos.get(id).dpi=Number(v); revisar(id)}
-function revisar(id){
-  const t=trabajos.get(id), e=document.getElementById(`es-${id}`);
-  if(t.archivo&&t.carpeta&&t.dpi){t.estado='Listo';e.textContent='LISTO';e.className='estado listo'}
-  else{t.estado='Incompleto';e.textContent='INCOMPLETO';e.className='estado incompleto'} resumen();
-}
-function eliminarTrabajo(id){if(colaActiva)return;trabajos.delete(id);document.getElementById(`t-${id}`)?.remove();resumen()}
-function resumen(){let n=0;trabajos.forEach(t=>{if(t.estado==='Listo')n++});document.getElementById('total').textContent=trabajos.size;document.getElementById('listos').textContent=n}
 
-async function iniciarCola(){
-  if(colaActiva)return;
-  const lista=[...trabajos.values()];
-  if(!lista.length){alert('Agrega al menos un trabajo.');return}
-  const inc=lista.filter(t=>t.estado!=='Listo'); if(inc.length){alert(`Hay ${inc.length} trabajo(s) incompleto(s).`);return}
-  colaActiva=true;pausado=false;cancelar=false;resultados.length=0;bloquear(true);limpiar();document.getElementById('cola').textContent='Procesando';
+async function ensureWritePermission(h){
   try{
-    for(const t of lista){if(cancelar)break;await esperaPausa();await procesar(t)}
-    document.getElementById('cola').textContent=cancelar?'Cancelada':'Finalizada';
-  }catch(e){console.error(e);document.getElementById('cola').textContent='Error';alert('Hubo un error procesando el PDF. Abre F12 > Consola si necesitamos revisarlo.')}
-  finally{colaActiva=false;pausado=false;bloquear(false);actualizarMetricas()}
+    const opts={mode:'readwrite'};
+    if(await h.queryPermission(opts)==='granted')return true;
+    return await h.requestPermission(opts)==='granted';
+  }catch(e){return true}
 }
-async function procesar(t){
-  estado(t.id,'PROCESANDO','procesando');document.getElementById(`pw-${t.id}`).style.display='block';
-  const buf=await t.archivo.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
-  const total=pdf.numPages;
-  for(let p=1;p<=total;p++){
-    if(cancelar){estado(t.id,'CANCELADO','error');return}
-    await esperaPausa();
-    const page=await pdf.getPage(p), content=await page.getTextContent();
-    const gr=detectar(content);
-    const r={trabajo:t.id,pagina:p,tipo:gr?'detectada':'ocr',valor:gr||'No encontrada en texto. Pendiente de OCR.'};
-    resultados.push(r);fila(r);
-    const pc=Math.round(p/total*100);document.getElementById(`bar-${t.id}`).style.width=pc+'%';document.getElementById(`det-${t.id}`).textContent=`Página ${p} de ${total} · ${pc}%`;
-    if(p%5===0)await new Promise(res=>setTimeout(res,0));
+
+function checkReady(id){
+  const j=jobs.get(id), el=document.getElementById(`status-${id}`);
+  const ready=j.name && j.files.length && j.folder && j.dpi;
+  j.status=ready?'Listo':'Incompleto';
+  el.textContent=ready?'LISTO':'INCOMPLETO';
+  el.className=`status ${ready?'st-ready':'st-wait'}`;
+  updateSummary();
+}
+
+function removeJob(id){
+  if(queueRunning)return;
+  jobs.delete(id); document.getElementById(`job-${id}`)?.remove(); updateSummary();
+}
+
+function updateSummary(){
+  document.getElementById('mJobs').textContent=jobs.size;
+  document.getElementById('mReady').textContent=[...jobs.values()].filter(j=>j.status==='Listo').length;
+  document.getElementById('mPages').textContent=pageCounter;
+}
+
+async function startQueue(){
+  if(queueRunning)return;
+  const list=[...jobs.values()];
+  if(!list.length){alert('Agrega al menos una ruta/lote.');return}
+  const bad=list.filter(j=>j.status!=='Listo');
+  if(bad.length){alert(`Hay ${bad.length} ruta(s) incompleta(s). Completa nombre, PDF, carpeta destino y DPI.`);return}
+
+  queueRunning=true; paused=false; cancelRequested=false; pageCounter=0;
+  resultStats={gr:0,ok:0,verify:0,errors:0};
+  document.getElementById('resultRows').innerHTML='';
+  document.getElementById('results').style.display='block';
+  setQueueUI(true); setQueueText('Procesando');
+
+  try{
+    for(const j of list){
+      if(cancelRequested)break;
+      await waitIfPaused();
+      await processJob(j);
+    }
+    setQueueText(cancelRequested?'Cancelada':'Finalizada');
+  }catch(e){
+    console.error(e); setQueueText('Error');
+    alert('Ocurrió un error. Revisa la consola del navegador.');
+  }finally{
+    await terminateOCR();
+    queueRunning=false; paused=false; setQueueUI(false); updateResultStats();
   }
-  estado(t.id,'ANÁLISIS COMPLETO','finalizado');document.getElementById(`det-${t.id}`).textContent=`${total} páginas analizadas`;
 }
-function detectar(content){
+
+async function processJob(job){
+  job.groups=new Map(); job.verify=[];
+  setJobStatus(job.id,'PROCESANDO','st-run');
+  document.getElementById(`pw-${job.id}`).style.display='block';
+
+  let totalPages=0;
+  const pdfs=[];
+
+  for(const f of job.files){
+    await waitIfPaused(); if(cancelRequested)return;
+    const bytes=new Uint8Array(await f.arrayBuffer());
+    const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
+    pdfs.push({file:f,pdf,bytes});
+    totalPages+=pdf.numPages;
+  }
+
+  let done=0, verifySeq=1;
+
+  for(const pinfo of pdfs){
+    for(let pn=1;pn<=pinfo.pdf.numPages;pn++){
+      await waitIfPaused(); if(cancelRequested){setJobStatus(job.id,'CANCELADO','st-err');return}
+      const page=await pinfo.pdf.getPage(pn);
+
+      let found=detectFromTextLayer(await page.getTextContent(),page);
+      let source='TEXTO';
+
+      if(!found){
+        found=await detectByOCR(page);
+        source=found?'OCR':'';
+      }
+
+      const ref={file:pinfo.file,fileName:pinfo.file.name,pageNumber:pn};
+
+      if(found){
+        if(!job.groups.has(found))job.groups.set(found,[]);
+        job.groups.get(found).push(ref);
+        resultStats.ok++;
+        addResultRow(job.name,pinfo.file.name,pn,'CORRECTO',`${found} · ${source}`,'ok');
+      }else{
+        const verifyName=`VERIFICAR_${String(verifySeq++).padStart(3,'0')}`;
+        job.verify.push({...ref,verifyName});
+        resultStats.verify++;
+        addResultRow(job.name,pinfo.file.name,pn,'VERIFICAR',verifyName,'warn');
+      }
+
+      done++; pageCounter++; updateSummary();
+      const pct=Math.round(done/totalPages*100);
+      document.getElementById(`bar-${job.id}`).style.width=`${pct}%`;
+      document.getElementById(`pt-${job.id}`).textContent=`${done} / ${totalPages} páginas · ${pct}%`;
+      if(done%3===0)await yieldUI();
+    }
+  }
+
+  setJobStatus(job.id,'GUARDANDO','st-run');
+  document.getElementById(`pt-${job.id}`).textContent=`Generando ${job.groups.size} GR + ${job.verify.length} por verificar...`;
+
+  for(const [gr,refs] of job.groups){
+    await waitIfPaused(); if(cancelRequested)return;
+    try{
+      const bytes=await buildPdfFromRefs(refs,job.dpi);
+      await writeFile(job.folder,`${safeName(gr)}.pdf`,bytes);
+      resultStats.gr++;
+    }catch(e){
+      console.error('Error guardando',gr,e); resultStats.errors++;
+      addResultRow(job.name,'-',0,'ERROR',`No se pudo guardar ${gr}`,'bad');
+    }
+  }
+
+  for(const v of job.verify){
+    await waitIfPaused(); if(cancelRequested)return;
+    try{
+      const bytes=await buildPdfFromRefs([v],job.dpi);
+      await writeFile(job.folder,`${v.verifyName}.pdf`,bytes);
+    }catch(e){
+      console.error(e); resultStats.errors++;
+    }
+  }
+
+  setJobStatus(job.id,'FINALIZADO','st-done');
+  document.getElementById(`bar-${job.id}`).style.width='100%';
+  document.getElementById(`pt-${job.id}`).textContent=
+    `${totalPages} páginas · ${job.groups.size} GR · ${job.verify.length} verificar`;
+  updateResultStats();
+}
+
+function detectFromTextLayer(content,page){
   const items=content.items||[];
-  for(const it of items){const s=norm(it.str||'');const m=s.match(REGEX_GR);if(m?.length)return limpiar(m[0])}
-  const s=norm(items.map(i=>i.str||'').join(' '));const m=s.match(REGEX_GR);return m?.length?limpiar(m[0]):null;
+  const view=page.view||[0,0,1,1];
+  const width=view[2]-view[0], height=view[3]-view[1];
+
+  // Primero: solo zona superior derecha, equivalente al sistema actual.
+  const roi=items.filter(it=>{
+    const tr=it.transform||[];
+    const x=tr[4]||0, y=tr[5]||0;
+    return x>=width*0.50 && y>=height*0.70;
+  });
+
+  for(const set of [roi,items]){
+    for(const it of set){
+      const c=findCandidates(normalize(it.str||''));
+      if(c.length===1)return c[0];
+    }
+    const joined=normalize(set.map(x=>x.str||'').join(' '));
+    const c=findCandidates(joined);
+    if(c.length===1)return c[0];
+  }
+  return null;
 }
-function norm(s){return s.toUpperCase().replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim()}
-function limpiar(s){return s.toUpperCase().replace(/\s+/g,'').replace(/[.,;:]+$/g,'')}
-function fila(r){
-  const tr=document.createElement('tr');const ok=r.tipo==='detectada';
-  tr.innerHTML=`<td>Trabajo ${r.trabajo}</td><td>${r.pagina}</td><td class="${ok?'ok':'rev'}">${ok?'DETECTADA':'PENDIENTE OCR'}</td><td>${esc(r.valor)}</td>`;
-  document.getElementById('tabla').appendChild(tr);
+
+function findCandidates(text){
+  const out=[];
+  const matches=text.match(GR_REGEX)||[];
+  for(const m of matches){
+    const g=m.toUpperCase().replace(/\s+/g,'');
+    if(!out.includes(g))out.push(g);
+  }
+  return out;
 }
-function limpiar(){document.getElementById('tabla').innerHTML='';document.getElementById('panel').style.display='block';['mPag','mDet','mOcr','mErr'].forEach(id=>document.getElementById(id).textContent='0')}
-function actualizarMetricas(){document.getElementById('mPag').textContent=resultados.length;document.getElementById('mDet').textContent=resultados.filter(r=>r.tipo==='detectada').length;document.getElementById('mOcr').textContent=resultados.filter(r=>r.tipo==='ocr').length;document.getElementById('mErr').textContent='0'}
-function estado(id,txt,cl){const e=document.getElementById(`es-${id}`);e.textContent=txt;e.className=`estado ${cl}`}
-function alternarPausa(){if(!colaActiva)return;pausado=!pausado;document.getElementById('btnPausa').textContent=pausado?'CONTINUAR':'PAUSAR';document.getElementById('cola').textContent=pausado?'Pausada':'Procesando'}
-function cancelarCola(){if(!colaActiva)return;cancelar=true;pausado=false;document.getElementById('cola').textContent='Cancelando...'}
-async function esperaPausa(){while(pausado&&!cancelar)await new Promise(r=>setTimeout(r,200))}
-function bloquear(x){document.getElementById('btnIniciar').disabled=x;document.getElementById('btnPausa').disabled=!x;document.getElementById('btnCancelar').disabled=!x;document.querySelectorAll('.eliminar,.secundario,select').forEach(e=>e.disabled=x)}
-function tam(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+async function detectByOCR(page){
+  const worker=await getOCRWorker();
+
+  // Render 300 DPI para reconocimiento, independientemente del DPI de salida.
+  const scale=300/72;
+  const viewport=page.getViewport({scale});
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width); full.height=Math.ceil(viewport.height);
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
+
+  // Misma zona conceptual del Python: derecha 45%, cuarto superior.
+  const sx=Math.floor(full.width*.50), sy=0;
+  const sw=full.width-sx, sh=Math.floor(full.height*.30);
+  const crop=document.createElement('canvas');
+  crop.width=sw; crop.height=sh;
+  const cctx=crop.getContext('2d',{willReadFrequently:true});
+  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+  // Primera lectura.
+  let r=await worker.recognize(crop);
+  let candidates=findCandidates(normalize(r.data.text||''));
+  if(candidates.length===1 && (r.data.confidence||0)>=45)return candidates[0];
+
+  // Segunda lectura con escala de grises y contraste para casos difíciles.
+  const img=cctx.getImageData(0,0,sw,sh);
+  const d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    const v=gray>180?255:gray<90?0:Math.max(0,Math.min(255,(gray-128)*1.7+128));
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  cctx.putImageData(img,0,0);
+  r=await worker.recognize(crop);
+  candidates=findCandidates(normalize(r.data.text||''));
+
+  if(candidates.length===1 && (r.data.confidence||0)>=35)return candidates[0];
+  return null;
+}
+
+async function getOCRWorker(){
+  if(ocrWorker)return ocrWorker;
+  setQueueText('Inicializando OCR...');
+  ocrWorker=await Tesseract.createWorker('eng',1,{
+    logger:m=>{
+      if(m.status==='recognizing text'){
+        const p=Math.round((m.progress||0)*100);
+        setQueueText(`OCR ${p}%`);
+      }
+    }
+  });
+  await ocrWorker.setParameters({
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+    preserve_interword_spaces:'1'
+  });
+  setQueueText('Procesando');
+  return ocrWorker;
+}
+
+async function terminateOCR(){
+  if(ocrWorker){try{await ocrWorker.terminate()}catch(e){} ocrWorker=null}
+}
+
+async function buildPdfFromRefs(refs,dpi){
+  // Se rasteriza a DPI solicitado para conservar la función del programa actual.
+  const out=await PDFLib.PDFDocument.create();
+
+  for(const ref of refs){
+    const bytes=new Uint8Array(await ref.file.arrayBuffer());
+    const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
+    const page=await pdf.getPage(ref.pageNumber);
+    const viewport=page.getViewport({scale:dpi/72});
+
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.ceil(viewport.width); canvas.height=Math.ceil(viewport.height);
+    const ctx=canvas.getContext('2d');
+    await page.render({canvasContext:ctx,viewport}).promise;
+
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',.70));
+    const jpgBytes=new Uint8Array(await blob.arrayBuffer());
+    const img=await out.embedJpg(jpgBytes);
+
+    // Tamaño físico original en puntos; la imagen contiene la resolución DPI elegida.
+    const base=page.getViewport({scale:1});
+    const op=out.addPage([base.width,base.height]);
+    op.drawImage(img,{x:0,y:0,width:base.width,height:base.height});
+  }
+  return await out.save();
+}
+
+async function writeFile(folder,name,bytes){
+  let finalName=name, n=2;
+  while(await fileExists(folder,finalName)){
+    const dot=name.toLowerCase().lastIndexOf('.pdf');
+    const base=dot>=0?name.slice(0,dot):name;
+    finalName=`${base}_${n++}.pdf`;
+  }
+  const h=await folder.getFileHandle(finalName,{create:true});
+  const w=await h.createWritable();
+  await w.write(bytes); await w.close();
+}
+
+async function fileExists(folder,name){
+  try{await folder.getFileHandle(name);return true}catch(e){return false}
+}
+
+function setJobStatus(id,text,cls){
+  const el=document.getElementById(`status-${id}`); el.textContent=text; el.className=`status ${cls}`;
+}
+
+function setQueueUI(running){
+  document.getElementById('btnAdd').disabled=running;
+  document.getElementById('btnStart').disabled=running;
+  document.getElementById('btnPause').disabled=!running;
+  document.getElementById('btnCancel').disabled=!running;
+  document.querySelectorAll('.job button,.job input,.job select').forEach(x=>x.disabled=running);
+}
+
+function togglePause(){
+  if(!queueRunning)return;
+  paused=!paused;
+  document.getElementById('btnPause').textContent=paused?'CONTINUAR':'PAUSAR';
+  setQueueText(paused?'Pausada':'Procesando');
+}
+function cancelQueue(){if(queueRunning){cancelRequested=true;paused=false;setQueueText('Cancelando...')}}
+async function waitIfPaused(){while(paused&&!cancelRequested)await new Promise(r=>setTimeout(r,200))}
+function setQueueText(t){document.getElementById('mQueue').textContent=t}
+function yieldUI(){return new Promise(r=>setTimeout(r,0))}
+
+function addResultRow(route,file,page,status,detail,cls){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${esc(route)}</td><td>${esc(file)}</td><td>${page||'-'}</td><td class="${cls}">${esc(status)}</td><td>${esc(detail)}</td>`;
+  document.getElementById('resultRows').appendChild(tr);
+}
+function updateResultStats(){
+  document.getElementById('rGR').textContent=resultStats.gr;
+  document.getElementById('rOK').textContent=resultStats.ok;
+  document.getElementById('rVerify').textContent=resultStats.verify;
+  document.getElementById('rErrors').textContent=resultStats.errors;
+}
+function normalize(s){return String(s).toUpperCase().replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim()}
+function safeName(s){return s.replace(/[<>:"/\\|?*\x00-\x1F]/g,'_').trim()}
+function fmtSize(b){if(b<1024)return `${b} B`;if(b<1048576)return `${(b/1024).toFixed(1)} KB`;return `${(b/1048576).toFixed(1)} MB`}
 function esc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
-agregarTrabajo();
+
+addJob();
 </script>
-</body></html>
+</body>
+</html>
