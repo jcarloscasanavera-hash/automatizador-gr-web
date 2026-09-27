@@ -47,7 +47,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted">Procesamiento local · múltiples PDF por ruta · consolidación de GR · OCR de respaldo</div>
+  <div class="muted">Procesamiento local · múltiples PDF por ruta · consolidación de GR · OCR 4 métodos (consenso 3/4)</div>
 </div>
 
 <div class="toolbar">
@@ -361,45 +361,128 @@ function findCandidates(text){
   return out;
 }
 
+
 async function detectByOCR(page){
   const worker=await getOCRWorker();
 
-  // Render 300 DPI para reconocimiento, independientemente del DPI de salida.
+  // Render base a 300 DPI para reconocimiento.
   const scale=300/72;
   const viewport=page.getViewport({scale});
   const full=document.createElement('canvas');
-  full.width=Math.ceil(viewport.width); full.height=Math.ceil(viewport.height);
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
   const ctx=full.getContext('2d',{willReadFrequently:true});
   await page.render({canvasContext:ctx,viewport}).promise;
 
-  // Misma zona conceptual del Python: derecha 45%, cuarto superior.
-  const sx=Math.floor(full.width*.50), sy=0;
-  const sw=full.width-sx, sh=Math.floor(full.height*.30);
-  const crop=document.createElement('canvas');
-  crop.width=sw; crop.height=sh;
-  const cctx=crop.getContext('2d',{willReadFrequently:true});
-  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+  // Cuatro métodos independientes.
+  const methods=[];
 
-  // Primera lectura.
-  let r=await worker.recognize(crop);
-  let candidates=findCandidates(normalize(r.data.text||''));
-  if(candidates.length===1 && (r.data.confidence||0)>=45)return candidates[0];
+  // M1: recorte estándar, equivalente al sistema actual.
+  methods.push({
+    x:.50, y:0, w:.50, h:.30,
+    preprocess:'none'
+  });
 
-  // Segunda lectura con escala de grises y contraste para casos difíciles.
-  const img=cctx.getImageData(0,0,sw,sh);
-  const d=img.data;
-  for(let i=0;i<d.length;i+=4){
-    const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
-    const v=gray>180?255:gray<90?0:Math.max(0,Math.min(255,(gray-128)*1.7+128));
-    d[i]=d[i+1]=d[i+2]=v;
+  // M2: recorte ampliado hacia la izquierda y abajo.
+  methods.push({
+    x:.42, y:0, w:.58, h:.36,
+    preprocess:'none'
+  });
+
+  // M3: mismo recorte ampliado + grises/contraste.
+  methods.push({
+    x:.42, y:0, w:.58, h:.36,
+    preprocess:'contrast'
+  });
+
+  // M4: recorte aún más amplio + binarización fuerte.
+  methods.push({
+    x:.35, y:0, w:.65, h:.40,
+    preprocess:'threshold'
+  });
+
+  const readings=[];
+
+  for(let i=0;i<methods.length;i++){
+    const m=methods[i];
+
+    const sx=Math.floor(full.width*m.x);
+    const sy=Math.floor(full.height*m.y);
+    const sw=Math.max(1,Math.floor(full.width*m.w));
+    const sh=Math.max(1,Math.floor(full.height*m.h));
+
+    const crop=document.createElement('canvas');
+    crop.width=sw;
+    crop.height=sh;
+    const cctx=crop.getContext('2d',{willReadFrequently:true});
+    cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+    if(m.preprocess!=='none'){
+      const img=cctx.getImageData(0,0,sw,sh);
+      const d=img.data;
+
+      for(let p=0;p<d.length;p+=4){
+        const gray=.299*d[p]+.587*d[p+1]+.114*d[p+2];
+        let v=gray;
+
+        if(m.preprocess==='contrast'){
+          v=Math.max(0,Math.min(255,(gray-128)*1.8+128));
+        }else if(m.preprocess==='threshold'){
+          v=gray>165?255:0;
+        }
+
+        d[p]=d[p+1]=d[p+2]=v;
+      }
+      cctx.putImageData(img,0,0);
+    }
+
+    const r=await worker.recognize(crop);
+    const candidates=findCandidates(normalize(r.data.text||''));
+
+    // Un método solo "vota" si encontró un único candidato.
+    if(candidates.length===1){
+      readings.push({
+        method:i+1,
+        gr:candidates[0],
+        confidence:r.data.confidence||0
+      });
+    }else{
+      readings.push({
+        method:i+1,
+        gr:null,
+        confidence:r.data.confidence||0
+      });
+    }
+
+    await yieldUI();
   }
-  cctx.putImageData(img,0,0);
-  r=await worker.recognize(crop);
-  candidates=findCandidates(normalize(r.data.text||''));
 
-  if(candidates.length===1 && (r.data.confidence||0)>=35)return candidates[0];
+  // Conteo de votos.
+  const votes=new Map();
+  for(const r of readings){
+    if(!r.gr) continue;
+    votes.set(r.gr,(votes.get(r.gr)||0)+1);
+  }
+
+  let winner=null;
+  let winnerVotes=0;
+
+  for(const [gr,count] of votes.entries()){
+    if(count>winnerVotes){
+      winner=gr;
+      winnerVotes=count;
+    }
+  }
+
+  // Regla canónica: mínimo 3 de 4 coincidencias.
+  if(winner && winnerVotes>=3){
+    return winner;
+  }
+
+  // Si no hay consenso 3/4, se manda a VERIFICAR.
   return null;
 }
+
 
 async function getOCRWorker(){
   if(ocrWorker)return ocrWorker;
