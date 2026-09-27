@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Automatizador GR Web</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #202124;
+    }
+
+    .contenedor {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .cabecera {
+      background: white;
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .cabecera h1 {
+      margin: 0 0 6px 0;
+      font-size: 26px;
+    }
+
+    .cabecera p {
+      margin: 0;
+      color: #5f6368;
+    }
+
+    .barra {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    button:hover {
+      filter: brightness(.96);
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn-principal {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .btn-secundario {
+      background: white;
+      color: #1a73e8;
+      border: 1px solid #dadce0;
+    }
+
+    .btn-eliminar {
+      background: #fce8e6;
+      color: #b3261e;
+    }
+
+    .btn-iniciar {
+      background: #188038;
+      color: white;
+    }
+
+    .trabajo {
+      background: white;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      border: 1px solid #dadce0;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+
+    .trabajo-cabecera {
+      padding: 11px 16px;
+      background: #eef3f8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trabajo-titulo {
+      font-weight: bold;
+    }
+
+    .trabajo-cuerpo {
+      display: grid;
+      grid-template-columns: 2fr 2fr 120px 130px;
+      gap: 14px;
+      padding: 16px;
+      align-items: end;
+    }
+
+    .campo label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #5f6368;
+    }
+
+    .selector {
+      display: flex;
+      gap: 7px;
+    }
+
+    .valor {
+      flex: 1;
+      min-height: 39px;
+      padding: 9px 10px;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      background: #fafafa;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    select {
+      width: 100%;
+      height: 39px;
+      padding: 7px;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .estado {
+      height: 39px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: #f1f3f4;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .estado-listo {
+      background: #e6f4ea;
+      color: #137333;
+    }
+
+    .estado-incompleto {
+      background: #fef7e0;
+      color: #b06000;
+    }
+
+    .resumen {
+      background: white;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 18px;
+      border: 1px solid #dadce0;
+    }
+
+    .aviso {
+      margin-top: 16px;
+      padding: 12px 15px;
+      background: #e8f0fe;
+      border-radius: 7px;
+      color: #174ea6;
+      font-size: 13px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .trabajo-cuerpo {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <div class="cabecera">
+    <h1>AUTOMATIZADOR GR WEB</h1>
+    <p>Procesamiento local de PDF · Cola independiente de trabajos</p>
+  </div>
+
+  <div class="barra">
+
+    <button
+      class="btn-principal"
+      onclick="agregarTrabajo()">
+      + AGREGAR TRABAJO
+    </button>
+
+    <button
+      id="btnIniciar"
+      class="btn-iniciar"
+      onclick="validarCola()">
+      INICIAR COLA
+    </button>
+
+  </div>
+
+  <div id="listaTrabajos"></div>
+
+  <div class="resumen">
+
+    <strong>Resumen</strong>
+
+    <div style="margin-top:10px">
+      Trabajos configurados:
+      <span id="totalTrabajos">0</span>
+    </div>
+
+    <div>
+      Trabajos listos:
+      <span id="trabajosListos">0</span>
+    </div>
+
+  </div>
+
+  <div class="aviso">
+    En esta etapa los archivos permanecen en tu computadora.
+    No se están enviando a Google Drive.
+  </div>
+
+</div>
+
+<script>
+
+  let contadorTrabajos = 0;
+
+  const trabajos = new Map();
+
+
+  function agregarTrabajo() {
+
+    contadorTrabajos++;
+
+    const id = contadorTrabajos;
+
+    trabajos.set(id, {
+      id: id,
+      archivo: null,
+      carpeta: null,
+      dpi: 200,
+      estado: 'Incompleto'
+    });
+
+    const contenedor = document.getElementById('listaTrabajos');
+
+    const tarjeta = document.createElement('div');
+
+    tarjeta.className = 'trabajo';
+    tarjeta.id = `trabajo-${id}`;
+
+    tarjeta.innerHTML = `
+
+      <div class="trabajo-cabecera">
+
+        <div class="trabajo-titulo">
+          TRABAJO ${id}
+        </div>
+
+        <button
+          class="btn-eliminar"
+          onclick="eliminarTrabajo(${id})">
+          ELIMINAR
+        </button>
+
+      </div>
+
+      <div class="trabajo-cuerpo">
+
+        <div class="campo">
+
+          <label>ARCHIVO ORIGEN</label>
+
+          <div class="selector">
+
+            <div
+              class="valor"
+              id="archivoNombre-${id}">
+              Ningún archivo seleccionado
+            </div>
+
+            <button
+              class="btn-secundario"
+              onclick="document.getElementById('archivo-${id}').click()">
+              SELECCIONAR
+            </button>
+
+            <input
+              type="file"
+              id="archivo-${id}"
+              accept="application/pdf,.pdf"
+              onchange="seleccionarArchivo(${id}, this.files)">
+
+          </div>
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>CARPETA DESTINO</label>
+
+          <div class="selector">
+
+            <div
+              class="valor"
+              id="carpetaNombre-${id}">
+              Ninguna carpeta seleccionada
+            </div>
+
+            <button
+              class="btn-secundario"
+              onclick="seleccionarCarpeta(${id})">
+              SELECCIONAR
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>DPI SALIDA</label>
+
+          <select
+            id="dpi-${id}"
+            onchange="cambiarDpi(${id}, this.value)">
+
+            <option value="150">
+              150
+            </option>
+
+            <option value="200" selected>
+              200
+            </option>
+
+            <option value="300">
+              300
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>ESTADO</label>
+
+          <div
+            class="estado estado-incompleto"
+            id="estado-${id}">
+            INCOMPLETO
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    contenedor.appendChild(tarjeta);
+
+    actualizarResumen();
+  }
+
+
+  function seleccionarArchivo(id, files) {
+
+    if (!files || !files.length) {
+      return;
+    }
+
+    const archivo = files[0];
+
+    if (
+      archivo.type !== 'application/pdf' &&
+      !archivo.name.toLowerCase().endsWith('.pdf')
+    ) {
+
+      alert('Debes seleccionar un archivo PDF.');
+
+      return;
+    }
+
+    const trabajo = trabajos.get(id);
+
+    trabajo.archivo = archivo;
+
+    document.getElementById(
+      `archivoNombre-${id}`
+    ).textContent =
+      `${archivo.name} · ${formatearTamano(archivo.size)}`;
+
+    revisarEstado(id);
+  }
+
+
+  async function seleccionarCarpeta(id) {
+
+    if (!('showDirectoryPicker' in window)) {
+
+      alert(
+        'Este navegador no permite seleccionar carpetas directamente desde esta aplicación. ' +
+        'No significa que el proyecto haya fallado; utilizaremos una alternativa compatible.'
+      );
+
+      return;
+    }
+
+    try {
+
+      const carpeta =
+        await window.showDirectoryPicker({
+          mode: 'readwrite'
+        });
+
+      const trabajo = trabajos.get(id);
+
+      trabajo.carpeta = carpeta;
+
+      document.getElementById(
+        `carpetaNombre-${id}`
+      ).textContent = carpeta.name;
+
+      revisarEstado(id);
+
+    }
+    catch (error) {
+
+      if (error.name !== 'AbortError') {
+
+        console.error(error);
+
+        alert(
+          'No se pudo acceder a la carpeta seleccionada.'
+        );
+      }
+    }
+  }
+
+
+  function cambiarDpi(id, valor) {
+
+    const trabajo = trabajos.get(id);
+
+    trabajo.dpi = Number(valor);
+
+    revisarEstado(id);
+  }
+
+
+  function revisarEstado(id) {
+
+    const trabajo = trabajos.get(id);
+
+    const elementoEstado =
+      document.getElementById(`estado-${id}`);
+
+    if (
+      trabajo.archivo &&
+      trabajo.carpeta &&
+      trabajo.dpi
+    ) {
+
+      trabajo.estado = 'Listo';
+
+      elementoEstado.textContent = 'LISTO';
+
+      elementoEstado.className =
+        'estado estado-listo';
+
+    }
+    else {
+
+      trabajo.estado = 'Incompleto';
+
+      elementoEstado.textContent =
+        'INCOMPLETO';
+
+      elementoEstado.className =
+        'estado estado-incompleto';
+    }
+
+    actualizarResumen();
+  }
+
+
+  function eliminarTrabajo(id) {
+
+    trabajos.delete(id);
+
+    const tarjeta =
+      document.getElementById(`trabajo-${id}`);
+
+    if (tarjeta) {
+      tarjeta.remove();
+    }
+
+    actualizarResumen();
+  }
+
+
+  function actualizarResumen() {
+
+    let listos = 0;
+
+    trabajos.forEach(trabajo => {
+
+      if (trabajo.estado === 'Listo') {
+        listos++;
+      }
+
+    });
+
+    document.getElementById(
+      'totalTrabajos'
+    ).textContent = trabajos.size;
+
+    document.getElementById(
+      'trabajosListos'
+    ).textContent = listos;
+  }
+
+
+  function validarCola() {
+
+    if (trabajos.size === 0) {
+
+      alert(
+        'Primero debes agregar al menos un trabajo.'
+      );
+
+      return;
+    }
+
+    const lista =
+      Array.from(trabajos.values());
+
+    const incompletos =
+      lista.filter(
+        trabajo => trabajo.estado !== 'Listo'
+      );
+
+    if (incompletos.length > 0) {
+
+      alert(
+        `Hay ${incompletos.length} trabajo(s) incompleto(s). ` +
+        'Selecciona el archivo origen, la carpeta destino y el DPI.'
+      );
+
+      return;
+    }
+
+    alert(
+      `Perfecto. Hay ${lista.length} trabajo(s) listos para procesar.\n\n` +
+      'En la siguiente etapa conectaremos el motor PDF y OCR.'
+    );
+  }
+
+
+  function formatearTamano(bytes) {
+
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(
+      bytes / (1024 * 1024)
+    ).toFixed(1)} MB`;
+  }
+
+
+  agregarTrabajo();
+
+</script>
+
+</body>
+</html>
