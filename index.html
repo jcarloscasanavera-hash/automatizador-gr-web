@@ -348,6 +348,31 @@ th{background:#f1f3f4}
 }
 @media(max-width:650px){.auditTiming{grid-template-columns:1fr}}
 
+
+/* V1.9: selector múltiple y rutas opcionales */
+.folderDropZone{
+  margin-top:12px;
+  min-height:84px;
+  border:2px dashed #9aa0a6;
+  border-radius:9px;
+  background:#f8f9fa;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  color:#3c4043;
+  cursor:default;
+  transition:.15s ease;
+}
+.folderDropZone.dragover{
+  border-color:#1a73e8;
+  background:#e8f0fe;
+}
+.folderDropZone span{font-size:12px;color:#5f6368}
+.folderPathInput.optional{border-color:#cfd5dc;background:#fff}
+.folderPathNote{font-size:11px;color:#5f6368;margin-top:3px}
+
 </style>
 </head>
 
@@ -356,9 +381,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.8 · AUDITORÍA MULTICARPETA + EXCEL + TIEMPOS</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.9 · MULTICARPETA CORREGIDA + EXCEL + TIEMPOS</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · multicarpeta · rutas completas · Excel · tiempos · auditoría robusta
+    V1.3 estable separada · selección múltiple · arrastrar carpetas · rutas opcionales · Excel · tiempos · auditoría robusta
   </div>
 </div>
 
@@ -447,7 +472,7 @@ th{background:#f1f3f4}
           <div id="auditFolderName" class="filelist" title="">Ninguna carpeta seleccionada</div>
           <button class="light" onclick="openAuditFolderManager()">GESTIONAR CARPETAS</button>
         </div>
-        <div class="small muted" style="margin-top:4px">Puedes agregar carpetas de unidades y ubicaciones distintas. Cada carpeta requiere su ruta completa real de Windows.</div>
+        <div class="small muted" style="margin-top:4px">Puedes agregar una o varias carpetas, incluso de ubicaciones distintas. La ruta completa de Windows es opcional y solo mejora el reporte.</div>
       </div>
       <div>
         <label>ESTADO</label>
@@ -517,7 +542,7 @@ th{background:#f1f3f4}
     <div class="folderManagerHead">
       <div>
         <strong>CARPETAS A AUDITAR</strong>
-        <div class="small muted">Agrega una o más carpetas. Para garantizar rutas completas en el reporte, registra la ruta real de Windows de cada una.</div>
+        <div class="small muted">Selecciona una o varias carpetas. También puedes arrastrar varias carpetas juntas desde el Explorador de Windows. La ruta completa es opcional.</div>
       </div>
       <button class="light" onclick="closeAuditFolderManager()">CERRAR</button>
     </div>
@@ -526,10 +551,21 @@ th{background:#f1f3f4}
       <div class="folderEmpty">Todavía no hay carpetas seleccionadas.</div>
     </div>
 
+    <input id="auditMultiFolderPicker" type="file" webkitdirectory directory multiple
+           style="display:none" onchange="addAuditFoldersFromPicker(event)">
+    <div id="auditFolderDropZone" class="folderDropZone"
+         ondragover="auditFolderDragOver(event)"
+         ondragleave="auditFolderDragLeave(event)"
+         ondrop="auditFolderDrop(event)">
+      <strong>ARRASTRA UNA O VARIAS CARPETAS AQUÍ</strong>
+      <span>o usa el botón para seleccionarlas</span>
+    </div>
+
     <div class="folderManagerFoot">
-      <div>
-        <button class="primary" onclick="addAuditFolder()">+ AGREGAR CARPETA</button>
-        <span id="auditFolderValidation" class="small muted" style="margin-left:8px"></span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="primary" onclick="openMultiAuditFolderPicker()">+ SELECCIONAR UNA O MÁS CARPETAS</button>
+        <button class="light" onclick="addAuditFolder()">+ AGREGAR 1 CARPETA</button>
+        <span id="auditFolderValidation" class="small muted"></span>
       </div>
       <button class="green" onclick="closeAuditFolderManager()">LISTO</button>
     </div>
@@ -1875,12 +1911,212 @@ async function ensureReadPermission(h){
 }
 
 async function isAuditFolderDuplicate(handle){
+  if(!handle)return false;
   for(const f of historicalAuditFolders){
+    if(!f.handle)continue;
     try{
       if(handle.isSameEntry && await handle.isSameEntry(f.handle))return true;
     }catch(e){}
   }
   return false;
+}
+
+
+function openMultiAuditFolderPicker(){
+  if(historicalAuditRunning)return;
+  const input=document.getElementById('auditMultiFolderPicker');
+  if(!input)return;
+  input.value='';
+  input.click();
+}
+
+function makeAuditFileHandle(file){
+  return {
+    kind:'file',
+    name:file.name,
+    async getFile(){ return file; }
+  };
+}
+
+function addPreloadedAuditFolder(name, entries, source='picker'){
+  historicalAuditFolders.push({
+    id:++historicalAuditFolderSeq,
+    handle:null,
+    name:name||'Carpeta',
+    basePath:'',
+    preloadedEntries:entries||[],
+    source
+  });
+}
+
+async function addAuditFoldersFromPicker(event){
+  if(historicalAuditRunning)return;
+
+  const files=Array.from(event?.target?.files||[]);
+  if(!files.length)return;
+
+  const groups=new Map();
+
+  for(const file of files){
+    const relRaw=String(file.webkitRelativePath||file.name||'').replace(/\//g,'\\');
+    const parts=relRaw.split('\\').filter(Boolean);
+    const root=parts.length>1 ? parts.shift() : 'Selección';
+    const relativePath=parts.length ? parts.join('\\') : file.name;
+
+    if(!groups.has(root))groups.set(root,[]);
+    if(file.name.toLowerCase().endsWith('.pdf')){
+      groups.get(root).push({
+        handle:makeAuditFileHandle(file),
+        parentHandle:null,
+        name:file.name,
+        relativePath,
+        auditFolderId:null,
+        auditFolderName:root,
+        auditRootPath:''
+      });
+    }
+  }
+
+  let added=0;
+  for(const [root,entries] of groups.entries()){
+    addPreloadedAuditFolder(root,entries,'picker');
+    added++;
+  }
+
+  logEvent(`Selección múltiple: ${added} carpeta(s) agregada(s)`,'info');
+  renderAuditFolderManager();
+  updateAuditFolderSummary();
+}
+
+function auditFolderDragOver(event){
+  event.preventDefault();
+  event.dataTransfer.dropEffect='copy';
+  document.getElementById('auditFolderDropZone')?.classList.add('dragover');
+}
+
+function auditFolderDragLeave(event){
+  event.preventDefault();
+  document.getElementById('auditFolderDropZone')?.classList.remove('dragover');
+}
+
+function readLegacyFileEntry(entry){
+  return new Promise((resolve,reject)=>entry.file(resolve,reject));
+}
+
+function readLegacyDirectoryBatch(reader){
+  return new Promise((resolve,reject)=>reader.readEntries(resolve,reject));
+}
+
+async function legacyDirectoryToEntries(dirEntry,rootName,prefix=''){
+  const out=[];
+  const reader=dirEntry.createReader();
+  let children=[];
+
+  while(true){
+    const batch=await readLegacyDirectoryBatch(reader);
+    if(!batch.length)break;
+    children.push(...batch);
+  }
+
+  for(const child of children){
+    const rel=prefix ? `${prefix}\\${child.name}` : child.name;
+
+    if(child.isFile){
+      if(child.name.toLowerCase().endsWith('.pdf')){
+        const file=await readLegacyFileEntry(child);
+        out.push({
+          handle:makeAuditFileHandle(file),
+          parentHandle:null,
+          name:file.name,
+          relativePath:rel,
+          auditFolderId:null,
+          auditFolderName:rootName,
+          auditRootPath:''
+        });
+      }
+    }else if(child.isDirectory){
+      out.push(...await legacyDirectoryToEntries(child,rootName,rel));
+    }
+  }
+
+  return out;
+}
+
+async function addDroppedDirectoryHandle(handle){
+  if(await isAuditFolderDuplicate(handle))return false;
+
+  historicalAuditFolders.push({
+    id:++historicalAuditFolderSeq,
+    handle,
+    name:handle.name,
+    basePath:'',
+    preloadedEntries:null,
+    source:'drop'
+  });
+  return true;
+}
+
+async function auditFolderDrop(event){
+  event.preventDefault();
+  document.getElementById('auditFolderDropZone')?.classList.remove('dragover');
+  if(historicalAuditRunning)return;
+
+  const items=Array.from(event.dataTransfer?.items||[]);
+  if(!items.length)return;
+
+  let added=0;
+
+  for(const item of items){
+    if(item.kind!=='file')continue;
+
+    try{
+      if(typeof item.getAsFileSystemHandle==='function'){
+        const handle=await item.getAsFileSystemHandle();
+        if(handle?.kind==='directory'){
+          const ok=await addDroppedDirectoryHandle(handle);
+          if(ok)added++;
+          continue;
+        }
+      }
+    }catch(e){}
+
+    try{
+      const entry=item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+      if(entry?.isDirectory){
+        const entries=await legacyDirectoryToEntries(entry,entry.name,'');
+        addPreloadedAuditFolder(entry.name,entries,'drop-legacy');
+        added++;
+      }
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  if(!added){
+    alert('No se detectaron carpetas. Arrastra una o varias carpetas directamente desde el Explorador de Windows.');
+    return;
+  }
+
+  logEvent(`Arrastre múltiple: ${added} carpeta(s) agregada(s)`,'info');
+  renderAuditFolderManager();
+  updateAuditFolderSummary();
+}
+
+async function collectAuditFolderFiles(folderRecord){
+  if(Array.isArray(folderRecord.preloadedEntries)){
+    return folderRecord.preloadedEntries.map(entry=>({
+      ...entry,
+      auditFolderId:folderRecord.id,
+      auditFolderName:folderRecord.name,
+      auditRootPath:(folderRecord.basePath||'').replace(/[\\\/]+$/,'')
+    }));
+  }
+
+  if(folderRecord.handle){
+    return await collectPdfHandles(folderRecord.handle,'',folderRecord);
+  }
+
+  return [];
 }
 
 async function addAuditFolder(){
@@ -1908,7 +2144,9 @@ async function addAuditFolder(){
       id:++historicalAuditFolderSeq,
       handle,
       name:handle.name,
-      basePath:''
+      basePath:'',
+      preloadedEntries:null,
+      source:'single'
     });
 
     logEvent(`Carpeta agregada para auditoría: ${handle.name}`,'info');
@@ -1962,21 +2200,24 @@ function renderAuditFolderManager(refocus=true){
 
     const pathWrap=document.createElement('div');
     const lab=document.createElement('label');
-    lab.textContent='RUTA COMPLETA REAL DE WINDOWS';
+    lab.textContent='RUTA COMPLETA REAL DE WINDOWS (OPCIONAL)';
     const input=document.createElement('input');
     input.type='text';
-    input.className='folderPathInput'+(f.basePath?'':' missing');
+    input.className='folderPathInput optional';
     input.value=f.basePath;
-    input.placeholder=`Ej. D:\\TRABAJO\\28-09\\${f.name}`;
+    input.placeholder=`Opcional · Ej. D:\\TRABAJO\\28-09\\${f.name}`;
     input.dataset.folderId=String(f.id);
     input.addEventListener('input',ev=>{
       f.basePath=ev.target.value.trim().replace(/[\\\/]+$/,'');
-      ev.target.classList.toggle('missing',!f.basePath);
       updateAuditFolderSummary();
       updateFolderValidationText();
     });
     pathWrap.appendChild(lab);
     pathWrap.appendChild(input);
+    const note=document.createElement('div');
+    note.className='folderPathNote';
+    note.textContent='Opcional. Si la dejas vacía, la auditoría funciona y el reporte mostrará la ruta relativa disponible.';
+    pathWrap.appendChild(note);
 
     const del=document.createElement('button');
     del.className='danger';
@@ -1995,11 +2236,16 @@ function renderAuditFolderManager(refocus=true){
 function updateFolderValidationText(){
   const el=document.getElementById('auditFolderValidation');
   if(!el)return;
-  const missing=historicalAuditFolders.filter(f=>!f.basePath).length;
-  if(missing){
-    el.innerHTML=`<span class="pathRequired">Faltan ${missing} ruta(s) completa(s).</span>`;
+
+  const complete=historicalAuditFolders.filter(f=>f.basePath).length;
+  const pending=historicalAuditFolders.length-complete;
+
+  if(!historicalAuditFolders.length){
+    el.textContent='';
+  }else if(pending){
+    el.textContent=`${historicalAuditFolders.length} carpeta(s) · ${complete} con ruta completa · ${pending} sin ruta (permitido)`;
   }else{
-    el.textContent=`${historicalAuditFolders.length} carpeta(s) lista(s).`;
+    el.textContent=`${historicalAuditFolders.length} carpeta(s) · todas con ruta completa`;
   }
 }
 
@@ -2014,14 +2260,14 @@ function updateAuditFolderSummary(){
     return;
   }
 
-  const ready=historicalAuditFolders.filter(f=>f.basePath).length;
+  const complete=historicalAuditFolders.filter(f=>f.basePath).length;
   const names=historicalAuditFolders.map(f=>f.name).join(' · ');
-  el.textContent=`${historicalAuditFolders.length} carpeta(s) seleccionada(s) · ${ready}/${historicalAuditFolders.length} con ruta completa`;
+
+  el.textContent=`${historicalAuditFolders.length} carpeta(s) seleccionada(s) · ${complete} con ruta completa (opcional)`;
   el.title=names;
 
   if(!historicalAuditRunning){
-    setAuditStatus(ready===historicalAuditFolders.length?'LISTO':'FALTA RUTA','st-ready');
-    if(ready!==historicalAuditFolders.length)setAuditStatus('FALTA RUTA','st-wait');
+    setAuditStatus('LISTO','st-ready');
   }
 }
 
@@ -2681,13 +2927,6 @@ async function startHistoricalAudit(){
     return;
   }
 
-  const missingPaths=historicalAuditFolders.filter(f=>!String(f.basePath||'').trim());
-  if(missingPaths.length){
-    alert('Falta registrar la ruta completa real de Windows de una o más carpetas.');
-    openAuditFolderManager();
-    return;
-  }
-
   historicalAuditRunning=true;
   historicalAuditCancelRequested=false;
   historicalAuditItems=[];
@@ -2697,6 +2936,11 @@ async function startHistoricalAudit(){
   historicalAuditEndedAt=null;
   historicalAuditTotalPages=0;
   historicalAuditProcessedPages=0;
+
+  const foldersWithoutFullPath=historicalAuditFolders.filter(f=>!String(f.basePath||'').trim()).length;
+  if(foldersWithoutFullPath){
+    logEvent(`${foldersWithoutFullPath} carpeta(s) sin ruta absoluta de Windows; se usará ruta relativa en el reporte para esas carpetas.`,'warn');
+  }
 
   resetAuditReport();
 
@@ -2721,7 +2965,7 @@ async function startHistoricalAudit(){
     // Reunir todas las carpetas como una sola cola conservando su raíz real.
     for(const folder of historicalAuditFolders){
       if(historicalAuditCancelRequested)break;
-      const found=await collectPdfHandles(folder.handle,'',folder);
+      const found=await collectAuditFolderFiles(folder);
       files.push(...found);
       logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados`,'info');
     }
