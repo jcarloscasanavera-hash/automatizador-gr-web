@@ -350,6 +350,7 @@ th{background:#f1f3f4}
 
 
 /* V1.9: selector múltiple y rutas opcionales */
+/* V1.10: OCR adaptativo rápido + selector de carpeta honesto */
 .folderDropZone{
   margin-top:12px;
   min-height:84px;
@@ -381,9 +382,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.9 · MULTICARPETA CORREGIDA + EXCEL + TIEMPOS</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.10 · OCR ADAPTATIVO RÁPIDO + MULTICARPETA</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · selección múltiple · arrastrar carpetas · rutas opcionales · Excel · tiempos · auditoría robusta
+    V1.3 estable separada · OCR adaptativo 400→450→600 · arrastre múltiple real · Excel · tiempos · auditoría robusta
   </div>
 </div>
 
@@ -398,8 +399,8 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.8</strong>
-      <span>Procesamiento nuevo con verificaciones adicionales y cola de auditoría.</span>
+      <strong>NUEVA VERSIÓN V1.10</strong>
+      <span>Procesamiento nuevo; la auditoría histórica usa OCR adaptativo y refuerzo solo cuando hace falta.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
@@ -460,7 +461,7 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Compara el nombre de cada PDF con la GR de la esquina superior derecha usando lecturas independientes.</div>
+        <div class="muted">Compara el nombre de cada PDF con la GR de la esquina superior derecha. Usa una lectura rápida optimizada y refuerza solo los casos dudosos o discrepantes.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
@@ -542,7 +543,7 @@ th{background:#f1f3f4}
     <div class="folderManagerHead">
       <div>
         <strong>CARPETAS A AUDITAR</strong>
-        <div class="small muted">Selecciona una o varias carpetas. También puedes arrastrar varias carpetas juntas desde el Explorador de Windows. La ruta completa es opcional.</div>
+        <div class="small muted">El selector de Windows agrega una carpeta por vez. Para agregar varias carpetas de una sola vez, selecciónalas juntas en el Explorador de Windows y arrástralas al recuadro inferior. La ruta completa es opcional.</div>
       </div>
       <button class="light" onclick="closeAuditFolderManager()">CERRAR</button>
     </div>
@@ -558,13 +559,13 @@ th{background:#f1f3f4}
          ondragleave="auditFolderDragLeave(event)"
          ondrop="auditFolderDrop(event)">
       <strong>ARRASTRA UNA O VARIAS CARPETAS AQUÍ</strong>
-      <span>o usa el botón para seleccionarlas</span>
+      <span>Selecciona varias carpetas juntas en el Explorador de Windows y arrástralas aquí</span>
     </div>
 
     <div class="folderManagerFoot">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="primary" onclick="openMultiAuditFolderPicker()">+ SELECCIONAR UNA O MÁS CARPETAS</button>
-        <button class="light" onclick="addAuditFolder()">+ AGREGAR 1 CARPETA</button>
+        <button class="primary" onclick="addAuditFolder()">+ AGREGAR CARPETA</button>
+        <span class="small muted">El botón agrega una por vez · para varias simultáneas usa arrastrar y soltar.</span>
         <span id="auditFolderValidation" class="small muted"></span>
       </div>
       <button class="green" onclick="closeAuditFolderManager()">LISTO</button>
@@ -1855,7 +1856,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.8 · cola de auditoría habilitada','info');
+  logEvent('Modo NUEVA V1.10 · cola de auditoría habilitada','info');
 }
 
 function backToModes(){
@@ -2680,6 +2681,52 @@ function preprocessCrop(source,mode){
   const img=ctx.getImageData(0,0,c.width,c.height);
   const d=img.data;
 
+  // V1.10: primera lectura optimizada sin binarizar.
+  // Normaliza el rango tonal del escaneo y aplica un gamma suave.
+  // Es mucho más barato que ejecutar varias lecturas OCR completas.
+  if(mode==='optimized' || mode==='optimizedContrast'){
+    const hist=new Uint32Array(256);
+
+    for(let i=0;i<d.length;i+=4){
+      const gray=Math.max(0,Math.min(255,Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2])));
+      hist[gray]++;
+    }
+
+    const total=Math.max(1,d.length/4);
+    const lowTarget=total*.015;
+    const highTarget=total*.985;
+    let acc=0,low=0,high=255;
+
+    for(let v=0;v<256;v++){
+      acc+=hist[v];
+      if(acc>=lowTarget){ low=v; break; }
+    }
+
+    acc=0;
+    for(let v=0;v<256;v++){
+      acc+=hist[v];
+      if(acc>=highTarget){ high=v; break; }
+    }
+
+    if(high<=low+12){ low=0; high=255; }
+    const span=Math.max(1,high-low);
+
+    for(let i=0;i<d.length;i+=4){
+      const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+      let n=Math.max(0,Math.min(1,(gray-low)/span));
+      // Gamma < 1 aclara fondo sin destruir trazos oscuros.
+      let v=255*Math.pow(n,.92);
+      if(mode==='optimizedContrast'){
+        v=(v-128)*1.18+128;
+      }
+      v=Math.max(0,Math.min(255,v));
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+
+    ctx.putImageData(img,0,0);
+    return c;
+  }
+
   for(let i=0;i<d.length;i+=4){
     const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
     let v=gray;
@@ -2743,178 +2790,192 @@ function voteReadings(readings){
   return {best,bestVotes,total:readings.length,votes};
 }
 
-async function locateAuditBand(page,expected){
-  // Primera lectura: mismo principio exitoso de V1.3.
-  const crop300=await renderTopRightCrop(page,300);
-  const read300=await recognizeCrop(
-    preprocessCrop(crop300,'normal'),
-    '6',
-    expected
-  );
-
-  let reference=read300.value;
-  let bbox=findCandidateBBox(read300.data,reference);
-
-  const crop450=await renderTopRightCrop(page,450);
-
-  // Si 300 no localiza caja, intentamos localizarla a 450,
-  // siempre sobre el ROI completo y con PSM 6.
-  if(!reference || !bbox){
-    const locate450=await recognizeCrop(
-      preprocessCrop(crop450,'normal'),
-      '6',
-      expected
-    );
-
-    if(locate450.value){
-      reference=locate450.value;
-      const b450=findCandidateBBox(locate450.data,reference);
-
-      if(b450){
-        return {
-          crop300,
-          read300,
-          reference,
-          crop450,
-          band450:cropWideHorizontalBand(crop450,b450),
-          bboxSource:'450'
-        };
-      }
-    }
-  }
-
-  let bbox450=null;
-  if(bbox){
-    bbox450=scaleBBox(bbox,crop300,crop450);
-  }
-
+function decisiveVote(readings,minVotes=2){
+  const vote=voteReadings(readings);
+  const counts=[...vote.votes.entries()].sort((a,b)=>b[1]-a[1]);
+  const secondVotes=counts[1]?.[1]||0;
   return {
-    crop300,
-    read300,
-    reference,
-    crop450,
-    band450:cropWideHorizontalBand(crop450,bbox450),
-    bboxSource:bbox450?'300→450':'FALLBACK'
+    ...vote,
+    decisive:!!vote.best && vote.bestVotes>=minVotes && vote.bestVotes>secondVotes
   };
 }
 
 async function auditReadPageHighPrecision(page,expected=null){
-  const loc=await locateAuditBand(page,expected);
+  // ==========================================================
+  // V1.10 · OCR ADAPTATIVO
+  // 1) Una sola lectura optimizada a 400 DPI.
+  // 2) Si coincide con el nombre y tiene confianza suficiente: FIN.
+  // 3) Solo discrepancias/dudas suben a 450 DPI.
+  // 4) 600 DPI y binarización quedan como último recurso.
+  // ==========================================================
 
-  // 300 + dos lecturas de una franja horizontal amplia a 450 DPI.
+  const FAST_DPI=400;
+  const FAST_MIN_CONFIDENCE=50;
   const readings=[];
 
-  if(loc.read300.value){
-    readings.push({
-      name:'300-encabezado',
-      value:loc.read300.value,
-      candidates:loc.read300.candidates,
-      confidence:loc.read300.confidence
-    });
+  const crop400=await renderTopRightCrop(page,FAST_DPI);
+  const optimized400=preprocessCrop(crop400,'optimized');
+  const r400=await recognizeCrop(optimized400,'6',expected);
+
+  readings.push({name:'400-optimizado',...r400});
+
+  let preview=optimized400.toDataURL('image/jpeg',0.94);
+
+  // Ruta rápida: el nombre ya contiene una GR y la lectura completa coincide.
+  // No se hacen más OCR si la lectura es suficientemente clara.
+  if(
+    expected &&
+    r400.value &&
+    r400.value===expected &&
+    r400.confidence>=FAST_MIN_CONFIDENCE
+  ){
+    return {
+      fastValue:r400.value,
+      bestValue:r400.value,
+      suggestedValue:r400.value,
+      consensus:'1/1',
+      strongConsensus:true,
+      previewDataUrl:preview,
+      readings,
+      locator:'400-RÁPIDO',
+      strategy:'RÁPIDO'
+    };
   }
+
+  // Si la primera lectura discrepa, es incompleta o tiene poca confianza,
+  // reforzamos. Una discrepancia NUNCA se acepta por una sola lectura.
+  const bbox400=findCandidateBBox(r400.data,r400.value);
+  const crop450=await renderTopRightCrop(page,450);
+  const bbox450=bbox400 ? scaleBBox(bbox400,crop400,crop450) : null;
+  let band450=bbox450 ? cropWideHorizontalBand(crop450,bbox450) : crop450;
 
   const r450n=await recognizeCrop(
-    preprocessCrop(loc.band450,'normal'),
+    preprocessCrop(band450,'normal'),
     '6',
     expected
   );
-  readings.push({name:'450-franja-normal',...r450n});
+  readings.push({name:'450-normal',...r450n});
+
+  // Dos lecturas independientes coincidentes (400 optimizado + 450 normal)
+  // ya son suficientes si no existe otro candidato en conflicto.
+  let vote=decisiveVote(readings,2);
+  if(vote.decisive){
+    const value=vote.best;
+    return {
+      fastValue:r400.value||null,
+      bestValue:value,
+      suggestedValue:value,
+      consensus:`${vote.bestVotes}/${readings.length}`,
+      strongConsensus:true,
+      previewDataUrl:preprocessCrop(band450,'optimizedContrast').toDataURL('image/jpeg',0.94),
+      readings,
+      locator:bbox450?'400→450':'450-ROI',
+      strategy:'REFUERZO-450'
+    };
+  }
+
+  // Si la primera lectura no localizó la línea pero 450 sí, afinamos la banda.
+  if(!bbox450 && r450n.value){
+    const b450=findCandidateBBox(r450n.data,r450n.value);
+    if(b450)band450=cropWideHorizontalBand(crop450,b450);
+  }
 
   const r450c=await recognizeCrop(
-    preprocessCrop(loc.band450,'contrast'),
+    preprocessCrop(band450,'optimizedContrast'),
     '6',
     expected
   );
-  readings.push({name:'450-franja-contraste',...r450c});
+  readings.push({name:'450-contraste-optimizado',...r450c});
 
-  let vote=voteReadings(readings);
-
-  // Solo 3 votos coincidentes permiten terminar aquí.
-  let strong=!!vote.best && vote.bestVotes>=3;
-
-  let preview=preprocessCrop(loc.band450,'contrast')
-    .toDataURL('image/jpeg',0.95);
-
-  // Si no hay decisión fuerte, hacemos dos verificaciones a 600 DPI.
-  if(!strong){
-    const crop600=await renderTopRightCrop(page,600);
-
-    const bbox300=findCandidateBBox(loc.read300.data,loc.read300.value);
-    const bbox600=bbox300
-      ? scaleBBox(bbox300,loc.crop300,crop600)
-      : null;
-
-    const band600=cropWideHorizontalBand(crop600,bbox600);
-
-    const r600n=await recognizeCrop(
-      preprocessCrop(band600,'normal'),
-      '6',
-      expected
-    );
-    readings.push({name:'600-franja-normal',...r600n});
-
-    const r600c=await recognizeCrop(
-      preprocessCrop(band600,'contrast'),
-      '6',
-      expected
-    );
-    readings.push({name:'600-franja-contraste',...r600c});
-
-    vote=voteReadings(readings);
-    strong=!!vote.best && vote.bestVotes>=3;
-
-    // Una última variante solo si aún no existe consenso.
-    if(!strong){
-      const r600b=await recognizeCrop(
-        preprocessCrop(band600,'threshold'),
-        '6',
-        expected
-      );
-      readings.push({name:'600-franja-binario',...r600b});
-
-      vote=voteReadings(readings);
-
-      const counts=[...vote.votes.entries()]
-        .sort((a,b)=>b[1]-a[1]);
-
-      const secondVotes=counts[1]?.[1]||0;
-
-      strong=
-        !!vote.best &&
-        vote.bestVotes>=3 &&
-        secondVotes<2;
-    }
-
-    preview=preprocessCrop(band600,'contrast')
-      .toDataURL('image/jpeg',0.95);
+  vote=decisiveVote(readings,2);
+  if(vote.decisive){
+    const value=vote.best;
+    return {
+      fastValue:r400.value||null,
+      bestValue:value,
+      suggestedValue:value,
+      consensus:`${vote.bestVotes}/${readings.length}`,
+      strongConsensus:true,
+      previewDataUrl:preprocessCrop(band450,'optimizedContrast').toDataURL('image/jpeg',0.94),
+      readings,
+      locator:bbox450?'400→450':'450-ROI',
+      strategy:'REFUERZO-450'
+    };
   }
+
+  // Último nivel: 600 DPI. Solo llega aquí una minoría difícil.
+  const crop600=await renderTopRightCrop(page,600);
+
+  let refBBox=bbox400;
+  let refCanvas=crop400;
+  if(!refBBox && r450n.value){
+    refBBox=findCandidateBBox(r450n.data,r450n.value);
+    refCanvas=crop450;
+  }
+
+  const bbox600=refBBox ? scaleBBox(refBBox,refCanvas,crop600) : null;
+  let band600=bbox600 ? cropWideHorizontalBand(crop600,bbox600) : crop600;
+
+  const r600n=await recognizeCrop(
+    preprocessCrop(band600,'normal'),
+    '6',
+    expected
+  );
+  readings.push({name:'600-normal',...r600n});
+
+  vote=decisiveVote(readings,2);
+  if(!vote.decisive){
+    const r600c=await recognizeCrop(
+      preprocessCrop(band600,'optimizedContrast'),
+      '6',
+      expected
+    );
+    readings.push({name:'600-contraste-optimizado',...r600c});
+    vote=decisiveVote(readings,2);
+  }
+
+  // Binarización únicamente como último recurso.
+  if(!vote.decisive){
+    const r600b=await recognizeCrop(
+      preprocessCrop(band600,'threshold'),
+      '6',
+      expected
+    );
+    readings.push({name:'600-binario',...r600b});
+    vote=decisiveVote(readings,3);
+  }
+
+  preview=preprocessCrop(band600,'optimizedContrast')
+    .toDataURL('image/jpeg',0.94);
 
   const validValues=readings
     .map(r=>r.value)
     .filter(Boolean)
     .filter(v=>isCompleteGRForAudit(v,expected));
 
-  // Nunca proponemos fragmentos.
-  const suggested=strong
+  // Nunca proponemos fragmentos. Si no hay consenso fuerte,
+  // se conserva solo un candidato completo para revisión manual.
+  const suggested=vote.decisive
     ? vote.best
     : (
-        validValues.find(v=>v===loc.read300.value) ||
+        validValues.find(v=>v===r400.value) ||
         vote.best ||
-        loc.read300.value ||
+        r400.value ||
         null
       );
 
   return {
-    fastValue:loc.read300.value||null,
-    bestValue:strong?vote.best:null,
+    fastValue:r400.value||null,
+    bestValue:vote.decisive?vote.best:null,
     suggestedValue:suggested,
     consensus:vote.best
       ? `${vote.bestVotes}/${readings.length}`
       : `0/${readings.length}`,
-    strongConsensus:strong,
+    strongConsensus:vote.decisive,
     previewDataUrl:preview,
     readings,
-    locator:loc.bboxSource
+    locator:bbox600?'400/450→600':'600-ROI',
+    strategy:'REFUERZO-600'
   };
 }
 
@@ -3047,7 +3108,7 @@ async function startHistoricalAudit(){
           updateAuditTiming();
 
           logEvent(
-            `AUDIT ${fullAuditPath(entry)} · pág. ${pn} · nombre ${expected||'SIN GR'} · OCR300 ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · localización ${read.locator||'-'}`,
+            `AUDIT ${fullAuditPath(entry)} · pág. ${pn} · nombre ${expected||'SIN GR'} · OCR1 ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · estrategia ${read.strategy||'-'} · localización ${read.locator||'-'}`,
             read.strongConsensus?'info':'warn'
           );
         }
@@ -3542,7 +3603,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.8 multicarpeta, Excel y tiempos","ok");
+logEvent("Sistema listo · V1.10 OCR adaptativo rápido + multicarpeta","ok");
 addJob();
 </script>
 </body>
