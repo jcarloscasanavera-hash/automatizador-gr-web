@@ -308,9 +308,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.6 · AUDITORÍA DE PRECISIÓN CORREGIDA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.7 · AUDITORÍA ROBUSTA DE GR</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · ROI superior derecha · verificación por línea · reporte tabular
+    V1.3 estable separada · ROI superior derecha · franja amplia · validación estructural · reporte tabular
   </div>
 </div>
 
@@ -325,7 +325,7 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.6</strong>
+      <strong>NUEVA VERSIÓN V1.7</strong>
       <span>Procesamiento nuevo con verificaciones adicionales y cola de auditoría.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -387,7 +387,7 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Compara el nombre de cada PDF con la GR que se lee dentro del documento.</div>
+        <div class="muted">Compara el nombre de cada PDF con la GR de la esquina superior derecha usando lecturas independientes.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
@@ -1732,7 +1732,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.6 · cola de auditoría habilitada','info');
+  logEvent('Modo NUEVA V1.7 · cola de auditoría habilitada','info');
 }
 
 function backToModes(){
@@ -1932,12 +1932,54 @@ function cancelHistoricalAudit(){
   logEvent('Solicitud de cancelación de auditoría recibida','warn');
 }
 
-/* ---------- OCR de auditoría V1.6 ---------- */
+/* ---------- OCR de auditoría V1.7 ---------- */
 
 function normalizeOCRToken(s){
   return String(s||'')
     .toUpperCase()
     .replace(/[^A-Z0-9-]/g,'');
+}
+
+function splitGR(g){
+  const m=String(g||'').toUpperCase().match(/^(T[A-Z0-9]+)-(\d+)$/);
+  if(!m)return null;
+  return {prefix:m[1],number:m[2]};
+}
+
+function isGenericCompleteGR(g){
+  const p=splitGR(g);
+  if(!p)return false;
+
+  // Estructura flexible, pero no admite fragmentos demasiado cortos.
+  if(p.prefix.length<3 || p.prefix.length>6)return false;
+  if(p.number.length<4 || p.number.length>12)return false;
+
+  return true;
+}
+
+function isCompleteGRForAudit(candidate,expected){
+  if(!isGenericCompleteGR(candidate))return false;
+
+  const c=splitGR(candidate);
+  const e=splitGR(expected);
+
+  // Si el nombre contiene una GR, usamos solo su FORMA como referencia:
+  // misma longitud de serie y misma longitud numérica.
+  // Los caracteres pueden ser distintos para poder detectar un nombre errado.
+  if(e){
+    if(c.prefix.length!==e.prefix.length)return false;
+    if(c.number.length!==e.number.length)return false;
+  }
+
+  return true;
+}
+
+function filterCompleteCandidates(candidates,expected){
+  return [...new Set(
+    (candidates||[])
+      .map(x=>String(x||'').toUpperCase())
+      .filter(x=>isCompleteGRForAudit(x,expected))
+  )];
 }
 
 function unionBBox(list){
@@ -1957,7 +1999,7 @@ function findCandidateBBox(data,candidate){
 
   const words=Array.isArray(data.words)?data.words:[];
   for(let i=0;i<words.length;i++){
-    for(let len=1;len<=4 && i+len<=words.length;len++){
+    for(let len=1;len<=5 && i+len<=words.length;len++){
       const group=words.slice(i,i+len);
       const joined=normalizeOCRToken(group.map(w=>w.text||'').join(''));
       if(joined===target){
@@ -1997,31 +2039,10 @@ async function renderTopRightCrop(page,dpi=300){
   crop.width=sw;
   crop.height=sh;
 
-  const cctx=crop.getContext('2d',{willReadFrequently:true});
-  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+  crop.getContext('2d',{willReadFrequently:true})
+      .drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
 
   return crop;
-}
-
-function cropCanvasByBBox(source,bbox,padX=0.35,padY=0.80){
-  if(!bbox)return null;
-
-  const bw=Math.max(1,bbox.x1-bbox.x0);
-  const bh=Math.max(1,bbox.y1-bbox.y0);
-
-  const x0=Math.max(0,Math.floor(bbox.x0-bw*padX));
-  const y0=Math.max(0,Math.floor(bbox.y0-bh*padY));
-  const x1=Math.min(source.width,Math.ceil(bbox.x1+bw*padX));
-  const y1=Math.min(source.height,Math.ceil(bbox.y1+bh*padY));
-
-  const out=document.createElement('canvas');
-  out.width=Math.max(1,x1-x0);
-  out.height=Math.max(1,y1-y0);
-
-  out.getContext('2d',{willReadFrequently:true})
-    .drawImage(source,x0,y0,out.width,out.height,0,0,out.width,out.height);
-
-  return out;
 }
 
 function scaleBBox(bbox,fromCanvas,toCanvas){
@@ -2034,6 +2055,33 @@ function scaleBBox(bbox,fromCanvas,toCanvas){
     x1:bbox.x1*rx,
     y1:bbox.y1*ry
   };
+}
+
+function cropWideHorizontalBand(source,bbox=null){
+  let y0,y1;
+
+  if(bbox){
+    const h=Math.max(1,bbox.y1-bbox.y0);
+    const mid=(bbox.y0+bbox.y1)/2;
+
+    // Se usa todo el ancho del ROI.
+    // El OCR solo aporta la posición vertical aproximada.
+    y0=Math.max(0,Math.floor(mid-h*2.15));
+    y1=Math.min(source.height,Math.ceil(mid+h*2.15));
+  }else{
+    // Fallback amplio, nunca un recorte estrecho.
+    y0=Math.floor(source.height*0.38);
+    y1=Math.ceil(source.height*0.72);
+  }
+
+  const out=document.createElement('canvas');
+  out.width=source.width;
+  out.height=Math.max(1,y1-y0);
+
+  out.getContext('2d',{willReadFrequently:true})
+    .drawImage(source,0,y0,source.width,out.height,0,0,source.width,out.height);
+
+  return out;
 }
 
 function preprocessCrop(source,mode){
@@ -2054,7 +2102,7 @@ function preprocessCrop(source,mode){
     let v=gray;
 
     if(mode==='contrast'){
-      v=Math.max(0,Math.min(255,(gray-128)*1.80+128));
+      v=Math.max(0,Math.min(255,(gray-128)*1.72+128));
     }else if(mode==='threshold'){
       v=gray>175?255:0;
     }else if(mode==='soft'){
@@ -2068,7 +2116,7 @@ function preprocessCrop(source,mode){
   return c;
 }
 
-async function recognizeCrop(crop,psm='6'){
+async function recognizeCrop(crop,psm='6',expected=null){
   const worker=await getOCRWorker();
 
   await worker.setParameters({
@@ -2079,14 +2127,17 @@ async function recognizeCrop(crop,psm='6'){
 
   const r=await worker.recognize(crop);
   const raw=String(r.data.text||'');
-  const candidates=findCandidates(raw);
+
+  const allCandidates=findCandidates(raw);
+  const complete=filterCompleteCandidates(allCandidates,expected);
 
   return {
-    value:candidates.length===1?candidates[0]:null,
-    candidates,
+    value:complete.length===1?complete[0]:null,
+    candidates:complete,
     raw,
     confidence:r.data.confidence||0,
-    data:r.data
+    data:r.data,
+    rejectedCandidates:allCandidates.filter(x=>!complete.includes(x))
   };
 }
 
@@ -2098,6 +2149,7 @@ function voteReadings(readings){
   }
 
   let best=null,bestVotes=0;
+
   for(const [value,count] of votes.entries()){
     if(count>bestVotes){
       best=value;
@@ -2108,113 +2160,178 @@ function voteReadings(readings){
   return {best,bestVotes,total:readings.length,votes};
 }
 
-async function locateGRLine(page){
-  // Primera lectura: el mismo principio exitoso de V1.3.
+async function locateAuditBand(page,expected){
+  // Primera lectura: mismo principio exitoso de V1.3.
   const crop300=await renderTopRightCrop(page,300);
-  const read300=await recognizeCrop(preprocessCrop(crop300,'normal'),'6');
+  const read300=await recognizeCrop(
+    preprocessCrop(crop300,'normal'),
+    '6',
+    expected
+  );
 
-  let candidate=read300.value;
-  let bbox=findCandidateBBox(read300.data,candidate);
-  let sourceCrop=crop300;
-  let sourceRead=read300;
-  let sourceDpi=300;
+  let reference=read300.value;
+  let bbox=findCandidateBBox(read300.data,reference);
 
-  // Si 300 DPI no localiza la línea, intentamos localizarla en 600 DPI,
-  // pero aún con PSM 6 sobre el encabezado. PSM 7 se reserva para la línea.
-  let crop600=null;
+  const crop450=await renderTopRightCrop(page,450);
 
-  if(!candidate || !bbox){
-    crop600=await renderTopRightCrop(page,600);
+  // Si 300 no localiza caja, intentamos localizarla a 450,
+  // siempre sobre el ROI completo y con PSM 6.
+  if(!reference || !bbox){
+    const locate450=await recognizeCrop(
+      preprocessCrop(crop450,'normal'),
+      '6',
+      expected
+    );
 
-    const locNormal=await recognizeCrop(preprocessCrop(crop600,'normal'),'6');
-    candidate=locNormal.value;
-    bbox=findCandidateBBox(locNormal.data,candidate);
-    sourceCrop=crop600;
-    sourceRead=locNormal;
-    sourceDpi=600;
+    if(locate450.value){
+      reference=locate450.value;
+      const b450=findCandidateBBox(locate450.data,reference);
 
-    if(!candidate || !bbox){
-      const locContrast=await recognizeCrop(preprocessCrop(crop600,'contrast'),'6');
-      candidate=locContrast.value;
-      bbox=findCandidateBBox(locContrast.data,candidate);
-      sourceCrop=crop600;
-      sourceRead=locContrast;
-      sourceDpi=600;
+      if(b450){
+        return {
+          crop300,
+          read300,
+          reference,
+          crop450,
+          band450:cropWideHorizontalBand(crop450,b450),
+          bboxSource:'450'
+        };
+      }
     }
+  }
+
+  let bbox450=null;
+  if(bbox){
+    bbox450=scaleBBox(bbox,crop300,crop450);
   }
 
   return {
     crop300,
     read300,
-    candidate,
-    bbox,
-    sourceCrop,
-    sourceRead,
-    sourceDpi,
-    crop600
+    reference,
+    crop450,
+    band450:cropWideHorizontalBand(crop450,bbox450),
+    bboxSource:bbox450?'300→450':'FALLBACK'
   };
 }
 
-async function auditReadPageHighPrecision(page){
-  const located=await locateGRLine(page);
+async function auditReadPageHighPrecision(page,expected=null){
+  const loc=await locateAuditBand(page,expected);
 
-  let crop600=located.crop600;
-  if(!crop600)crop600=await renderTopRightCrop(page,600);
-
-  // Si encontramos la caja del texto a 300, la escalamos a 600.
-  let bbox600=located.bbox;
-  if(located.bbox && located.sourceDpi===300){
-    bbox600=scaleBBox(located.bbox,located.sourceCrop,crop600);
-  }
-
-  // Si la localización ya fue a 600, usamos esa misma caja.
-  const lineCrop=bbox600 ? cropCanvasByBBox(crop600,bbox600,0.42,0.95) : null;
-
-  // Sin línea localizada no fingimos consenso.
-  if(!lineCrop){
-    const fallback=located.candidate||located.read300.value||null;
-    return {
-      fastValue:located.read300.value,
-      bestValue:null,
-      suggestedValue:fallback,
-      consensus:'SIN LÍNEA',
-      strongConsensus:false,
-      previewDataUrl:preprocessCrop(crop600,'contrast').toDataURL('image/jpeg',0.92),
-      readings:[]
-    };
-  }
-
-  // PSM 7 solo sobre la línea exacta de GR.
+  // 300 + dos lecturas de una franja horizontal amplia a 450 DPI.
   const readings=[];
-  readings.push({name:'600-línea-normal',...(await recognizeCrop(preprocessCrop(lineCrop,'normal'),'7'))});
-  readings.push({name:'600-línea-contraste',...(await recognizeCrop(preprocessCrop(lineCrop,'contrast'),'7'))});
-  readings.push({name:'600-línea-binario',...(await recognizeCrop(preprocessCrop(lineCrop,'threshold'),'7'))});
+
+  if(loc.read300.value){
+    readings.push({
+      name:'300-encabezado',
+      value:loc.read300.value,
+      candidates:loc.read300.candidates,
+      confidence:loc.read300.confidence
+    });
+  }
+
+  const r450n=await recognizeCrop(
+    preprocessCrop(loc.band450,'normal'),
+    '6',
+    expected
+  );
+  readings.push({name:'450-franja-normal',...r450n});
+
+  const r450c=await recognizeCrop(
+    preprocessCrop(loc.band450,'contrast'),
+    '6',
+    expected
+  );
+  readings.push({name:'450-franja-contraste',...r450c});
 
   let vote=voteReadings(readings);
 
-  if(vote.bestVotes<2){
-    readings.push({name:'600-línea-suave',...(await recognizeCrop(preprocessCrop(lineCrop,'soft'),'7'))});
+  // Solo 3 votos coincidentes permiten terminar aquí.
+  let strong=!!vote.best && vote.bestVotes>=3;
+
+  let preview=preprocessCrop(loc.band450,'contrast')
+    .toDataURL('image/jpeg',0.95);
+
+  // Si no hay decisión fuerte, hacemos dos verificaciones a 600 DPI.
+  if(!strong){
+    const crop600=await renderTopRightCrop(page,600);
+
+    const bbox300=findCandidateBBox(loc.read300.data,loc.read300.value);
+    const bbox600=bbox300
+      ? scaleBBox(bbox300,loc.crop300,crop600)
+      : null;
+
+    const band600=cropWideHorizontalBand(crop600,bbox600);
+
+    const r600n=await recognizeCrop(
+      preprocessCrop(band600,'normal'),
+      '6',
+      expected
+    );
+    readings.push({name:'600-franja-normal',...r600n});
+
+    const r600c=await recognizeCrop(
+      preprocessCrop(band600,'contrast'),
+      '6',
+      expected
+    );
+    readings.push({name:'600-franja-contraste',...r600c});
+
     vote=voteReadings(readings);
+    strong=!!vote.best && vote.bestVotes>=3;
+
+    // Una última variante solo si aún no existe consenso.
+    if(!strong){
+      const r600b=await recognizeCrop(
+        preprocessCrop(band600,'threshold'),
+        '6',
+        expected
+      );
+      readings.push({name:'600-franja-binario',...r600b});
+
+      vote=voteReadings(readings);
+
+      const counts=[...vote.votes.entries()]
+        .sort((a,b)=>b[1]-a[1]);
+
+      const secondVotes=counts[1]?.[1]||0;
+
+      strong=
+        !!vote.best &&
+        vote.bestVotes>=3 &&
+        secondVotes<2;
+    }
+
+    preview=preprocessCrop(band600,'contrast')
+      .toDataURL('image/jpeg',0.95);
   }
 
-  const required=readings.length===3?2:3;
-  const strong=!!vote.best && vote.bestVotes>=required;
+  const validValues=readings
+    .map(r=>r.value)
+    .filter(Boolean)
+    .filter(v=>isCompleteGRForAudit(v,expected));
 
-  // Si falla el consenso pero alguna lectura de línea coincide con la lectura 300,
-  // se conserva como propuesta, NO como confirmación.
-  const values=readings.map(r=>r.value).filter(Boolean);
+  // Nunca proponemos fragmentos.
   const suggested=strong
     ? vote.best
-    : (values.find(v=>v===located.read300.value) || vote.best || located.read300.value || located.candidate || null);
+    : (
+        validValues.find(v=>v===loc.read300.value) ||
+        vote.best ||
+        loc.read300.value ||
+        null
+      );
 
   return {
-    fastValue:located.read300.value,
+    fastValue:loc.read300.value||null,
     bestValue:strong?vote.best:null,
     suggestedValue:suggested,
-    consensus:vote.best ? `${vote.bestVotes}/${readings.length}` : `0/${readings.length}`,
+    consensus:vote.best
+      ? `${vote.bestVotes}/${readings.length}`
+      : `0/${readings.length}`,
     strongConsensus:strong,
-    previewDataUrl:preprocessCrop(lineCrop,'contrast').toDataURL('image/jpeg',0.95),
-    readings
+    previewDataUrl:preview,
+    readings,
+    locator:loc.bboxSource
   };
 }
 
@@ -2280,7 +2397,7 @@ async function startHistoricalAudit(){
           if(historicalAuditCancelRequested)break;
 
           const page=await pdf.getPage(pn);
-          const read=await auditReadPageHighPrecision(page);
+          const read=await auditReadPageHighPrecision(page,expected);
 
           if(!preview && read.previewDataUrl){
             preview=read.previewDataUrl;
@@ -2296,7 +2413,7 @@ async function startHistoricalAudit(){
           });
 
           logEvent(
-            `AUDIT ${entry.relativePath} · pág. ${pn} · nombre ${expected||'SIN GR'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus}`,
+            `AUDIT ${entry.relativePath} · pág. ${pn} · nombre ${expected||'SIN GR'} · OCR300 ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · localización ${read.locator||'-'}`,
             read.strongConsensus?'info':'warn'
           );
         }
@@ -2363,16 +2480,14 @@ async function startHistoricalAudit(){
             pages=[...new Set([...pages,r.page])];
 
             if(proposed && expected && proposed!==expected){
-              foundGR=foundGR||proposed;
-              const msg=`Lectura sin consenso completo difiere del nombre: ${expected} → ${proposed} (pág. ${r.page})`;
+              const msg=`Lecturas completas no concluyentes difieren del nombre ${expected} (mejor candidato: ${proposed}, pág. ${r.page})`;
               observation+=(observation?' · ':'')+msg;
             }else if(proposed && !expected){
-              foundGR=foundGR||proposed;
               observation+=(observation?' · ':'')+
-                `Nombre sin GR; lectura propuesta ${proposed} en página ${r.page}`;
+                `Nombre sin GR; lectura completa no concluyente ${proposed} en página ${r.page}`;
             }else{
               observation+=(observation?' · ':'')+
-                `Sin lectura suficientemente segura en página ${r.page}`;
+                `Sin lectura completa suficientemente segura en página ${r.page}`;
             }
           }
         }
@@ -2717,7 +2832,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.6 auditoría de precisión corregida","ok");
+logEvent("Sistema listo · V1.7 auditoría robusta de GR","ok");
 addJob();
 </script>
 </body>
