@@ -155,6 +155,25 @@ th{background:#f1f3f4}
 @media(max-width:1150px){.jobgrid,.auditGrid{grid-template-columns:1fr 1fr}.modeGrid{grid-template-columns:1fr}.auditStats{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.jobgrid,.auditGrid,.auditForm{grid-template-columns:1fr}.auditStats{grid-template-columns:1fr 1fr}}
 
+
+/* V1.5: alineación rígida */
+.modeGrid{align-items:stretch}
+.modeBtn{height:132px;min-height:132px;overflow:hidden}
+.modeBtn strong{min-height:22px}
+.modeBtn span{display:block;max-height:54px;overflow:hidden}
+.jobgrid{grid-auto-rows:auto}
+.jobgrid > div{align-self:end}
+.jobgrid label{height:18px}
+.filebox{min-height:40px;max-height:40px}
+.filelist{
+  min-width:0;
+  width:100%;
+  line-height:22px;
+}
+.auditGrid > div{align-self:end}
+.auditGrid label{height:18px;display:flex;align-items:flex-end}
+.auditGrid input,.auditGrid .filelist,.auditGrid .status{height:40px;min-height:40px;max-height:40px}
+
 </style>
 </head>
 
@@ -163,9 +182,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.4 · MODOS + AUDITORÍA + ARRASTRAR</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.5 · AUDITORÍA ALTA PRECISIÓN</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable protegida · nueva validación · auditoría histórica · arrastrar PDF
+    V1.3 estable protegida · auditoría masiva · ROI superior derecha · consenso OCR
   </div>
 </div>
 
@@ -185,7 +204,7 @@ th{background:#f1f3f4}
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
-      <span>Revisar carpetas ya procesadas y reportar solamente archivos con observaciones.</span>
+      <span>Revisar todos los PDF, validar la GR de la esquina superior derecha y reportar solo observaciones.</span>
     </button>
   </div>
 </div>
@@ -268,9 +287,10 @@ th{background:#f1f3f4}
 
     <div class="auditActions">
       <button class="primary" id="auditStartBtn" onclick="startHistoricalAudit()">INICIAR AUDITORÍA</button>
+      <button class="red" id="auditCancelBtn" onclick="cancelHistoricalAudit()" disabled>CANCELAR</button>
       <button class="amber" id="auditReviewBtn" onclick="openHistoricalAuditQueue()" disabled>AUDITAR OBSERVACIONES (0)</button>
       <button class="light" id="auditCopyBtn" onclick="copyAuditReport()" disabled>COPIAR REPORTE</button>
-      <button class="green" id="auditApplyBtn" onclick="applyHistoricalCorrections()" disabled>APLICAR CORRECCIONES</button>
+      
     </div>
 
     <div class="auditProgress">
@@ -369,6 +389,7 @@ let historicalAuditFolder=null;
 let historicalAuditItems=[];
 let historicalAuditIndex=0;
 let historicalAuditRunning=false;
+let historicalAuditCancelRequested=false;
 
 
 // Longitud variable: T + bloque alfanumérico + "-" + bloque numérico.
@@ -1569,7 +1590,7 @@ function chooseMode(mode){
 
 function backToModes(){
   if(queueRunning||historicalAuditRunning){
-    alert('Hay un proceso en ejecución.');
+    alert('Hay un proceso en ejecución. Usa CANCELAR antes de regresar al inicio.');
     return;
   }
   document.getElementById('processArea').style.display='none';
@@ -1663,38 +1684,242 @@ function updateAuditCounters(files=0,ok=0,issues=0,fixed=null){
   if(fixed!==null)document.getElementById('auditFixedCount').textContent=fixed;
 }
 
+
+function appendAuditReportItem(item){
+  const report=document.getElementById('auditReport');
+
+  if(!report.dataset.headerWritten){
+    report.value='RUTA\tARCHIVO\tGR_NOMBRE\tGR_DETECTADA\tCONSENSO\tPAGINA\tOBSERVACION';
+    report.dataset.headerWritten='1';
+  }
+
+  const pageText=(item.pages||[]).join(', ');
+  const line=[
+    fullAuditPath(item.relativePath),
+    item.originalName||item.name||'',
+    item.expectedGR||'',
+    item.correctedGR||item.foundGR||'',
+    item.consensus||'',
+    pageText,
+    item.observation||''
+  ].join('\t');
+
+  report.value += '\\n' + line;
+  report.scrollTop=report.scrollHeight;
+
+  document.getElementById('auditCopyBtn').disabled=false;
+}
+
+function resetAuditReport(){
+  const report=document.getElementById('auditReport');
+  report.value='';
+  delete report.dataset.headerWritten;
+}
+
+function cancelHistoricalAudit(){
+  if(!historicalAuditRunning)return;
+  historicalAuditCancelRequested=true;
+  setAuditStatus('CANCELANDO...','st-wait');
+  logEvent('Solicitud de cancelación de auditoría recibida','warn');
+}
+
+
+async function renderTopRightCrop(page,dpi=300){
+  const scale=dpi/72;
+  const viewport=page.getViewport({scale});
+
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
+
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
+
+  // ÚNICA ZONA AUTORIZADA:
+  // 55%-100% ancho, 0%-25% alto.
+  const sx=Math.floor(full.width*0.55);
+  const sy=0;
+  const sw=Math.max(1,full.width-sx);
+  const sh=Math.max(1,Math.floor(full.height*0.25));
+
+  const crop=document.createElement('canvas');
+  crop.width=sw;
+  crop.height=sh;
+
+  const cctx=crop.getContext('2d',{willReadFrequently:true});
+  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+  return crop;
+}
+
+function preprocessCrop(source,mode){
+  const c=document.createElement('canvas');
+  c.width=source.width;
+  c.height=source.height;
+
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(source,0,0);
+
+  if(mode==='normal')return c;
+
+  const img=ctx.getImageData(0,0,c.width,c.height);
+  const d=img.data;
+
+  for(let i=0;i<d.length;i+=4){
+    const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    let v=gray;
+
+    if(mode==='contrast'){
+      v=Math.max(0,Math.min(255,(gray-128)*1.75+128));
+    }else if(mode==='threshold'){
+      v=gray>170?255:0;
+    }else if(mode==='soft'){
+      v=Math.max(0,Math.min(255,(gray-128)*1.35+128));
+    }
+
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+
+  ctx.putImageData(img,0,0);
+  return c;
+}
+
+async function recognizeCrop(crop,psm='6'){
+  const worker=await getOCRWorker();
+  await worker.setParameters({
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+    preserve_interword_spaces:'1',
+    tessedit_pageseg_mode:String(psm)
+  });
+
+  const r=await worker.recognize(crop);
+  const raw=String(r.data.text||'');
+  const candidates=findCandidates(raw);
+
+  return {
+    value:candidates.length===1?candidates[0]:null,
+    candidates,
+    raw,
+    confidence:r.data.confidence||0
+  };
+}
+
+async function auditReadPageHighPrecision(page){
+  // 1) lectura rápida 300 DPI
+  const crop300=await renderTopRightCrop(page,300);
+  const fast=await recognizeCrop(preprocessCrop(crop300,'normal'),'6');
+
+  // 2) validación precisa SIEMPRE a 600 DPI sobre la misma zona superior derecha
+  const crop600=await renderTopRightCrop(page,600);
+
+  const readings=[];
+  readings.push({name:'600-normal',...(await recognizeCrop(preprocessCrop(crop600,'normal'),'7'))});
+  readings.push({name:'600-contrast',...(await recognizeCrop(preprocessCrop(crop600,'contrast'),'7'))});
+  readings.push({name:'600-threshold',...(await recognizeCrop(preprocessCrop(crop600,'threshold'),'7'))});
+
+  // cuarto método solo si no hay acuerdo claro
+  const votes=new Map();
+
+  for(const r of readings){
+    if(r.value)votes.set(r.value,(votes.get(r.value)||0)+1);
+  }
+
+  let best=null,bestVotes=0;
+
+  for(const [value,count] of votes.entries()){
+    if(count>bestVotes){
+      best=value;
+      bestVotes=count;
+    }
+  }
+
+  if(bestVotes<2){
+    const soft={name:'600-soft',...(await recognizeCrop(preprocessCrop(crop600,'soft'),'7'))};
+    readings.push(soft);
+
+    if(soft.value)votes.set(soft.value,(votes.get(soft.value)||0)+1);
+
+    best=null;
+    bestVotes=0;
+
+    for(const [value,count] of votes.entries()){
+      if(count>bestVotes){
+        best=value;
+        bestVotes=count;
+      }
+    }
+  }
+
+  // consenso fuerte:
+  // 2/3 o 3/4. Si no hay, se considera lectura dudosa.
+  const strongConsensus=
+    (readings.length===3 && bestVotes>=2) ||
+    (readings.length===4 && bestVotes>=3);
+
+  const preview=preprocessCrop(crop600,'contrast').toDataURL('image/jpeg',0.92);
+
+  return {
+    fastValue:fast.value,
+    bestValue:strongConsensus?best:null,
+    suggestedValue:best||fast.value||null,
+    consensus:best ? `${bestVotes}/${readings.length}` : '0/'+readings.length,
+    strongConsensus,
+    previewDataUrl:preview,
+    readings
+  };
+}
+
 async function startHistoricalAudit(){
   if(historicalAuditRunning)return;
+
   if(!historicalAuditFolder){
     alert('Selecciona primero la carpeta a auditar.');
     return;
   }
 
   historicalAuditRunning=true;
+  historicalAuditCancelRequested=false;
   historicalAuditItems=[];
   historicalAuditIndex=0;
-  document.getElementById('auditReport').value='';
+
+  resetAuditReport();
+
   document.getElementById('auditReviewBtn').disabled=true;
   document.getElementById('auditCopyBtn').disabled=true;
-  document.getElementById('auditApplyBtn').disabled=true;
+  document.getElementById('auditStartBtn').disabled=true;
+  document.getElementById('auditCancelBtn').disabled=false;
+
   setAuditStatus('AUDITANDO','st-run');
 
-  let files=[],okCount=0;
+  let files=[];
+  let okCount=0;
+  let processed=0;
+
   try{
     files=await collectPdfHandles(historicalAuditFolder);
     logEvent(`Auditoría histórica: ${files.length} PDF encontrados`,'info');
 
     for(let i=0;i<files.length;i++){
+      if(historicalAuditCancelRequested){
+        logEvent(`Auditoría cancelada por el usuario en ${processed}/${files.length}`,'warn');
+        break;
+      }
+
       const entry=files[i];
-      document.getElementById('auditBar').style.width=`${files.length?Math.round((i/files.length)*100):0}%`;
-      document.getElementById('auditProgressText').textContent=`${i+1} / ${files.length} · ${entry.relativePath}`;
+      processed++;
+
+      document.getElementById('auditBar').style.width=
+        `${files.length?Math.round((processed/files.length)*100):0}%`;
+
+      document.getElementById('auditProgressText').textContent=
+        `${processed} / ${files.length} · ${entry.relativePath}`;
 
       const file=await entry.handle.getFile();
       const expected=extractGRFromFilename(entry.name);
-      let pdf;
-      let pageFindings=[];
+
+      let pdf=null;
+      let pageResults=[];
       let preview='';
-      let firstFound=null;
       let openError=null;
 
       try{
@@ -1702,119 +1927,169 @@ async function startHistoricalAudit(){
         pdf=await pdfjsLib.getDocument({data:bytes}).promise;
 
         for(let pn=1;pn<=pdf.numPages;pn++){
+          if(historicalAuditCancelRequested)break;
+
           const page=await pdf.getPage(pn);
-          let found=detectFromTextLayer(await page.getTextContent(),page);
+          const read=await auditReadPageHighPrecision(page);
 
-          if(!found){
-            found=await detectByOCRFast(page);
+          if(!preview && read.previewDataUrl){
+            preview=read.previewDataUrl;
           }
 
-          if(!preview && detectByOCRFast.lastDebug?.cropDataUrl){
-            preview=detectByOCRFast.lastDebug.cropDataUrl;
-          }
+          pageResults.push({
+            page:pn,
+            detected:read.bestValue,
+            suggested:read.suggestedValue,
+            consensus:read.consensus,
+            strongConsensus:read.strongConsensus
+          });
 
-          if(!found){
-            const reinforced=await detectByOCRReinforced(pdf,pn,300);
-            if(reinforced)found=reinforced;
-          }
-
-          if(found && !firstFound)firstFound=found;
-
-          if(!found){
-            pageFindings.push({page:pn,type:'NO_LEIDA',found:null});
-          }else if(expected && found!==expected){
-            pageFindings.push({page:pn,type:'DIFERENCIA',found});
-          }else if(!expected){
-            pageFindings.push({page:pn,type:'SIN_GR_NOMBRE',found});
-          }
+          logEvent(
+            `AUDIT ${entry.relativePath} · pág. ${pn} · nombre ${expected||'SIN GR'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus}`,
+            read.strongConsensus?'info':'warn'
+          );
         }
-      }catch(e){
-        openError=e?.message||String(e);
+
+      }catch(err){
+        openError=err?.message||String(err);
       }
 
+      // construir observación por archivo
       let observation='';
-      let suggested=firstFound||expected||'';
+      let foundGR=null;
+      let consensus='';
+      let pages=[];
+      let needsIssue=false;
 
       if(openError){
+        needsIssue=true;
         observation=`No se pudo analizar el PDF: ${openError}`;
-      }else if(!expected){
-        observation=firstFound
-          ? `El nombre del archivo no contiene una GR reconocible. Lectura encontrada: ${firstFound}`
-          : 'El nombre del archivo no contiene una GR reconocible y no se pudo leer una GR.';
-      }else if(pageFindings.length){
-        const diffs=pageFindings.filter(x=>x.type==='DIFERENCIA');
-        const unread=pageFindings.filter(x=>x.type==='NO_LEIDA');
+      }else{
+        const strong=pageResults.filter(r=>r.strongConsensus && r.detected);
+        const weak=pageResults.filter(r=>!r.strongConsensus);
 
-        if(diffs.length){
-          const values=[...new Set(diffs.map(x=>x.found).filter(Boolean))];
-          observation=`No coincide con el nombre ${expected}. Lectura(s): ${values.join(', ')}. Página(s): ${diffs.map(x=>x.page).join(', ')}`;
-          if(values.length===1)suggested=values[0];
+        if(strong.length){
+          const values=[...new Set(strong.map(r=>r.detected))];
+
+          if(values.length===1){
+            foundGR=values[0];
+            const related=strong.filter(r=>r.detected===foundGR);
+            consensus=related.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
+
+            if(expected){
+              if(foundGR!==expected){
+                needsIssue=true;
+                pages=related.map(r=>r.page);
+                observation=`No coincide con el nombre ${expected}. Lectura confirmada: ${foundGR}`;
+              }
+            }else{
+              // El archivo no tiene GR en el nombre; se reporta como observación
+              needsIssue=true;
+              pages=related.map(r=>r.page);
+              observation=`El nombre del archivo no contiene una GR reconocible. Lectura confirmada: ${foundGR}`;
+            }
+
+          }else{
+            needsIssue=true;
+            pages=strong.map(r=>r.page);
+            foundGR=values.join(' / ');
+            consensus=strong.map(r=>`p${r.page}:${r.detected}(${r.consensus})`).join(' / ');
+            observation=`El PDF contiene lecturas confirmadas diferentes entre páginas: ${values.join(', ')}`;
+          }
         }
-        if(unread.length){
-          observation+=(observation?' · ':'')+`Sin lectura segura en página(s): ${unread.map(x=>x.page).join(', ')}`;
+
+        if(weak.length){
+          needsIssue=true;
+          const weakPages=weak.map(r=>r.page);
+          pages=[...new Set([...pages,...weakPages])];
+
+          if(!observation){
+            observation=`Sin lectura suficientemente segura en página(s): ${weakPages.join(', ')}`;
+          }else{
+            observation+=` · Sin lectura suficientemente segura en página(s): ${weakPages.join(', ')}`;
+          }
         }
       }
 
-      if(observation){
-        historicalAuditItems.push({
+      if(needsIssue){
+        const item={
           ...entry,
           expectedGR:expected,
-          foundGR:firstFound,
-          correctedGR:suggested,
+          foundGR:foundGR,
+          correctedGR:foundGR||expected||'',
+          consensus:consensus||'SIN CONSENSO',
+          pages,
           observation,
           previewDataUrl:preview,
           reviewed:false,
           originalName:entry.name
-        });
+        };
+
+        historicalAuditItems.push(item);
+
+        // REPORTE EN TIEMPO REAL
+        appendAuditReportItem(item);
+
+        document.getElementById('auditReviewBtn').disabled=false;
+        document.getElementById('auditReviewBtn').textContent=
+          `AUDITAR OBSERVACIONES (${historicalAuditItems.length})`;
+
         logEvent(`OBSERVACIÓN · ${entry.relativePath} · ${observation}`,'warn');
+
       }else{
         okCount++;
       }
 
-      updateAuditCounters(i+1,okCount,historicalAuditItems.length,
-        historicalAuditItems.filter(x=>x.reviewed).length);
-      if((i+1)%2===0)await yieldUI();
+      updateAuditCounters(
+        processed,
+        okCount,
+        historicalAuditItems.length,
+        historicalAuditItems.filter(x=>x.reviewed).length
+      );
+
+      if(processed%2===0)await yieldUI();
     }
 
-    document.getElementById('auditBar').style.width='100%';
-    document.getElementById('auditProgressText').textContent=
-      `Finalizado · ${files.length} PDF · ${historicalAuditItems.length} con observaciones`;
+    if(historicalAuditCancelRequested){
+      setAuditStatus('CANCELADO','st-wait');
+      document.getElementById('auditProgressText').textContent=
+        `Cancelado · ${processed} de ${files.length} PDF analizados · ${historicalAuditItems.length} observaciones conservadas`;
+    }else{
+      document.getElementById('auditBar').style.width='100%';
+      document.getElementById('auditProgressText').textContent=
+        `Finalizado · ${files.length} PDF · ${historicalAuditItems.length} con observaciones`;
 
-    buildAuditReport();
+      setAuditStatus('FINALIZADO','st-done');
+      logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones`,'ok');
+    }
 
     document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;
     document.getElementById('auditReviewBtn').disabled=historicalAuditItems.length===0;
-    document.getElementById('auditReviewBtn').textContent=`AUDITAR OBSERVACIONES (${historicalAuditItems.length})`;
-    setAuditStatus('FINALIZADO','st-done');
-    logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones`,'ok');
 
-  }catch(e){
-    console.error(e);
+  }catch(err){
+    console.error(err);
     setAuditStatus('ERROR','st-err');
-    logEvent(`ERROR AUDITORÍA: ${e?.message||e}`,'err');
+    logEvent(`ERROR AUDITORÍA: ${err?.message||err}`,'err');
     alert('Ocurrió un error durante la auditoría.');
+
   }finally{
     historicalAuditRunning=false;
+    document.getElementById('auditStartBtn').disabled=false;
+    document.getElementById('auditCancelBtn').disabled=true;
     await terminateOCR();
   }
 }
 
 function buildAuditReport(){
-  const lines=[];
-  lines.push('RUTA\tARCHIVO\tGR_NOMBRE\tGR_LEIDA_O_PROPUESTA\tOBSERVACION');
+  resetAuditReport();
 
   for(const item of historicalAuditItems){
-    lines.push([
-      fullAuditPath(item.relativePath),
-      item.originalName,
-      item.expectedGR||'',
-      item.correctedGR||item.foundGR||'',
-      item.observation
-    ].join('\t'));
+    appendAuditReportItem(item);
   }
 
-  document.getElementById('auditReport').value=
-    historicalAuditItems.length ? lines.join('\n') : 'SIN OBSERVACIONES';
+  if(!historicalAuditItems.length){
+    document.getElementById('auditReport').value='SIN OBSERVACIONES';
+  }
 }
 
 async function copyAuditReport(){
@@ -1883,7 +2158,6 @@ function acceptAuditItem(){
 
   if(historicalAuditIndex>=historicalAuditItems.length){
     buildAuditReport();
-    document.getElementById('auditApplyBtn').disabled=
       !historicalAuditItems.some(x=>x.reviewed && x.correctedGR && x.correctedGR!==x.expectedGR);
     closeAuditModal();
     alert('Auditoría manual completada.');
@@ -1919,53 +2193,6 @@ async function uniqueNameInDirectory(dirHandle,name,ignoreName=null){
       return candidate;
     }
   }
-}
-
-async function applyHistoricalCorrections(){
-  const changes=historicalAuditItems.filter(x=>
-    x.reviewed && x.correctedGR && x.correctedGR!==x.expectedGR
-  );
-
-  if(!changes.length){
-    alert('No hay cambios de nombre pendientes.');
-    return;
-  }
-
-  if(!confirm(`Se renombrarán ${changes.length} archivo(s). ¿Continuar?`))return;
-
-  let done=0;
-
-  for(const item of changes){
-    try{
-      const sourceFile=await item.handle.getFile();
-      const bytes=await sourceFile.arrayBuffer();
-      let newName=preserveSuffixName(item.originalName,item.expectedGR,item.correctedGR);
-      newName=await uniqueNameInDirectory(item.parentHandle,newName,item.originalName);
-
-      const newHandle=await item.parentHandle.getFileHandle(newName,{create:true});
-      const writer=await newHandle.createWritable();
-      await writer.write(bytes);
-      await writer.close();
-
-      if(newName!==item.originalName){
-        await item.parentHandle.removeEntry(item.originalName);
-      }
-
-      item.observation+=` · RENOMBRADO A ${newName}`;
-      item.originalName=newName;
-      item.expectedGR=item.correctedGR;
-      item.name=newName;
-      done++;
-      logEvent(`RENOMBRADO · ${item.relativePath} → ${newName}`,'ok');
-    }catch(e){
-      item.observation+=` · ERROR AL RENOMBRAR: ${e?.message||e}`;
-      logEvent(`ERROR RENOMBRANDO ${item.relativePath}: ${e?.message||e}`,'err');
-    }
-  }
-
-  buildAuditReport();
-  document.getElementById('auditApplyBtn').disabled=true;
-  alert(`Correcciones aplicadas: ${done} de ${changes.length}.`);
 }
 
 function openJobAudit(id){
@@ -2125,7 +2352,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.4 modos + auditoría + arrastrar","ok");
+logEvent("Sistema listo · V1.5 auditoría alta precisión","ok");
 addJob();
 </script>
 </body>
