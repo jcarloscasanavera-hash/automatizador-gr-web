@@ -96,6 +96,65 @@ th{background:#f1f3f4}
 @media(max-width:700px){.timeGrid{grid-template-columns:1fr 1fr}}
 
 @media(max-width:1000px){.jobgrid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}}
+
+.modeScreen{padding:22px;margin-bottom:16px}
+.modeTitle{font-size:20px;font-weight:800;margin-bottom:6px}
+.modeGrid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-top:16px}
+.modeBtn{display:block;width:100%;min-height:120px;text-align:left;padding:18px;border:1px solid #cfd5dc;background:#fff;color:#202124}
+.modeBtn:hover{border-color:#1a73e8;background:#f8fbff}
+.modeBtn strong{display:block;font-size:17px;margin-bottom:8px;color:#174ea6}
+.modeBtn span{font-weight:400;color:#5f6368;line-height:1.35}
+.modeBadge{display:inline-block;margin-top:8px;padding:3px 7px;border-radius:999px;background:#e6f4ea;color:#137333;font-size:11px;font-weight:800}
+#processArea,#auditArea{display:none}
+
+.jobgrid{
+  grid-template-columns:150px minmax(360px,2.3fr) minmax(300px,1.8fr) 110px 145px;
+  align-items:end;
+}
+.jobgrid>div{min-width:0}
+.jobgrid label{height:16px;display:flex;align-items:flex-end}
+.jobgrid input[type=text],.jobgrid select,.jobgrid .status{height:40px;min-height:40px}
+.filebox{height:40px;align-items:stretch}
+.filebox button{height:40px;white-space:nowrap}
+.filelist{
+  height:40px !important;
+  min-height:40px !important;
+  max-height:40px !important;
+  overflow:hidden !important;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  display:flex;
+  align-items:center;
+}
+.dropzone{border:1px dashed #aab4c0;background:#fbfcfd}
+.dropzone.dragover{border-color:#1a73e8;background:#e8f0fe}
+.fileHint{margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.auditCard{padding:18px;margin-bottom:14px}
+.auditGrid{display:grid;grid-template-columns:minmax(260px,1.2fr) minmax(300px,1.6fr) 180px;gap:12px;align-items:end}
+.auditGrid>div{min-width:0}
+.auditGrid input{width:100%;height:40px;border:1px solid #cfd5dc;border-radius:6px;padding:8px}
+.auditActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.auditProgress{margin-top:12px}
+.auditReport{width:100%;height:220px;border:1px solid #cfd5dc;border-radius:7px;padding:10px;font-family:Consolas,monospace;font-size:12px;resize:vertical}
+.auditStats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-top:12px}
+.auditMetric{background:#fafafa;border:1px solid #e1e5ea;border-radius:8px;padding:10px}
+.auditMetric b{display:block;font-size:20px;margin-top:3px}
+.auditModal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}
+.auditModal.open{display:flex}
+.auditDialog{width:min(900px,96vw);max-height:94vh;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.3);padding:18px}
+.auditTop{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.auditPreviewWrap{background:#eef1f4;border:1px solid #d5dbe2;border-radius:8px;padding:12px;display:flex;justify-content:center;align-items:center;min-height:220px}
+.auditPreview{max-width:100%;max-height:360px;image-rendering:auto;background:#fff}
+.auditForm{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:end;margin-top:12px}
+.auditForm input{width:100%;height:44px;border:2px solid #1a73e8;border-radius:7px;padding:9px;font-size:18px;font-family:Consolas,monospace;text-transform:uppercase}
+.auditMeta{margin-top:10px;font-size:13px;line-height:1.5}
+.auditMeta b{color:#202124}
+.obs{color:#b3261e;font-weight:800}
+.unlockBox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+@media(max-width:1150px){.jobgrid,.auditGrid{grid-template-columns:1fr 1fr}.modeGrid{grid-template-columns:1fr}.auditStats{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.jobgrid,.auditGrid,.auditForm{grid-template-columns:1fr}.auditStats{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 
@@ -104,17 +163,40 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.3 · OCR 300 DPI CORREGIDO + DEBUG</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.4 · MODOS + AUDITORÍA + ARRASTRAR</strong></div>
   <div class="muted" style="margin-top:3px">
-    OCR 300 DPI · compactación estilo .py · PSM corregido · debug OCR bruto
+    V1.3 estable protegida · nueva validación · auditoría histórica · arrastrar PDF
   </div>
 </div>
 
+
+<div id="modeScreen" class="card modeScreen">
+  <div class="modeTitle">¿QUÉ QUIERES HACER?</div>
+  <div class="muted">La V1.3 estable permanece protegida. Las nuevas funciones se ejecutan por separado.</div>
+  <div class="modeGrid">
+    <button class="modeBtn" onclick="chooseMode('stable')">
+      <strong>VERSIÓN ESTABLE V1.3</strong>
+      <span>Usar el flujo OCR 300 DPI que ya validaste en operación real.</span>
+      <span class="modeBadge">BASE ESTABLE</span>
+    </button>
+    <button class="modeBtn" onclick="chooseMode('new')">
+      <strong>NUEVA VERSIÓN V1.4</strong>
+      <span>Usar V1.3 más verificaciones adicionales y cola de auditoría.</span>
+    </button>
+    <button class="modeBtn" onclick="chooseMode('audit')">
+      <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
+      <span>Revisar carpetas ya procesadas y reportar solamente archivos con observaciones.</span>
+    </button>
+  </div>
+</div>
+
+<div id="processArea">
 <div class="toolbar">
   <button class="primary" id="btnAdd" onclick="addJob()">+ AGREGAR RUTA / LOTE</button>
   <button class="green" id="btnStart" onclick="startQueue()">INICIAR COLA</button>
   <button class="amber" id="btnPause" onclick="togglePause()" disabled>PAUSAR</button>
   <button class="red" id="btnCancel" onclick="cancelQueue()" disabled>CANCELAR TODO</button>
+  <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
 </div>
 
 <div id="jobs"></div>
@@ -152,7 +234,94 @@ th{background:#f1f3f4}
 </div>
 
 
-<div class="card consoleCard">
+</div>
+
+
+<div id="auditArea">
+  <div class="card auditCard">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
+        <div class="muted">Compara el nombre de cada PDF con la GR que se lee dentro del documento.</div>
+      </div>
+      <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
+    </div>
+
+    <div class="auditGrid" style="margin-top:16px">
+      <div>
+        <label>CARPETA A AUDITAR</label>
+        <div class="filebox">
+          <div id="auditFolderName" class="filelist">Ninguna carpeta seleccionada</div>
+          <button class="light" onclick="pickAuditFolder()">SELECCIONAR</button>
+        </div>
+      </div>
+      <div>
+        <label>RUTA REAL DE WINDOWS (OPCIONAL)</label>
+        <input id="auditBasePath" type="text" placeholder="Ej. C:\TRABAJO\R3">
+        <div class="small muted" style="margin-top:4px">Si la completas, el reporte mostrará la ruta completa. Si no, mostrará la ruta relativa.</div>
+      </div>
+      <div>
+        <label>ESTADO</label>
+        <div id="auditStatus" class="status st-wait">ESPERANDO</div>
+      </div>
+    </div>
+
+    <div class="auditActions">
+      <button class="primary" id="auditStartBtn" onclick="startHistoricalAudit()">INICIAR AUDITORÍA</button>
+      <button class="amber" id="auditReviewBtn" onclick="openHistoricalAuditQueue()" disabled>AUDITAR OBSERVACIONES (0)</button>
+      <button class="light" id="auditCopyBtn" onclick="copyAuditReport()" disabled>COPIAR REPORTE</button>
+      <button class="green" id="auditApplyBtn" onclick="applyHistoricalCorrections()" disabled>APLICAR CORRECCIONES</button>
+    </div>
+
+    <div class="auditProgress">
+      <div class="progress"><div id="auditBar" class="bar"></div></div>
+      <div id="auditProgressText" class="progressText">Esperando</div>
+    </div>
+
+    <div class="auditStats">
+      <div class="auditMetric">PDF analizados<b id="auditFilesCount">0</b></div>
+      <div class="auditMetric">Correctos<b id="auditOkCount">0</b></div>
+      <div class="auditMetric">Con observación<b id="auditIssueCount">0</b></div>
+      <div class="auditMetric">Corregidos manualmente<b id="auditFixedCount">0</b></div>
+    </div>
+
+    <label style="margin-top:14px">REPORTE · SOLO OBSERVACIONES</label>
+    <textarea id="auditReport" class="auditReport" readonly></textarea>
+  </div>
+</div>
+
+<div id="auditModal" class="auditModal">
+  <div class="auditDialog">
+    <div class="auditTop">
+      <div>
+        <strong id="auditModalCounter">1 de 1</strong>
+        <div id="auditModalPath" class="small muted"></div>
+      </div>
+      <button class="light" onclick="closeAuditModal()">CERRAR</button>
+    </div>
+
+    <div class="auditPreviewWrap">
+      <img id="auditPreview" class="auditPreview" alt="Recorte GR">
+    </div>
+
+    <div class="auditMeta">
+      <div>Nombre actual: <b id="auditCurrentName"></b></div>
+      <div>Lectura del sistema: <b id="auditSystemReading"></b></div>
+      <div>Observación: <span id="auditObservation" class="obs"></span></div>
+    </div>
+
+    <div class="auditForm">
+      <div>
+        <label>GR CORRECTA</label>
+        <input id="auditManualGR" type="text" autocomplete="off" spellcheck="false">
+      </div>
+      <button id="auditAcceptBtn" class="green" onclick="acceptAuditItem()">ACEPTAR</button>
+    </div>
+    <div class="small muted" style="margin-top:8px">Flujo rápido: mirar recorte → corregir si hace falta → Tab → Enter.</div>
+  </div>
+</div>
+
+<div class="card consoleCard" style="display:none">
   <div class="consoleHead">
     <div>
       <strong>CONSOLA DE EVENTOS</strong>
@@ -167,9 +336,14 @@ th{background:#f1f3f4}
 </div>
 
 <div class="note">
-  <strong>Vista previa de Windows:</strong> después de generar los PDF, abre la carpeta destino en el Explorador,
-  escribe <strong>cmd</strong> en la barra de direcciones y pulsa Enter. Luego pega este comando:
-  <div class="cmd">powershell -NoProfile -Command "Get-ChildItem -LiteralPath . -Filter '*.pdf' -File | Unblock-File"</div>
+  <strong>Vista previa de Windows:</strong> Windows puede marcar como bloqueados los PDF creados desde una web.
+  El navegador no puede quitar directamente esa protección. Abre la carpeta de resultados en el Explorador,
+  escribe <strong>cmd</strong> en la barra de direcciones, pulsa Enter y ejecuta:
+  <div class="cmd" id="unlockCmd">powershell -NoProfile -Command "Get-ChildItem -LiteralPath . -Filter '*.pdf' -File -Recurse | Unblock-File"</div>
+  <div class="unlockBox">
+    <button class="light" onclick="copyUnlockCommand()">COPIAR COMANDO DE DESBLOQUEO</button>
+    <span class="small">No requiere que el sistema conozca la ruta completa: el CMD se abre directamente dentro de la carpeta.</span>
+  </div>
 </div>
 
 </div>
@@ -189,6 +363,13 @@ let cancelRequested=false;
 let globalPages=0;
 let stats={detected:0,verify:0,masters:0,errors:0};
 let ocrWorker=null;
+let appMode=null;
+
+let historicalAuditFolder=null;
+let historicalAuditItems=[];
+let historicalAuditIndex=0;
+let historicalAuditRunning=false;
+
 
 // Longitud variable: T + bloque alfanumérico + "-" + bloque numérico.
 const GR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
@@ -233,14 +414,16 @@ function addJob(){
       <div>
         <label>ARCHIVOS ORIGEN</label>
         <div class="filebox">
-          <div class="filelist" id="files-${id}">Ningún PDF seleccionado</div>
+          <div class="filelist dropzone" id="files-${id}"
+            ondragover="jobDragOver(event,${id})"
+            ondragleave="jobDragLeave(event,${id})"
+            ondrop="jobDrop(event,${id})"
+            title="También puedes arrastrar aquí varios PDF">Ningún PDF seleccionado · arrastra aquí o selecciona</div>
           <button class="light" onclick="document.getElementById('picker-${id}').click()">SELECCIONAR</button>
           <input hidden type="file" id="picker-${id}" accept=".pdf,application/pdf" multiple
             onchange="setFiles(${id},this.files)">
         </div>
-        <div class="small muted" style="margin-top:4px">
-          Puedes seleccionar varios PDF del mismo lote.
-        </div>
+        <div class="small muted fileHint" id="filehint-${id}">Puedes seleccionar o arrastrar varios PDF del mismo lote.</div>
       </div>
 
       <div>
@@ -281,6 +464,7 @@ function addJob(){
     </div>
 
     <div class="actions" id="actions-${id}">
+      <button class="amber" id="jobAuditBtn-${id}" onclick="openJobAudit(${id})" style="display:none">AUDITAR (0)</button>
       <button class="green" onclick="saveMaster(${id})">GUARDAR CONSOLIDADO</button>
       <button class="light" onclick="splitEveryPage(${id})">DIVIDIR CADA PÁGINA</button>
       <button class="primary" onclick="groupByGR(${id})">AGRUPAR POR GR</button>
@@ -308,16 +492,38 @@ function setFiles(id,fileList){
   jobs.get(id).files=files;
 
   const box=document.getElementById(`files-${id}`);
+  const hint=document.getElementById(`filehint-${id}`);
 
   if(!files.length){
-    box.textContent='Ningún PDF seleccionado';
+    box.textContent='Ningún PDF seleccionado · arrastra aquí o selecciona';
+    box.title='También puedes arrastrar aquí varios PDF';
+    if(hint)hint.textContent='Puedes seleccionar o arrastrar varios PDF del mismo lote.';
   }else{
-    box.innerHTML=files.map(f=>
-      `<div class="fileitem"><span>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`
-    ).join('');
+    const first=files[0].name;
+    box.textContent=files.length===1 ? first : `${files.length} PDF seleccionados · ${first}`;
+    box.title=files.map(f=>f.name).join('\n');
+    if(hint)hint.textContent=files.length===1 ? `${fmtSize(files[0].size)}` : `${files.length} archivos cargados · pasa el cursor para ver nombres`;
   }
 
   checkReady(id);
+}
+
+function jobDragOver(ev,id){
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect='copy';
+  document.getElementById(`files-${id}`)?.classList.add('dragover');
+}
+
+function jobDragLeave(ev,id){
+  ev.preventDefault();
+  document.getElementById(`files-${id}`)?.classList.remove('dragover');
+}
+
+function jobDrop(ev,id){
+  ev.preventDefault();
+  document.getElementById(`files-${id}`)?.classList.remove('dragover');
+  if(queueRunning)return;
+  setFiles(id,ev.dataTransfer.files);
 }
 
 async function pickFolder(id){
@@ -552,7 +758,10 @@ async function processJob(job){
         baseGR:baseGR||null,
         marker,
         detection,
-        pageIndex:null
+        pageIndex:null,
+        needsAudit:false,
+        auditReason:'',
+        previewDataUrl:(detectByOCRFast.lastDebug&&detectByOCRFast.lastDebug.cropDataUrl)||''
       });
 
       done++;
@@ -650,6 +859,16 @@ async function processJob(job){
     );
   }else{
     logEvent('PASADA 2 omitida: no quedaron páginas VERIFICAR','ok');
+  }
+
+  // En modo V1.4, todo lo que todavía queda VERIFICAR entra a la cola manual.
+  if(appMode==='new'){
+    for(const p of job.pages){
+      if(!p.baseGR){
+        p.needsAudit=true;
+        p.auditReason='No se obtuvo una lectura automática suficientemente segura';
+      }
+    }
   }
 
   // Marcadores definitivos ANTES de la conversión.
@@ -751,6 +970,14 @@ async function processJob(job){
   setJobStatus(job.id,'FINALIZADO','st-done');
   document.getElementById(`actions-${job.id}`).style.display='flex';
 
+  const auditCount=job.pages.filter(p=>p.needsAudit||!p.baseGR).length;
+  const auditBtn=document.getElementById(`jobAuditBtn-${job.id}`);
+  if(auditBtn && appMode==='new'){
+    auditBtn.style.display='inline-block';
+    auditBtn.textContent=`AUDITAR (${auditCount})`;
+    auditBtn.disabled=auditCount===0;
+  }
+
   rebuildResultsTable();
   updateResultStats();
 
@@ -850,7 +1077,8 @@ async function detectByOCRFast(page){
     raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
     compact:compact.slice(0,220),
     confidence:r.data.confidence||0,
-    candidates:[...candidates]
+    candidates:[...candidates],
+    cropDataUrl:crop.toDataURL('image/jpeg',0.90)
   };
 
   return candidates.length===1 ? candidates[0] : null;
@@ -1315,6 +1543,499 @@ function esc(s){
 }
 
 
+
+function chooseMode(mode){
+  appMode=mode;
+  document.getElementById('modeScreen').style.display='none';
+
+  if(mode==='audit'){
+    document.getElementById('processArea').style.display='none';
+    document.getElementById('auditArea').style.display='block';
+    document.querySelector('.consoleCard').style.display='block';
+    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES','info');
+    return;
+  }
+
+  document.getElementById('auditArea').style.display='none';
+  document.getElementById('processArea').style.display='block';
+  document.querySelector('.consoleCard').style.display='block';
+
+  if(mode==='stable'){
+    logEvent('Modo ESTABLE V1.3 · OCR y flujo conservados','ok');
+  }else{
+    logEvent('Modo NUEVA V1.4 · cola de auditoría habilitada','info');
+  }
+}
+
+function backToModes(){
+  if(queueRunning||historicalAuditRunning){
+    alert('Hay un proceso en ejecución.');
+    return;
+  }
+  document.getElementById('processArea').style.display='none';
+  document.getElementById('auditArea').style.display='none';
+  document.getElementById('modeScreen').style.display='block';
+  appMode=null;
+}
+
+async function copyUnlockCommand(){
+  const cmd=document.getElementById('unlockCmd').innerText;
+  await copyText(cmd);
+  alert('Comando copiado.');
+}
+
+async function copyText(txt){
+  try{
+    await navigator.clipboard.writeText(txt);
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+async function pickAuditFolder(){
+  if(historicalAuditRunning)return;
+
+  if(!window.showDirectoryPicker){
+    alert('Usa Chrome actualizado para seleccionar una carpeta.');
+    return;
+  }
+
+  try{
+    historicalAuditFolder=await window.showDirectoryPicker({mode:'readwrite'});
+    const ok=await ensureWritePermission(historicalAuditFolder);
+    if(!ok){
+      alert('No se concedió permiso para la carpeta.');
+      historicalAuditFolder=null;
+      return;
+    }
+    document.getElementById('auditFolderName').textContent=historicalAuditFolder.name;
+    setAuditStatus('LISTO','st-ready');
+    logEvent(`Carpeta de auditoría seleccionada: ${historicalAuditFolder.name}`,'info');
+  }catch(e){
+    if(e.name!=='AbortError'){
+      console.error(e);
+      alert('No se pudo seleccionar la carpeta.');
+    }
+  }
+}
+
+async function collectPdfHandles(dirHandle,prefix=''){
+  const out=[];
+  for await(const [name,handle] of dirHandle.entries()){
+    const rel=prefix ? `${prefix}\\${name}` : name;
+    if(handle.kind==='file' && name.toLowerCase().endsWith('.pdf')){
+      out.push({handle,parentHandle:dirHandle,name,relativePath:rel});
+    }else if(handle.kind==='directory'){
+      const nested=await collectPdfHandles(handle,rel);
+      out.push(...nested);
+    }
+  }
+  return out;
+}
+
+function extractGRFromFilename(name){
+  const base=name.replace(/\.pdf$/i,'');
+  const m=base.match(/\bT[A-Z0-9]+-\d+\b/i);
+  return m ? m[0].toUpperCase() : null;
+}
+
+function fullAuditPath(relativePath){
+  const base=(document.getElementById('auditBasePath').value||'').trim().replace(/[\\\/]+$/,'');
+  if(base)return `${base}\\${relativePath}`;
+  return `${historicalAuditFolder?.name||''}\\${relativePath}`;
+}
+
+function setAuditStatus(text,cls){
+  const el=document.getElementById('auditStatus');
+  el.textContent=text;
+  el.className=`status ${cls}`;
+}
+
+function updateAuditCounters(files=0,ok=0,issues=0,fixed=null){
+  document.getElementById('auditFilesCount').textContent=files;
+  document.getElementById('auditOkCount').textContent=ok;
+  document.getElementById('auditIssueCount').textContent=issues;
+  if(fixed!==null)document.getElementById('auditFixedCount').textContent=fixed;
+}
+
+async function startHistoricalAudit(){
+  if(historicalAuditRunning)return;
+  if(!historicalAuditFolder){
+    alert('Selecciona primero la carpeta a auditar.');
+    return;
+  }
+
+  historicalAuditRunning=true;
+  historicalAuditItems=[];
+  historicalAuditIndex=0;
+  document.getElementById('auditReport').value='';
+  document.getElementById('auditReviewBtn').disabled=true;
+  document.getElementById('auditCopyBtn').disabled=true;
+  document.getElementById('auditApplyBtn').disabled=true;
+  setAuditStatus('AUDITANDO','st-run');
+
+  let files=[],okCount=0;
+  try{
+    files=await collectPdfHandles(historicalAuditFolder);
+    logEvent(`Auditoría histórica: ${files.length} PDF encontrados`,'info');
+
+    for(let i=0;i<files.length;i++){
+      const entry=files[i];
+      document.getElementById('auditBar').style.width=`${files.length?Math.round((i/files.length)*100):0}%`;
+      document.getElementById('auditProgressText').textContent=`${i+1} / ${files.length} · ${entry.relativePath}`;
+
+      const file=await entry.handle.getFile();
+      const expected=extractGRFromFilename(entry.name);
+      let pdf;
+      let pageFindings=[];
+      let preview='';
+      let firstFound=null;
+      let openError=null;
+
+      try{
+        const bytes=new Uint8Array(await file.arrayBuffer());
+        pdf=await pdfjsLib.getDocument({data:bytes}).promise;
+
+        for(let pn=1;pn<=pdf.numPages;pn++){
+          const page=await pdf.getPage(pn);
+          let found=detectFromTextLayer(await page.getTextContent(),page);
+
+          if(!found){
+            found=await detectByOCRFast(page);
+          }
+
+          if(!preview && detectByOCRFast.lastDebug?.cropDataUrl){
+            preview=detectByOCRFast.lastDebug.cropDataUrl;
+          }
+
+          if(!found){
+            const reinforced=await detectByOCRReinforced(pdf,pn,300);
+            if(reinforced)found=reinforced;
+          }
+
+          if(found && !firstFound)firstFound=found;
+
+          if(!found){
+            pageFindings.push({page:pn,type:'NO_LEIDA',found:null});
+          }else if(expected && found!==expected){
+            pageFindings.push({page:pn,type:'DIFERENCIA',found});
+          }else if(!expected){
+            pageFindings.push({page:pn,type:'SIN_GR_NOMBRE',found});
+          }
+        }
+      }catch(e){
+        openError=e?.message||String(e);
+      }
+
+      let observation='';
+      let suggested=firstFound||expected||'';
+
+      if(openError){
+        observation=`No se pudo analizar el PDF: ${openError}`;
+      }else if(!expected){
+        observation=firstFound
+          ? `El nombre del archivo no contiene una GR reconocible. Lectura encontrada: ${firstFound}`
+          : 'El nombre del archivo no contiene una GR reconocible y no se pudo leer una GR.';
+      }else if(pageFindings.length){
+        const diffs=pageFindings.filter(x=>x.type==='DIFERENCIA');
+        const unread=pageFindings.filter(x=>x.type==='NO_LEIDA');
+
+        if(diffs.length){
+          const values=[...new Set(diffs.map(x=>x.found).filter(Boolean))];
+          observation=`No coincide con el nombre ${expected}. Lectura(s): ${values.join(', ')}. Página(s): ${diffs.map(x=>x.page).join(', ')}`;
+          if(values.length===1)suggested=values[0];
+        }
+        if(unread.length){
+          observation+=(observation?' · ':'')+`Sin lectura segura en página(s): ${unread.map(x=>x.page).join(', ')}`;
+        }
+      }
+
+      if(observation){
+        historicalAuditItems.push({
+          ...entry,
+          expectedGR:expected,
+          foundGR:firstFound,
+          correctedGR:suggested,
+          observation,
+          previewDataUrl:preview,
+          reviewed:false,
+          originalName:entry.name
+        });
+        logEvent(`OBSERVACIÓN · ${entry.relativePath} · ${observation}`,'warn');
+      }else{
+        okCount++;
+      }
+
+      updateAuditCounters(i+1,okCount,historicalAuditItems.length,
+        historicalAuditItems.filter(x=>x.reviewed).length);
+      if((i+1)%2===0)await yieldUI();
+    }
+
+    document.getElementById('auditBar').style.width='100%';
+    document.getElementById('auditProgressText').textContent=
+      `Finalizado · ${files.length} PDF · ${historicalAuditItems.length} con observaciones`;
+
+    buildAuditReport();
+
+    document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;
+    document.getElementById('auditReviewBtn').disabled=historicalAuditItems.length===0;
+    document.getElementById('auditReviewBtn').textContent=`AUDITAR OBSERVACIONES (${historicalAuditItems.length})`;
+    setAuditStatus('FINALIZADO','st-done');
+    logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones`,'ok');
+
+  }catch(e){
+    console.error(e);
+    setAuditStatus('ERROR','st-err');
+    logEvent(`ERROR AUDITORÍA: ${e?.message||e}`,'err');
+    alert('Ocurrió un error durante la auditoría.');
+  }finally{
+    historicalAuditRunning=false;
+    await terminateOCR();
+  }
+}
+
+function buildAuditReport(){
+  const lines=[];
+  lines.push('RUTA\tARCHIVO\tGR_NOMBRE\tGR_LEIDA_O_PROPUESTA\tOBSERVACION');
+
+  for(const item of historicalAuditItems){
+    lines.push([
+      fullAuditPath(item.relativePath),
+      item.originalName,
+      item.expectedGR||'',
+      item.correctedGR||item.foundGR||'',
+      item.observation
+    ].join('\t'));
+  }
+
+  document.getElementById('auditReport').value=
+    historicalAuditItems.length ? lines.join('\n') : 'SIN OBSERVACIONES';
+}
+
+async function copyAuditReport(){
+  buildAuditReport();
+  await copyText(document.getElementById('auditReport').value);
+  alert('Reporte de observaciones copiado.');
+}
+
+function openHistoricalAuditQueue(){
+  if(!historicalAuditItems.length)return;
+  historicalAuditIndex=0;
+  document.getElementById('auditModal').classList.add('open');
+  showHistoricalAuditItem();
+}
+
+function showHistoricalAuditItem(){
+  const item=historicalAuditItems[historicalAuditIndex];
+  if(!item){
+    closeAuditModal();
+    return;
+  }
+
+  document.getElementById('auditModalCounter').textContent=
+    `${historicalAuditIndex+1} de ${historicalAuditItems.length}`;
+  document.getElementById('auditModalPath').textContent=fullAuditPath(item.relativePath);
+  document.getElementById('auditCurrentName').textContent=item.originalName;
+  document.getElementById('auditSystemReading').textContent=item.foundGR||'NO IDENTIFICADA';
+  document.getElementById('auditObservation').textContent=item.observation;
+
+  const img=document.getElementById('auditPreview');
+  if(item.previewDataUrl){
+    img.src=item.previewDataUrl;
+    img.style.display='block';
+  }else{
+    img.removeAttribute('src');
+    img.style.display='none';
+  }
+
+  const input=document.getElementById('auditManualGR');
+  input.value=item.correctedGR||item.foundGR||item.expectedGR||'';
+  setTimeout(()=>{input.focus();input.select();},50);
+}
+
+function acceptAuditItem(){
+  const item=historicalAuditItems[historicalAuditIndex];
+  if(!item)return;
+
+  const value=(document.getElementById('auditManualGR').value||'').trim().toUpperCase();
+
+  if(!/^T[A-Z0-9]+-\d+$/.test(value)){
+    alert('Escribe una GR válida, por ejemplo T611-00011956 o TS32-9850.');
+    document.getElementById('auditManualGR').focus();
+    return;
+  }
+
+  item.correctedGR=value;
+  item.reviewed=true;
+  historicalAuditIndex++;
+
+  updateAuditCounters(
+    Number(document.getElementById('auditFilesCount').textContent)||0,
+    Number(document.getElementById('auditOkCount').textContent)||0,
+    historicalAuditItems.length,
+    historicalAuditItems.filter(x=>x.reviewed).length
+  );
+
+  if(historicalAuditIndex>=historicalAuditItems.length){
+    buildAuditReport();
+    document.getElementById('auditApplyBtn').disabled=
+      !historicalAuditItems.some(x=>x.reviewed && x.correctedGR && x.correctedGR!==x.expectedGR);
+    closeAuditModal();
+    alert('Auditoría manual completada.');
+    return;
+  }
+
+  showHistoricalAuditItem();
+}
+
+function closeAuditModal(){
+  document.getElementById('auditModal').classList.remove('open');
+}
+
+function preserveSuffixName(originalName,expectedGR,correctedGR){
+  if(expectedGR && originalName.toUpperCase().includes(expectedGR.toUpperCase())){
+    const idx=originalName.toUpperCase().indexOf(expectedGR.toUpperCase());
+    return originalName.slice(0,idx)+correctedGR+originalName.slice(idx+expectedGR.length);
+  }
+  return `${correctedGR}.pdf`;
+}
+
+async function uniqueNameInDirectory(dirHandle,name,ignoreName=null){
+  if(ignoreName && name.toLowerCase()===ignoreName.toLowerCase())return name;
+
+  const dot=name.toLowerCase().endsWith('.pdf') ? name.slice(0,-4) : name;
+  let candidate=name,n=2;
+
+  while(true){
+    try{
+      await dirHandle.getFileHandle(candidate);
+      candidate=`${dot}_${n++}.pdf`;
+    }catch(e){
+      return candidate;
+    }
+  }
+}
+
+async function applyHistoricalCorrections(){
+  const changes=historicalAuditItems.filter(x=>
+    x.reviewed && x.correctedGR && x.correctedGR!==x.expectedGR
+  );
+
+  if(!changes.length){
+    alert('No hay cambios de nombre pendientes.');
+    return;
+  }
+
+  if(!confirm(`Se renombrarán ${changes.length} archivo(s). ¿Continuar?`))return;
+
+  let done=0;
+
+  for(const item of changes){
+    try{
+      const sourceFile=await item.handle.getFile();
+      const bytes=await sourceFile.arrayBuffer();
+      let newName=preserveSuffixName(item.originalName,item.expectedGR,item.correctedGR);
+      newName=await uniqueNameInDirectory(item.parentHandle,newName,item.originalName);
+
+      const newHandle=await item.parentHandle.getFileHandle(newName,{create:true});
+      const writer=await newHandle.createWritable();
+      await writer.write(bytes);
+      await writer.close();
+
+      if(newName!==item.originalName){
+        await item.parentHandle.removeEntry(item.originalName);
+      }
+
+      item.observation+=` · RENOMBRADO A ${newName}`;
+      item.originalName=newName;
+      item.expectedGR=item.correctedGR;
+      item.name=newName;
+      done++;
+      logEvent(`RENOMBRADO · ${item.relativePath} → ${newName}`,'ok');
+    }catch(e){
+      item.observation+=` · ERROR AL RENOMBRAR: ${e?.message||e}`;
+      logEvent(`ERROR RENOMBRANDO ${item.relativePath}: ${e?.message||e}`,'err');
+    }
+  }
+
+  buildAuditReport();
+  document.getElementById('auditApplyBtn').disabled=true;
+  alert(`Correcciones aplicadas: ${done} de ${changes.length}.`);
+}
+
+function openJobAudit(id){
+  const job=jobs.get(id);
+  if(!job)return;
+
+  const pending=job.pages.filter(p=>p.needsAudit||!p.baseGR);
+  if(!pending.length){
+    alert('No hay páginas pendientes de auditoría.');
+    return;
+  }
+
+  // Reutilizamos el modal. Se crea una cola temporal con referencia a la página.
+  historicalAuditItems=pending.map((p,idx)=>({
+    relativePath:`${job.name}\\${p.sourceFile} · pág. ${p.sourcePage}`,
+    originalName:p.marker,
+    expectedGR:p.baseGR,
+    foundGR:p.baseGR,
+    correctedGR:p.baseGR||'',
+    observation:p.auditReason||'Revisión manual requerida',
+    previewDataUrl:p.previewDataUrl||'',
+    reviewed:false,
+    jobPageRef:p
+  }));
+
+  historicalAuditIndex=0;
+  document.getElementById('auditModal').classList.add('open');
+
+  // Reemplazo temporal del aceptar: usa la misma función con sincronización posterior.
+  showHistoricalAuditItem();
+
+  const btn=document.getElementById('auditAcceptBtn');
+  btn.onclick=function(){
+    const item=historicalAuditItems[historicalAuditIndex];
+    const value=(document.getElementById('auditManualGR').value||'').trim().toUpperCase();
+
+    if(!/^T[A-Z0-9]+-\d+$/.test(value)){
+      alert('Escribe una GR válida.');
+      document.getElementById('auditManualGR').focus();
+      return;
+    }
+
+    item.correctedGR=value;
+    item.reviewed=true;
+    item.jobPageRef.baseGR=value;
+    item.jobPageRef.marker=value;
+    item.jobPageRef.detection='CONFIRMADA MANUALMENTE';
+    item.jobPageRef.needsAudit=false;
+
+    historicalAuditIndex++;
+
+    if(historicalAuditIndex>=historicalAuditItems.length){
+      rebuildMarkers(job.pages);
+      rebuildResultsTable();
+      const remaining=job.pages.filter(p=>p.needsAudit||!p.baseGR).length;
+      const jb=document.getElementById(`jobAuditBtn-${id}`);
+      if(jb){
+        jb.textContent=`AUDITAR (${remaining})`;
+        jb.disabled=remaining===0;
+      }
+      btn.onclick=acceptAuditItem;
+      closeAuditModal();
+      alert('Auditoría de la ruta completada. Los marcadores fueron actualizados.');
+      return;
+    }
+
+    showHistoricalAuditItem();
+  };
+}
+
 function logEvent(message,type='info'){
   const box=document.getElementById('consoleBox');
   if(!box)return;
@@ -1404,7 +2125,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.3 OCR 300 DPI corregido + debug","ok");
+logEvent("Sistema listo · V1.4 modos + auditoría + arrastrar","ok");
 addJob();
 </script>
 </body>
