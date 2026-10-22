@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automatizador GR Web</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#202124}
+.app{max-width:1360px;margin:auto;padding:22px}
+.card{background:#fff;border:1px solid #d9dee4;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.header{padding:20px 24px;margin-bottom:16px}
+.header h1{margin:0 0 4px;font-size:26px}
+.muted{color:#5f6368}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+button{border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:#1a73e8;color:#fff}
+.green{background:#188038;color:#fff}
+.amber{background:#f9ab00;color:#202124}
+.red{background:#d93025;color:#fff}
+.light{background:#fff;color:#1a73e8;border:1px solid #cfd5dc}
+.danger{background:#fce8e6;color:#b3261e}
+.job{margin-bottom:14px;overflow:hidden}
+.jobhead{display:flex;justify-content:space-between;align-items:center;background:#eef3f8;padding:11px 16px}
+.jobgrid{display:grid;grid-template-columns:160px 2fr 1.5fr 115px 135px;gap:12px;padding:15px;align-items:end}
+label{display:block;font-size:12px;font-weight:700;color:#5f6368;margin-bottom:5px}
+input[type=text],select{width:100%;height:39px;border:1px solid #cfd5dc;border-radius:6px;padding:8px;background:#fff}
+.filebox{display:flex;gap:7px;min-width:0}
+.filelist{min-height:39px;max-height:105px;overflow:auto;flex:1;min-width:0;border:1px solid #cfd5dc;border-radius:6px;background:#fafafa;padding:8px;font-size:13px}
+.fileitem{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.fileitem span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{min-height:39px;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:800;padding:5px;background:#f1f3f4}
+.st-ready,.st-done{background:#e6f4ea;color:#137333}
+.st-wait{background:#fef7e0;color:#a15c00}
+.st-run{background:#e8f0fe;color:#174ea6}
+.st-err{background:#fce8e6;color:#b3261e}
+.progressWrap{display:none;padding:0 15px 15px}
+.progress{height:17px;background:#e8eaed;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:#1a73e8;transition:width .12s}
+.progressText{font-size:13px;color:#5f6368;margin-top:6px}
+.actions{display:none;gap:8px;flex-wrap:wrap;padding:0 15px 15px}
+.summary{padding:15px 19px;margin-top:15px;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}
+.metric{background:#fafafa;border:1px solid #e1e5ea;border-radius:8px;padding:10px}
+.metric b{display:block;font-size:20px;margin-top:3px}
+.results{display:none;padding:16px 18px;margin-top:15px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #d9dee4;padding:7px;text-align:left}
+th{background:#f1f3f4}
+.ok{color:#137333;font-weight:700}
+.warn{color:#a15c00;font-weight:700}
+.bad{color:#b3261e;font-weight:700}
+.note{margin-top:15px;padding:11px 14px;border-radius:7px;background:#e8f0fe;color:#174ea6;font-size:13px}
+.cmd{margin-top:10px;padding:10px;border:1px solid #cfd5dc;border-radius:7px;background:#fafafa;font-family:Consolas,monospace;font-size:12px;overflow:auto;white-space:nowrap}
+.small{font-size:12px}
+
+.consoleCard{margin-top:15px;padding:14px 16px}
+.consoleHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.consoleBox{
+  margin-top:10px;
+  height:260px;
+  overflow:auto;
+  background:#111827;
+  color:#e5e7eb;
+  border-radius:8px;
+  padding:10px 12px;
+  font-family:Consolas,monospace;
+  font-size:12px;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+.consoleInfo{color:#93c5fd}
+.consoleOk{color:#86efac}
+.consoleWarn{color:#fde68a}
+.consoleErr{color:#fca5a5}
+.timeGrid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(125px,1fr));
+  gap:8px;
+  padding:0 15px 15px;
+}
+.timeItem{
+  border:1px solid #e1e5ea;
+  background:#fafafa;
+  border-radius:7px;
+  padding:8px;
+  font-size:12px;
+}
+.timeItem b{display:block;margin-top:3px;font-size:13px;color:#202124}
+@media(max-width:1100px){.timeGrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.timeGrid{grid-template-columns:1fr 1fr}}
+
+@media(max-width:1000px){.jobgrid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="card header">
+  <h1>AUTOMATIZADOR GR WEB</h1>
+  <div class="muted"><strong>VERSIÓN 1.3 · OCR 300 DPI CORREGIDO + DEBUG</strong></div>
+  <div class="muted" style="margin-top:3px">
+    OCR 300 DPI · compactación estilo .py · PSM corregido · debug OCR bruto
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="primary" id="btnAdd" onclick="addJob()">+ AGREGAR RUTA / LOTE</button>
+  <button class="green" id="btnStart" onclick="startQueue()">INICIAR COLA</button>
+  <button class="amber" id="btnPause" onclick="togglePause()" disabled>PAUSAR</button>
+  <button class="red" id="btnCancel" onclick="cancelQueue()" disabled>CANCELAR TODO</button>
+</div>
+
+<div id="jobs"></div>
+
+<div class="card summary">
+  <div class="metric">Rutas configuradas<b id="mJobs">0</b></div>
+  <div class="metric">Rutas listas<b id="mReady">0</b></div>
+  <div class="metric">Páginas procesadas<b id="mPages">0</b></div>
+  <div class="metric">Estado cola<b id="mQueue" style="font-size:15px">Esperando</b></div>
+</div>
+
+<div id="results" class="card results">
+  <h3 style="margin-top:0">Resultado</h3>
+  <div class="summary" style="padding:0;margin:0">
+    <div class="metric">GR detectadas<b id="rDetected">0</b></div>
+    <div class="metric">VERIFICAR<b id="rVerify">0</b></div>
+    <div class="metric">PDF maestros<b id="rMasters">0</b></div>
+    <div class="metric">Errores<b id="rErrors">0</b></div>
+  </div>
+
+  <div style="overflow:auto;max-height:420px;margin-top:12px">
+    <table>
+      <thead>
+        <tr>
+          <th>Ruta</th>
+          <th>Origen</th>
+          <th>Pág.</th>
+          <th>Marcador</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+      <tbody id="resultRows"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="card consoleCard">
+  <div class="consoleHead">
+    <div>
+      <strong>CONSOLA DE EVENTOS</strong>
+      <div class="small muted">Registro de fases, horas, páginas, OCR, marcadores, tiempos y errores.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="light" onclick="copyConsole()">COPIAR CONSOLA</button>
+      <button class="light" onclick="clearConsole()">LIMPIAR</button>
+    </div>
+  </div>
+  <div id="consoleBox" class="consoleBox"></div>
+</div>
+
+<div class="note">
+  <strong>Vista previa de Windows:</strong> después de generar los PDF, abre la carpeta destino en el Explorador,
+  escribe <strong>cmd</strong> en la barra de direcciones y pulsa Enter. Luego pega este comando:
+  <div class="cmd">powershell -NoProfile -Command "Get-ChildItem -LiteralPath . -Filter '*.pdf' -File | Unblock-File"</div>
+</div>
+
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const {
+  PDFDocument, PDFName, PDFHexString
+}=PDFLib;
+
+let nextId=0;
+const jobs=new Map();
+let queueRunning=false;
+let paused=false;
+let cancelRequested=false;
+let globalPages=0;
+let stats={detected:0,verify:0,masters:0,errors:0};
+let ocrWorker=null;
+
+// Longitud variable: T + bloque alfanumérico + "-" + bloque numérico.
+const GR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
+
+function addJob(){
+  if(queueRunning)return;
+
+  const id=++nextId;
+
+  jobs.set(id,{
+    id,
+    name:'',
+    files:[],
+    folder:null,
+    dpi:200,
+    status:'Incompleto',
+    pages:[],
+    masterBytes:null,
+    startedAt:null,
+    endedAt:null,
+    totalUnits:0,
+    completedUnits:0
+  });
+
+  const el=document.createElement('div');
+  el.className='card job';
+  el.id=`job-${id}`;
+
+  el.innerHTML=`
+    <div class="jobhead">
+      <strong>RUTA / LOTE ${id}</strong>
+      <button class="danger" onclick="removeJob(${id})">ELIMINAR</button>
+    </div>
+
+    <div class="jobgrid">
+      <div>
+        <label>NOMBRE RUTA / LOTE</label>
+        <input type="text" id="name-${id}" placeholder="Ej. R1, R2, SLA"
+          oninput="setName(${id},this.value)">
+      </div>
+
+      <div>
+        <label>ARCHIVOS ORIGEN</label>
+        <div class="filebox">
+          <div class="filelist" id="files-${id}">Ningún PDF seleccionado</div>
+          <button class="light" onclick="document.getElementById('picker-${id}').click()">SELECCIONAR</button>
+          <input hidden type="file" id="picker-${id}" accept=".pdf,application/pdf" multiple
+            onchange="setFiles(${id},this.files)">
+        </div>
+        <div class="small muted" style="margin-top:4px">
+          Puedes seleccionar varios PDF del mismo lote.
+        </div>
+      </div>
+
+      <div>
+        <label>CARPETA DESTINO</label>
+        <div class="filebox">
+          <div class="filelist" id="folder-${id}" style="max-height:39px">Ninguna carpeta seleccionada</div>
+          <button class="light" onclick="pickFolder(${id})">SELECCIONAR</button>
+        </div>
+      </div>
+
+      <div>
+        <label>DPI FINAL</label>
+        <select id="dpi-${id}" onchange="setDpi(${id},this.value)">
+          <option value="150">150</option>
+          <option value="200" selected>200</option>
+          <option value="300">300</option>
+        </select>
+      </div>
+
+      <div>
+        <label>ESTADO</label>
+        <div class="status st-wait" id="status-${id}">INCOMPLETO</div>
+      </div>
+    </div>
+
+    <div class="progressWrap" id="pw-${id}">
+      <div class="progress"><div class="bar" id="bar-${id}"></div></div>
+      <div class="progressText" id="pt-${id}">Esperando</div>
+    </div>
+
+    <div class="timeGrid" id="time-${id}">
+      <div class="timeItem">Inicio<b id="tStart-${id}">--:--:--</b></div>
+      <div class="timeItem">Fin estimado<b id="tEstimatedEnd-${id}">--:--:--</b></div>
+      <div class="timeItem">Transcurrido<b id="tElapsed-${id}">00:00:00</b></div>
+      <div class="timeItem">Restante estimado<b id="tRemaining-${id}">--:--:--</b></div>
+      <div class="timeItem">Fin real<b id="tEnd-${id}">--:--:--</b></div>
+      <div class="timeItem">Duración total<b id="tDuration-${id}">--:--:--</b></div>
+    </div>
+
+    <div class="actions" id="actions-${id}">
+      <button class="green" onclick="saveMaster(${id})">GUARDAR CONSOLIDADO</button>
+      <button class="light" onclick="splitEveryPage(${id})">DIVIDIR CADA PÁGINA</button>
+      <button class="primary" onclick="groupByGR(${id})">AGRUPAR POR GR</button>
+    </div>
+  `;
+
+  document.getElementById('jobs').appendChild(el);
+  updateSummary();
+}
+
+function setName(id,v){
+  jobs.get(id).name=v.trim();
+  checkReady(id);
+}
+
+function setDpi(id,v){
+  jobs.get(id).dpi=Number(v);
+  checkReady(id);
+}
+
+function setFiles(id,fileList){
+  if(queueRunning)return;
+
+  const files=[...fileList].filter(f=>f.name.toLowerCase().endsWith('.pdf'));
+  jobs.get(id).files=files;
+
+  const box=document.getElementById(`files-${id}`);
+
+  if(!files.length){
+    box.textContent='Ningún PDF seleccionado';
+  }else{
+    box.innerHTML=files.map(f=>
+      `<div class="fileitem"><span>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`
+    ).join('');
+  }
+
+  checkReady(id);
+}
+
+async function pickFolder(id){
+  if(queueRunning)return;
+
+  if(!window.showDirectoryPicker){
+    alert('Este navegador no permite seleccionar carpetas directamente. Usa Chrome o Edge actualizado.');
+    return;
+  }
+
+  try{
+    const h=await window.showDirectoryPicker({mode:'readwrite'});
+    const ok=await ensureWritePermission(h);
+
+    if(!ok){
+      alert('No se concedió permiso de escritura para la carpeta.');
+      return;
+    }
+
+    jobs.get(id).folder=h;
+    document.getElementById(`folder-${id}`).textContent=h.name;
+    checkReady(id);
+
+  }catch(e){
+    if(e.name!=='AbortError'){
+      console.error(e);
+      alert('No se pudo acceder a la carpeta.');
+    }
+  }
+}
+
+async function ensureWritePermission(h){
+  try{
+    const opts={mode:'readwrite'};
+    if(await h.queryPermission(opts)==='granted')return true;
+    return await h.requestPermission(opts)==='granted';
+  }catch(e){
+    return true;
+  }
+}
+
+function checkReady(id){
+  const j=jobs.get(id);
+  const el=document.getElementById(`status-${id}`);
+
+  const ready=!!(j.name && j.files.length && j.folder && j.dpi);
+
+  j.status=ready?'Listo':'Incompleto';
+  el.textContent=ready?'LISTO':'INCOMPLETO';
+  el.className=`status ${ready?'st-ready':'st-wait'}`;
+
+  updateSummary();
+}
+
+function removeJob(id){
+  if(queueRunning)return;
+  jobs.delete(id);
+  document.getElementById(`job-${id}`)?.remove();
+  updateSummary();
+}
+
+function updateSummary(){
+  document.getElementById('mJobs').textContent=jobs.size;
+  document.getElementById('mReady').textContent=[...jobs.values()].filter(j=>j.status==='Listo').length;
+  document.getElementById('mPages').textContent=globalPages;
+}
+
+async function startQueue(){
+  if(queueRunning)return;
+
+  const list=[...jobs.values()];
+
+  if(!list.length){
+    alert('Agrega al menos una ruta/lote.');
+    return;
+  }
+
+  const incomplete=list.filter(j=>j.status!=='Listo');
+
+  if(incomplete.length){
+    alert(`Hay ${incomplete.length} ruta(s) incompleta(s).`);
+    return;
+  }
+
+  queueRunning=true;
+  paused=false;
+  cancelRequested=false;
+  globalPages=0;
+  stats={detected:0,verify:0,masters:0,errors:0};
+
+  document.getElementById('resultRows').innerHTML='';
+  document.getElementById('results').style.display='block';
+
+  setQueueUI(true);
+  setQueueText('Procesando');
+  updateResultStats();
+
+  try{
+    for(const job of list){
+      if(cancelRequested)break;
+      await waitIfPaused();
+      await processJob(job);
+    }
+
+    setQueueText(cancelRequested?'Cancelada':'Finalizada');
+
+  }catch(e){
+    console.error(e);
+    logEvent(`ERROR GENERAL: ${e?.message||e}`,'err');
+    setQueueText('Error');
+    alert('Ocurrió un error durante el procesamiento.');
+
+  }finally{
+    await terminateOCR();
+    queueRunning=false;
+    paused=false;
+    setQueueUI(false);
+    updateResultStats();
+  }
+}
+
+async function processJob(job){
+  job.pages=[];
+  job.masterBytes=null;
+  job.startedAt=new Date();
+  job.endedAt=null;
+  job.completedUnits=0;
+
+  setTimeValue(job.id,'tStart',formatClock(job.startedAt));
+  setTimeValue(job.id,'tEnd','--:--:--');
+  setTimeValue(job.id,'tDuration','--:--:--');
+  setTimeValue(job.id,'tRemaining','Calculando...');
+  setTimeValue(job.id,'tEstimatedEnd','Calculando...');
+
+  logEvent(`INICIO ruta ${job.name} · ${job.files.length} PDF · DPI final ${job.dpi}`,'info');
+
+  setJobStatus(job.id,'PASADA 1 · OCR 300 DPI','st-run');
+  document.getElementById(`pw-${job.id}`).style.display='block';
+  document.getElementById(`actions-${job.id}`).style.display='none';
+
+  // Abrimos cada PDF una sola vez. No se crean PDFs temporales por página.
+  const sources=[];
+  let totalPages=0;
+
+  for(const f of job.files){
+    await waitIfPaused();
+    if(cancelRequested)return;
+
+    logEvent(`Abriendo PDF: ${f.name}`,'info');
+
+    const bytes=new Uint8Array(await f.arrayBuffer());
+    const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
+
+    sources.push({file:f,pdf});
+    totalPages+=pdf.numPages;
+
+    logEvent(`${f.name}: ${pdf.numPages} páginas`,'info');
+  }
+
+  // Unidades estimativas:
+  // pasada 1 = 1 por página
+  // conversión = 1 por página
+  // la pasada reforzada se añade dinámicamente después.
+  job.totalUnits=totalPages*2;
+
+  const seenGR=new Map();
+  let done=0;
+  let verifySeq=1;
+
+  // ==========================================================
+  // PASADA 1: UNA lectura OCR a 300 DPI por página
+  // ==========================================================
+  logEvent(`PASADA 1 iniciada · OCR 300 DPI · ${totalPages} páginas`,'info');
+
+  for(const source of sources){
+    for(let pn=1;pn<=source.pdf.numPages;pn++){
+      await waitIfPaused();
+
+      if(cancelRequested){
+        setJobStatus(job.id,'CANCELADO','st-err');
+        logEvent(`CANCELADO durante PASADA 1 · ${job.name}`,'warn');
+        return;
+      }
+
+      const page=await source.pdf.getPage(pn);
+
+      // Si hubiera texto embebido válido se aprovecha; en escaneos pasará al OCR.
+      let baseGR=detectFromTextLayer(await page.getTextContent(),page);
+      let detection='TEXTO';
+
+      if(!baseGR){
+        baseGR=await detectByOCRFast(page);
+        detection=baseGR?'OCR 300 DPI':'';
+
+        const dbg=detectByOCRFast.lastDebug;
+        if(dbg && (done<5 || !baseGR)){
+          logEvent(
+            `DEBUG OCR · ${source.file.name} pág. ${pn} · conf ${Math.round(dbg.confidence)} · bruto: "${dbg.raw}"`,
+            'info'
+          );
+          logEvent(
+            `DEBUG COMPACTO · pág. ${pn} · "${dbg.compact}" · candidatos: ${dbg.candidates.join(', ')||'NINGUNO'}`,
+            baseGR?'ok':'warn'
+          );
+        }
+      }
+
+      let marker;
+
+      if(baseGR){
+        const count=(seenGR.get(baseGR)||0)+1;
+        seenGR.set(baseGR,count);
+        marker=count===1 ? baseGR : `${baseGR}_${count}`;
+        stats.detected++;
+        logEvent(
+          `Pág. ${pn}/${source.pdf.numPages} · ${source.file.name} · GR ${baseGR} · ${detection}`,
+          'ok'
+        );
+      }else{
+        marker=`VERIFICAR_${String(verifySeq++).padStart(3,'0')}`;
+        stats.verify++;
+        logEvent(
+          `Pág. ${pn}/${source.pdf.numPages} · ${source.file.name} · ${marker}`,
+          'warn'
+        );
+      }
+
+      job.pages.push({
+        sourcePdf:source.pdf,
+        sourceFile:source.file.name,
+        sourcePage:pn,
+        baseGR:baseGR||null,
+        marker,
+        detection,
+        pageIndex:null
+      });
+
+      done++;
+      globalPages++;
+      job.completedUnits++;
+
+      const pct=Math.min(45,Math.round((done/totalPages)*45));
+      setProgress(job.id,pct,`Pasada 1: ${done} / ${totalPages} · ${marker}`);
+      updateTiming(job);
+      updateSummary();
+
+      if(done%2===0)await yieldUI();
+    }
+  }
+
+  logEvent(
+    `PASADA 1 terminada · reconocidas ${job.pages.filter(p=>p.baseGR).length} · VERIFICAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    'info'
+  );
+
+  // ==========================================================
+  // PASADA 2: SOLO VERIFICAR, antes de convertir el PDF final
+  // ==========================================================
+  const pending=job.pages.filter(p=>!p.baseGR);
+  job.totalUnits += pending.length; // una "unidad" por caso reforzado
+
+  if(pending.length){
+    setJobStatus(job.id,'PASADA 2 · VERIFICAR','st-run');
+    logEvent(`PASADA 2 iniciada · ${pending.length} páginas por verificar`,'info');
+
+    for(let i=0;i<pending.length;i++){
+      await waitIfPaused();
+
+      if(cancelRequested){
+        setJobStatus(job.id,'CANCELADO','st-err');
+        logEvent(`CANCELADO durante PASADA 2 · ${job.name}`,'warn');
+        return;
+      }
+
+      const info=pending[i];
+
+      logEvent(
+        `Revisión reforzada ${i+1}/${pending.length} · ${info.sourceFile} · pág. ${info.sourcePage}`,
+        'info'
+      );
+
+      const resolved=await detectByOCRReinforced(
+        info.sourcePdf,
+        info.sourcePage,
+        300
+      );
+
+      const reinforcedDebug=detectByOCRReinforced.lastDebug||[];
+      if(!resolved){
+        for(const d of reinforcedDebug){
+          logEvent(
+            `DEBUG REFORZADO · ${info.sourceFile} pág. ${info.sourcePage} · ${d.mode} · conf ${Math.round(d.confidence)} · bruto: "${d.raw}"`,
+            'warn'
+          );
+          logEvent(
+            `DEBUG REFORZADO COMPACTO · ${d.mode} · "${d.compact}" · candidatos: ${d.candidates.join(', ')||'NINGUNO'}`,
+            'warn'
+          );
+        }
+      }
+
+      if(resolved){
+        stats.verify=Math.max(0,stats.verify-1);
+        stats.detected++;
+
+        info.baseGR=resolved;
+        info.detection='OCR REFORZADO 300 DPI';
+
+        logEvent(
+          `${info.marker} RESUELTO → ${resolved} · ${info.sourceFile} pág. ${info.sourcePage}`,
+          'ok'
+        );
+      }else{
+        logEvent(
+          `${info.marker} continúa sin identificación segura`,
+          'warn'
+        );
+      }
+
+      job.completedUnits++;
+
+      const pct=45+Math.round(((i+1)/pending.length)*20);
+      setProgress(job.id,pct,`Pasada 2: ${i+1} / ${pending.length}`);
+      updateTiming(job);
+    }
+
+    logEvent(
+      `PASADA 2 terminada · quedan ${job.pages.filter(p=>!p.baseGR).length} VERIFICAR`,
+      'info'
+    );
+  }else{
+    logEvent('PASADA 2 omitida: no quedaron páginas VERIFICAR','ok');
+  }
+
+  // Marcadores definitivos ANTES de la conversión.
+  rebuildMarkers(job.pages);
+
+  // ==========================================================
+  // CONVERSIÓN ÚNICA AL DPI FINAL
+  // ==========================================================
+  setJobStatus(job.id,'CONVIRTIENDO DPI FINAL','st-run');
+  logEvent(`Conversión final iniciada · ${job.dpi} DPI · ${job.pages.length} páginas`,'info');
+
+  const master=await PDFDocument.create();
+
+  for(let i=0;i<job.pages.length;i++){
+    await waitIfPaused();
+
+    if(cancelRequested){
+      setJobStatus(job.id,'CANCELADO','st-err');
+      logEvent(`CANCELADO durante conversión final · ${job.name}`,'warn');
+      return;
+    }
+
+    const info=job.pages[i];
+    const page=await info.sourcePdf.getPage(info.sourcePage);
+
+    const viewport=page.getViewport({scale:job.dpi/72});
+
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.ceil(viewport.width);
+    canvas.height=Math.ceil(viewport.height);
+
+    const ctx=canvas.getContext('2d');
+    await page.render({canvasContext:ctx,viewport}).promise;
+
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.65));
+    if(!blob)throw new Error('No se pudo generar JPEG de la página.');
+
+    const jpgBytes=new Uint8Array(await blob.arrayBuffer());
+    const img=await master.embedJpg(jpgBytes);
+
+    const baseViewport=page.getViewport({scale:1});
+    const outPage=master.addPage([baseViewport.width,baseViewport.height]);
+
+    outPage.drawImage(img,{
+      x:0,
+      y:0,
+      width:baseViewport.width,
+      height:baseViewport.height
+    });
+
+    info.pageIndex=master.getPageCount()-1;
+
+    job.completedUnits++;
+
+    const pct=65+Math.round(((i+1)/job.pages.length)*30);
+    setProgress(
+      job.id,
+      pct,
+      `DPI final: ${i+1} / ${job.pages.length} · ${info.marker}`
+    );
+    updateTiming(job);
+
+    if((i+1)%3===0){
+      logEvent(`Conversión final ${i+1}/${job.pages.length} páginas`,'info');
+      await yieldUI();
+    }
+  }
+
+  // ==========================================================
+  // MARCADORES DEFINITIVOS
+  // ==========================================================
+  setJobStatus(job.id,'MARCADORES','st-run');
+  logEvent('Insertando marcadores definitivos en PDF maestro','info');
+
+  addBookmarks(master,job.pages.map(p=>({
+    title:p.marker,
+    pageIndex:p.pageIndex
+  })));
+
+  setProgress(job.id,98,'Guardando estructura del PDF maestro...');
+
+  job.masterBytes=await master.save({
+    useObjectStreams:true,
+    addDefaultPage:false
+  });
+
+  stats.masters++;
+
+  job.endedAt=new Date();
+  setTimeValue(job.id,'tEnd',formatClock(job.endedAt));
+  setTimeValue(job.id,'tDuration',formatDuration(job.endedAt-job.startedAt));
+  setTimeValue(job.id,'tRemaining','00:00:00');
+  setTimeValue(job.id,'tEstimatedEnd',formatClock(job.endedAt));
+
+  setProgress(job.id,100,
+    `${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} reconocidas · ${job.pages.filter(p=>!p.baseGR).length} VERIFICAR`
+  );
+
+  setJobStatus(job.id,'FINALIZADO','st-done');
+  document.getElementById(`actions-${job.id}`).style.display='flex';
+
+  rebuildResultsTable();
+  updateResultStats();
+
+  logEvent(
+    `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · reconocidas ${job.pages.filter(p=>p.baseGR).length} · VERIFICAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    'ok'
+  );
+}
+
+function rebuildMarkers(pages){
+  const counts=new Map();
+  let verify=1;
+  for(const p of pages){
+    if(p.baseGR){
+      const count=(counts.get(p.baseGR)||0)+1;
+      counts.set(p.baseGR,count);
+      p.marker=count===1?p.baseGR:`${p.baseGR}_${count}`;
+    }else{
+      p.marker=`VERIFICAR_${String(verify++).padStart(3,'0')}`;
+    }
+  }
+}
+
+function rebuildResultsTable(){
+  const tbody=document.getElementById('resultRows');
+  tbody.innerHTML='';
+  for(const job of jobs.values()){
+    for(const p of job.pages){
+      addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CORRECTO · ${p.detection}`:'VERIFICAR',p.baseGR?'ok':'warn');
+    }
+  }
+}
+
+function detectFromTextLayer(content,page){
+  const items=content.items||[];
+  const view=page.view||[0,0,1,1];
+  const width=view[2]-view[0];
+  const height=view[3]-view[1];
+
+  // Zona fija equivalente al .py original:
+  // 55% del ancho hacia la derecha y 25% superior.
+  const roi=items.filter(it=>{
+    const tr=it.transform||[];
+    const x=tr[4]||0;
+    const y=tr[5]||0;
+
+    return x>=width*0.55 && y>=height*0.75;
+  });
+
+  for(const set of [roi,items]){
+    for(const it of set){
+      const c=findCandidates(normalize(it.str||''));
+      if(c.length===1)return c[0];
+    }
+
+    const joined=normalize(set.map(x=>x.str||'').join(' '));
+    const c=findCandidates(joined);
+
+    if(c.length===1)return c[0];
+  }
+
+  return null;
+}
+
+async function detectByOCRFast(page){
+  const worker=await getOCRWorker();
+
+  const scale=300/72;
+  const viewport=page.getViewport({scale});
+
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
+
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
+
+  // ROI idéntica al .py: 55% derecho y 25% superior.
+  const sx=Math.floor(full.width*0.55);
+  const sy=0;
+  const sw=Math.max(1,full.width-sx);
+  const sh=Math.max(1,Math.floor(full.height*0.25));
+
+  const crop=document.createElement('canvas');
+  crop.width=sw;
+  crop.height=sh;
+
+  const cctx=crop.getContext('2d',{willReadFrequently:true});
+  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+  const r=await worker.recognize(crop);
+  const raw=String(r.data.text||'');
+  const compact=raw.toUpperCase().replace(/\s+/g,'');
+  const candidates=findCandidates(raw);
+
+  detectByOCRFast.lastDebug={
+    raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
+    compact:compact.slice(0,220),
+    confidence:r.data.confidence||0,
+    candidates:[...candidates]
+  };
+
+  return candidates.length===1 ? candidates[0] : null;
+}
+
+detectByOCRFast.lastDebug=null;
+
+async function detectByOCRReinforced(pdf,pageNumber,dpi){
+  const worker=await getOCRWorker();
+  const page=await pdf.getPage(pageNumber);
+
+  const scale=300/72;
+  const viewport=page.getViewport({scale});
+
+  const full=document.createElement('canvas');
+  full.width=Math.ceil(viewport.width);
+  full.height=Math.ceil(viewport.height);
+
+  const ctx=full.getContext('2d',{willReadFrequently:true});
+  await page.render({canvasContext:ctx,viewport}).promise;
+
+  const sx=Math.floor(full.width*0.55);
+  const sy=0;
+  const sw=Math.max(1,full.width-sx);
+  const sh=Math.max(1,Math.floor(full.height*0.25));
+
+  const debug=[];
+
+  async function readVariant(mode){
+    const crop=document.createElement('canvas');
+    crop.width=sw;
+    crop.height=sh;
+
+    const cctx=crop.getContext('2d',{willReadFrequently:true});
+    cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+
+    if(mode!=='normal'){
+      const img=cctx.getImageData(0,0,sw,sh);
+      const d=img.data;
+
+      for(let i=0;i<d.length;i+=4){
+        const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+        let v=gray;
+
+        if(mode==='contrast'){
+          v=Math.max(0,Math.min(255,(gray-128)*1.65+128));
+        }else if(mode==='threshold'){
+          v=gray>170?255:0;
+        }else if(mode==='soft'){
+          v=Math.max(0,Math.min(255,(gray-128)*1.30+128));
+        }
+
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+
+      cctx.putImageData(img,0,0);
+    }
+
+    const r=await worker.recognize(crop);
+    const raw=String(r.data.text||'');
+    const candidates=findCandidates(raw);
+
+    debug.push({
+      mode,
+      raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
+      compact:raw.toUpperCase().replace(/\s+/g,'').slice(0,220),
+      confidence:r.data.confidence||0,
+      candidates:[...candidates]
+    });
+
+    return candidates.length===1 ? candidates[0] : null;
+  }
+
+  const a=await readVariant('normal');
+  const b=await readVariant('contrast');
+
+  if(a && b && a===b){
+    detectByOCRReinforced.lastDebug=debug;
+    return a;
+  }
+
+  const c=await readVariant('threshold');
+
+  const votes3=new Map();
+  for(const g of [a,b,c]){
+    if(g)votes3.set(g,(votes3.get(g)||0)+1);
+  }
+
+  for(const [gr,count] of votes3.entries()){
+    if(count>=2){
+      detectByOCRReinforced.lastDebug=debug;
+      return gr;
+    }
+  }
+
+  const d=await readVariant('soft');
+
+  const votes4=new Map();
+  for(const g of [a,b,c,d]){
+    if(g)votes4.set(g,(votes4.get(g)||0)+1);
+  }
+
+  let winner=null,max=0;
+
+  for(const [gr,count] of votes4.entries()){
+    if(count>max){
+      winner=gr;
+      max=count;
+    }
+  }
+
+  detectByOCRReinforced.lastDebug=debug;
+  return winner&&max>=3 ? winner : null;
+}
+
+detectByOCRReinforced.lastDebug=[];
+
+async function getOCRWorker(){
+  if(ocrWorker)return ocrWorker;
+
+  setQueueText('Inicializando OCR...');
+
+  ocrWorker=await Tesseract.createWorker('eng',1,{
+    logger:m=>{
+      if(m.status==='recognizing text'){
+        setQueueText(`OCR ${Math.round((m.progress||0)*100)}%`);
+      }
+    }
+  });
+
+  await ocrWorker.setParameters({
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+    preserve_interword_spaces:'1',
+    tessedit_pageseg_mode:'6'
+  });
+
+  setQueueText('Procesando');
+
+  return ocrWorker;
+}
+
+async function terminateOCR(){
+  if(ocrWorker){
+    try{await ocrWorker.terminate()}catch(e){}
+    ocrWorker=null;
+  }
+}
+
+function findCandidates(text){
+  const source=String(text||'').toUpperCase();
+  const variants=[
+    source,
+    source.replace(/\s+/g,'')
+  ];
+
+  const out=[];
+
+  for(const variant of variants){
+    const matches=variant.match(GR_REGEX)||[];
+    for(const m of matches){
+      const g=m.toUpperCase().replace(/\s+/g,'');
+      if(!out.includes(g))out.push(g);
+    }
+  }
+
+  return out;
+}
+
+function normalize(s){
+  return String(s)
+    .toUpperCase()
+    .replace(/\u00A0/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+// Insertar marcadores / outline usando objetos PDF de bajo nivel.
+function addBookmarks(pdfDoc,items){
+  if(!items.length)return;
+
+  const ctx=pdfDoc.context;
+
+  const outlineDict=ctx.obj({
+    Type:'Outlines',
+    Count:items.length
+  });
+
+  const outlineRef=ctx.register(outlineDict);
+
+  const itemDicts=[];
+  const itemRefs=[];
+
+  for(const item of items){
+    const page=pdfDoc.getPage(item.pageIndex);
+
+    const dict=ctx.obj({
+      Title:PDFHexString.fromText(item.title),
+      Parent:outlineRef,
+      Dest:ctx.obj([page.ref,PDFName.of('Fit')])
+    });
+
+    const ref=ctx.register(dict);
+
+    itemDicts.push(dict);
+    itemRefs.push(ref);
+  }
+
+  for(let i=0;i<itemDicts.length;i++){
+    const dict=itemDicts[i];
+
+    if(i>0){
+      dict.set(PDFName.of('Prev'),itemRefs[i-1]);
+    }
+
+    if(i<itemDicts.length-1){
+      dict.set(PDFName.of('Next'),itemRefs[i+1]);
+    }
+  }
+
+  outlineDict.set(PDFName.of('First'),itemRefs[0]);
+  outlineDict.set(PDFName.of('Last'),itemRefs[itemRefs.length-1]);
+
+  pdfDoc.catalog.set(PDFName.of('Outlines'),outlineRef);
+  pdfDoc.catalog.set(PDFName.of('PageMode'),PDFName.of('UseOutlines'));
+}
+
+async function saveMaster(id){
+  const job=jobs.get(id);
+
+  if(!job.masterBytes){
+    alert('Primero debes procesar esta ruta.');
+    return;
+  }
+
+  const name=`${safeName(job.name)}_CONSOLIDADO_${job.dpi}DPI.pdf`;
+
+  await writeUnique(job.folder,name,job.masterBytes);
+
+  alert(`Consolidado guardado:\n${name}`);
+}
+
+async function splitEveryPage(id){
+  const job=jobs.get(id);
+
+  if(!job.masterBytes){
+    alert('Primero debes procesar esta ruta.');
+    return;
+  }
+
+  setJobStatus(id,'DIVIDIENDO','st-run');
+
+  const src=await PDFDocument.load(job.masterBytes);
+
+  for(let i=0;i<job.pages.length;i++){
+    await waitIfPaused();
+
+    if(cancelRequested)break;
+
+    const out=await PDFDocument.create();
+    const [p]=await out.copyPages(src,[job.pages[i].pageIndex]);
+    out.addPage(p);
+
+    const bytes=await out.save({useObjectStreams:true});
+    const name=`${safeName(job.pages[i].marker)}.pdf`;
+
+    await writeUnique(job.folder,name,bytes);
+
+    document.getElementById(`pt-${id}`).textContent=
+      `Dividiendo ${i+1} / ${job.pages.length}`;
+  }
+
+  setJobStatus(id,'FINALIZADO','st-done');
+  document.getElementById(`pt-${id}`).textContent='División por página terminada.';
+}
+
+async function groupByGR(id){
+  const job=jobs.get(id);
+
+  if(!job.masterBytes){
+    alert('Primero debes procesar esta ruta.');
+    return;
+  }
+
+  setJobStatus(id,'AGRUPANDO','st-run');
+
+  const src=await PDFDocument.load(job.masterBytes);
+
+  // GR válidas agrupadas por baseGR.
+  const groups=new Map();
+
+  // VERIFICAR siempre independiente.
+  const verifies=[];
+
+  for(const p of job.pages){
+    if(p.baseGR){
+      if(!groups.has(p.baseGR))groups.set(p.baseGR,[]);
+      groups.get(p.baseGR).push(p.pageIndex);
+    }else{
+      verifies.push(p);
+    }
+  }
+
+  let done=0;
+  const total=groups.size+verifies.length;
+
+  for(const [gr,indexes] of groups.entries()){
+    const out=await PDFDocument.create();
+    const pages=await out.copyPages(src,indexes);
+
+    for(const p of pages)out.addPage(p);
+
+    const bytes=await out.save({useObjectStreams:true});
+
+    // Si ya existe de una ejecución anterior:
+    // GR.pdf, GR_2.pdf, GR_3.pdf...
+    await writeUnique(job.folder,`${safeName(gr)}.pdf`,bytes);
+
+    done++;
+    document.getElementById(`pt-${id}`).textContent=
+      `Agrupando ${done} / ${total}`;
+  }
+
+  // VERIFICAR nunca se agrupa.
+  for(const v of verifies){
+    const out=await PDFDocument.create();
+    const [p]=await out.copyPages(src,[v.pageIndex]);
+    out.addPage(p);
+
+    const bytes=await out.save({useObjectStreams:true});
+
+    await writeUnique(job.folder,`${safeName(v.marker)}.pdf`,bytes);
+
+    done++;
+    document.getElementById(`pt-${id}`).textContent=
+      `Agrupando ${done} / ${total}`;
+  }
+
+  setJobStatus(id,'FINALIZADO','st-done');
+  document.getElementById(`pt-${id}`).textContent='Agrupación por GR terminada.';
+}
+
+async function writeUnique(folder,name,bytes){
+  let finalName=name;
+  let n=2;
+
+  while(await fileExists(folder,finalName)){
+    const base=name.toLowerCase().endsWith('.pdf')
+      ? name.slice(0,-4)
+      : name;
+
+    finalName=`${base}_${n++}.pdf`;
+  }
+
+  const h=await folder.getFileHandle(finalName,{create:true});
+  const w=await h.createWritable();
+
+  await w.write(bytes);
+  await w.close();
+
+  return finalName;
+}
+
+async function fileExists(folder,name){
+  try{
+    await folder.getFileHandle(name);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function setJobStatus(id,text,cls){
+  const el=document.getElementById(`status-${id}`);
+  el.textContent=text;
+  el.className=`status ${cls}`;
+}
+
+function setQueueUI(running){
+  document.getElementById('btnAdd').disabled=running;
+  document.getElementById('btnStart').disabled=running;
+  document.getElementById('btnPause').disabled=!running;
+  document.getElementById('btnCancel').disabled=!running;
+
+  document.querySelectorAll('.job button,.job input,.job select').forEach(x=>{
+    if(!x.closest('.actions'))x.disabled=running;
+  });
+}
+
+function togglePause(){
+  if(!queueRunning)return;
+
+  paused=!paused;
+
+  document.getElementById('btnPause').textContent=
+    paused?'CONTINUAR':'PAUSAR';
+
+  setQueueText(paused?'Pausada':'Procesando');
+}
+
+function cancelQueue(){
+  if(queueRunning){
+    cancelRequested=true;
+    paused=false;
+    setQueueText('Cancelando...');
+  }
+}
+
+async function waitIfPaused(){
+  while(paused&&!cancelRequested){
+    await new Promise(r=>setTimeout(r,200));
+  }
+}
+
+function setQueueText(t){
+  document.getElementById('mQueue').textContent=t;
+}
+
+function yieldUI(){
+  return new Promise(r=>setTimeout(r,0));
+}
+
+function addResultRow(route,file,page,marker,result,cls){
+  const tr=document.createElement('tr');
+
+  tr.innerHTML=`
+    <td>${esc(route)}</td>
+    <td>${esc(file)}</td>
+    <td>${page}</td>
+    <td>${esc(marker)}</td>
+    <td class="${cls}">${esc(result)}</td>
+  `;
+
+  document.getElementById('resultRows').appendChild(tr);
+}
+
+function updateResultStats(){
+  document.getElementById('rDetected').textContent=stats.detected;
+  document.getElementById('rVerify').textContent=stats.verify;
+  document.getElementById('rMasters').textContent=stats.masters;
+  document.getElementById('rErrors').textContent=stats.errors;
+}
+
+function safeName(s){
+  return String(s)
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g,'_')
+    .trim();
+}
+
+function fmtSize(b){
+  if(b<1024)return `${b} B`;
+  if(b<1048576)return `${(b/1024).toFixed(1)} KB`;
+  return `${(b/1048576).toFixed(1)} MB`;
+}
+
+function esc(s){
+  return String(s)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+
+function logEvent(message,type='info'){
+  const box=document.getElementById('consoleBox');
+  if(!box)return;
+
+  const now=new Date();
+  const line=document.createElement('div');
+  const cls=type==='ok'?'consoleOk':
+            type==='warn'?'consoleWarn':
+            type==='err'?'consoleErr':'consoleInfo';
+
+  line.className=cls;
+  line.textContent=`[${formatClock(now)}] ${message}`;
+  box.appendChild(line);
+  box.scrollTop=box.scrollHeight;
+}
+
+async function copyConsole(){
+  const box=document.getElementById('consoleBox');
+  const txt=box ? box.innerText : '';
+
+  try{
+    await navigator.clipboard.writeText(txt);
+    alert('Consola copiada.');
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    alert('Consola copiada.');
+  }
+}
+
+function clearConsole(){
+  const box=document.getElementById('consoleBox');
+  if(box)box.innerHTML='';
+  logEvent('Consola reiniciada','info');
+}
+
+function formatClock(d){
+  return d.toLocaleTimeString('es-PE',{
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit',
+    hour12:false
+  });
+}
+
+function formatDuration(ms){
+  if(!Number.isFinite(ms) || ms<0)return '--:--:--';
+
+  let s=Math.floor(ms/1000);
+  const h=Math.floor(s/3600);
+  s%=3600;
+  const m=Math.floor(s/60);
+  s%=60;
+
+  return [h,m,s].map(v=>String(v).padStart(2,'0')).join(':');
+}
+
+function setTimeValue(id,prefix,value){
+  const el=document.getElementById(`${prefix}-${id}`);
+  if(el)el.textContent=value;
+}
+
+function updateTiming(job){
+  if(!job.startedAt || !job.totalUnits || !job.completedUnits)return;
+
+  const now=new Date();
+  const elapsed=now-job.startedAt;
+
+  const avg=elapsed/job.completedUnits;
+  const remainingUnits=Math.max(0,job.totalUnits-job.completedUnits);
+  const remaining=avg*remainingUnits;
+  const estimatedEnd=new Date(now.getTime()+remaining);
+
+  setTimeValue(job.id,'tElapsed',formatDuration(elapsed));
+  setTimeValue(job.id,'tRemaining',formatDuration(remaining));
+  setTimeValue(job.id,'tEstimatedEnd',formatClock(estimatedEnd));
+}
+
+function setProgress(id,pct,text){
+  const p=Math.max(0,Math.min(100,pct));
+  document.getElementById(`bar-${id}`).style.width=`${p}%`;
+  document.getElementById(`pt-${id}`).textContent=text;
+}
+
+
+logEvent("Sistema listo · V1.3 OCR 300 DPI corregido + debug","ok");
+addJob();
+</script>
+</body>
+</html>

@@ -174,6 +174,132 @@ th{background:#f1f3f4}
 .auditGrid label{height:18px;display:flex;align-items:flex-end}
 .auditGrid input,.auditGrid .filelist,.auditGrid .status{height:40px;min-height:40px;max-height:40px}
 
+
+/* V1.6: alineación rígida */
+.modeGrid{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  align-items:stretch !important;
+}
+.modeBtn{
+  height:148px !important;
+  min-height:148px !important;
+  max-height:148px !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-start !important;
+}
+.modeBtn strong{min-height:24px;flex:0 0 auto}
+.modeBtn span{flex:0 0 auto}
+.modeBadge{align-self:flex-start}
+
+.jobgrid{
+  grid-template-columns:160px minmax(420px,2.3fr) minmax(330px,1.8fr) 120px 145px !important;
+  align-items:end !important;
+}
+.jobgrid>div,.auditGrid>div{min-width:0;align-self:end !important}
+.jobgrid label,.auditGrid label{
+  height:18px !important;
+  min-height:18px !important;
+  max-height:18px !important;
+  overflow:hidden;
+}
+.jobgrid input[type=text],.jobgrid select,.jobgrid .status,
+.auditGrid input,.auditGrid .status{
+  height:40px !important;
+  min-height:40px !important;
+  max-height:40px !important;
+}
+.filebox{
+  height:40px !important;
+  min-height:40px !important;
+  max-height:40px !important;
+}
+.filelist{
+  height:40px !important;
+  min-height:40px !important;
+  max-height:40px !important;
+  line-height:22px !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  text-overflow:ellipsis !important;
+}
+.auditGrid{
+  grid-template-columns:minmax(300px,1.15fr) minmax(420px,1.7fr) 160px !important;
+  align-items:end !important;
+}
+.auditActions{align-items:center}
+.auditStats{align-items:stretch}
+.auditMetric{min-height:72px}
+
+.auditReportHead{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.auditTableWrap{
+  margin-top:7px;
+  width:100%;
+  height:300px;
+  overflow:auto;
+  border:1px solid #cfd5dc;
+  border-radius:7px;
+  background:#fff;
+}
+.auditTable{
+  border-collapse:separate;
+  border-spacing:0;
+  min-width:1450px;
+  width:max-content;
+  font-size:12px;
+}
+.auditTable th,.auditTable td{
+  border-right:1px solid #d9dee4;
+  border-bottom:1px solid #d9dee4;
+  padding:7px 8px;
+  text-align:left;
+  vertical-align:top;
+  white-space:nowrap;
+  max-width:420px;
+}
+.auditTable td.obsCell{
+  white-space:normal;
+  min-width:360px;
+}
+.auditTable th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#eef3f8;
+  font-weight:800;
+  color:#202124;
+}
+.auditTable th:nth-child(1){min-width:340px}
+.auditTable th:nth-child(2){min-width:230px}
+.auditTable th:nth-child(3),
+.auditTable th:nth-child(4),
+.auditTable th:nth-child(5){min-width:150px}
+.auditTable th:nth-child(6){min-width:110px}
+.auditTable th:nth-child(7){min-width:120px}
+.auditTable th:nth-child(8){min-width:390px}
+.reportEmpty{
+  padding:18px;
+  color:#5f6368;
+  font-size:13px;
+}
+
+@media(max-width:1150px){
+  .modeGrid{grid-template-columns:1fr !important}
+  .modeBtn{height:auto !important;min-height:110px !important;max-height:none !important}
+  .jobgrid,.auditGrid{grid-template-columns:1fr 1fr !important}
+}
+@media(max-width:700px){
+  .jobgrid,.auditGrid{grid-template-columns:1fr !important}
+}
+
 </style>
 </head>
 
@@ -182,9 +308,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.5 · AUDITORÍA ALTA PRECISIÓN</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.6 · AUDITORÍA DE PRECISIÓN CORREGIDA</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable protegida · auditoría masiva · ROI superior derecha · consenso OCR
+    V1.3 estable separada · ROI superior derecha · verificación por línea · reporte tabular
   </div>
 </div>
 
@@ -193,14 +319,14 @@ th{background:#f1f3f4}
   <div class="modeTitle">¿QUÉ QUIERES HACER?</div>
   <div class="muted">La V1.3 estable permanece protegida. Las nuevas funciones se ejecutan por separado.</div>
   <div class="modeGrid">
-    <button class="modeBtn" onclick="chooseMode('stable')">
+    <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Usar el flujo OCR 300 DPI que ya validaste en operación real.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.6.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.4</strong>
-      <span>Usar V1.3 más verificaciones adicionales y cola de auditoría.</span>
+      <strong>NUEVA VERSIÓN V1.6</strong>
+      <span>Procesamiento nuevo con verificaciones adicionales y cola de auditoría.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
@@ -302,11 +428,31 @@ th{background:#f1f3f4}
       <div class="auditMetric">PDF analizados<b id="auditFilesCount">0</b></div>
       <div class="auditMetric">Correctos<b id="auditOkCount">0</b></div>
       <div class="auditMetric">Con observación<b id="auditIssueCount">0</b></div>
-      <div class="auditMetric">Corregidos manualmente<b id="auditFixedCount">0</b></div>
+      <div class="auditMetric">Revisados manualmente<b id="auditFixedCount">0</b></div>
     </div>
 
-    <label style="margin-top:14px">REPORTE · SOLO OBSERVACIONES</label>
-    <textarea id="auditReport" class="auditReport" readonly></textarea>
+    <div class="auditReportHead">
+      <label style="margin:0">REPORTE · SOLO OBSERVACIONES</label>
+      <button class="primary" id="auditCopyBtn2" onclick="copyAuditReport()" disabled>COPIAR REPORTE</button>
+    </div>
+    <div id="auditTableWrap" class="auditTableWrap">
+      <table class="auditTable">
+        <thead>
+          <tr>
+            <th>RUTA</th>
+            <th>ARCHIVO</th>
+            <th>GR DEL NOMBRE</th>
+            <th>GR DETECTADA</th>
+            <th>GR REVISADA</th>
+            <th>CONSENSO</th>
+            <th>PÁGINA</th>
+            <th>OBSERVACIÓN</th>
+          </tr>
+        </thead>
+        <tbody id="auditReportRows"></tbody>
+      </table>
+      <div id="auditReportEmpty" class="reportEmpty">Todavía no hay observaciones.</div>
+    </div>
   </div>
 </div>
 
@@ -1565,6 +1711,11 @@ function esc(s){
 
 
 
+function openStableVersion(){
+  // V1.3 real: archivo independiente, copia congelada.
+  window.open('estable.html','_blank','noopener');
+}
+
 function chooseMode(mode){
   appMode=mode;
   document.getElementById('modeScreen').style.display='none';
@@ -1581,11 +1732,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  if(mode==='stable'){
-    logEvent('Modo ESTABLE V1.3 · OCR y flujo conservados','ok');
-  }else{
-    logEvent('Modo NUEVA V1.4 · cola de auditoría habilitada','info');
-  }
+  logEvent('Modo NUEVA V1.6 · cola de auditoría habilitada','info');
 }
 
 function backToModes(){
@@ -1685,35 +1832,97 @@ function updateAuditCounters(files=0,ok=0,issues=0,fixed=null){
 }
 
 
-function appendAuditReportItem(item){
-  const report=document.getElementById('auditReport');
+function auditItemId(item){
+  return 'auditrow-'+String(item._id||'').replace(/[^A-Za-z0-9_-]/g,'_');
+}
 
-  if(!report.dataset.headerWritten){
-    report.value='RUTA\tARCHIVO\tGR_NOMBRE\tGR_DETECTADA\tCONSENSO\tPAGINA\tOBSERVACION';
-    report.dataset.headerWritten='1';
+function ensureAuditItemId(item){
+  if(!item._id){
+    item._id=`${Date.now()}_${Math.random().toString(36).slice(2)}`;
   }
+  return item._id;
+}
+
+function appendAuditReportItem(item){
+  ensureAuditItemId(item);
+
+  const tbody=document.getElementById('auditReportRows');
+  const empty=document.getElementById('auditReportEmpty');
+  if(empty)empty.style.display='none';
+
+  const tr=document.createElement('tr');
+  tr.id=auditItemId(item);
 
   const pageText=(item.pages||[]).join(', ');
-  const line=[
+  const values=[
     fullAuditPath(item.relativePath),
     item.originalName||item.name||'',
     item.expectedGR||'',
-    item.correctedGR||item.foundGR||'',
+    item.foundGR||'',
+    item.reviewed ? (item.correctedGR||'') : '',
     item.consensus||'',
     pageText,
     item.observation||''
-  ].join('\t');
+  ];
 
-  report.value += '\\n' + line;
-  report.scrollTop=report.scrollHeight;
+  values.forEach((v,idx)=>{
+    const td=document.createElement('td');
+    td.textContent=v;
+    if(idx===7)td.className='obsCell';
+    tr.appendChild(td);
+  });
+
+  tbody.appendChild(tr);
 
   document.getElementById('auditCopyBtn').disabled=false;
+  const copy2=document.getElementById('auditCopyBtn2');
+  if(copy2)copy2.disabled=false;
+}
+
+function refreshAuditReportRow(item){
+  const row=document.getElementById(auditItemId(item));
+  if(!row)return;
+
+  const cells=row.children;
+  if(cells[3])cells[3].textContent=item.foundGR||'';
+  if(cells[4])cells[4].textContent=item.reviewed ? (item.correctedGR||'') : '';
+  if(cells[5])cells[5].textContent=item.consensus||'';
+  if(cells[6])cells[6].textContent=(item.pages||[]).join(', ');
+  if(cells[7])cells[7].textContent=item.observation||'';
 }
 
 function resetAuditReport(){
-  const report=document.getElementById('auditReport');
-  report.value='';
-  delete report.dataset.headerWritten;
+  const tbody=document.getElementById('auditReportRows');
+  if(tbody)tbody.innerHTML='';
+  const empty=document.getElementById('auditReportEmpty');
+  if(empty){
+    empty.textContent='Todavía no hay observaciones.';
+    empty.style.display='block';
+  }
+  const copy2=document.getElementById('auditCopyBtn2');
+  if(copy2)copy2.disabled=true;
+}
+
+function buildAuditReportTSV(){
+  const lines=[[
+    'RUTA','ARCHIVO','GR DEL NOMBRE','GR DETECTADA',
+    'GR REVISADA','CONSENSO','PÁGINA','OBSERVACIÓN'
+  ].join('\\t')];
+
+  for(const item of historicalAuditItems){
+    lines.push([
+      fullAuditPath(item.relativePath),
+      item.originalName||item.name||'',
+      item.expectedGR||'',
+      item.foundGR||'',
+      item.reviewed ? (item.correctedGR||'') : '',
+      item.consensus||'',
+      (item.pages||[]).join(', '),
+      item.observation||''
+    ].join('\\t'));
+  }
+
+  return lines.join('\\n');
 }
 
 function cancelHistoricalAudit(){
@@ -1723,6 +1932,49 @@ function cancelHistoricalAudit(){
   logEvent('Solicitud de cancelación de auditoría recibida','warn');
 }
 
+/* ---------- OCR de auditoría V1.6 ---------- */
+
+function normalizeOCRToken(s){
+  return String(s||'')
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g,'');
+}
+
+function unionBBox(list){
+  const valid=list.filter(Boolean);
+  if(!valid.length)return null;
+  return {
+    x0:Math.min(...valid.map(b=>b.x0)),
+    y0:Math.min(...valid.map(b=>b.y0)),
+    x1:Math.max(...valid.map(b=>b.x1)),
+    y1:Math.max(...valid.map(b=>b.y1))
+  };
+}
+
+function findCandidateBBox(data,candidate){
+  if(!candidate||!data)return null;
+  const target=normalizeOCRToken(candidate);
+
+  const words=Array.isArray(data.words)?data.words:[];
+  for(let i=0;i<words.length;i++){
+    for(let len=1;len<=4 && i+len<=words.length;len++){
+      const group=words.slice(i,i+len);
+      const joined=normalizeOCRToken(group.map(w=>w.text||'').join(''));
+      if(joined===target){
+        return unionBBox(group.map(w=>w.bbox));
+      }
+    }
+  }
+
+  const lines=Array.isArray(data.lines)?data.lines:[];
+  for(const line of lines){
+    if(normalizeOCRToken(line.text||'').includes(target) && line.bbox){
+      return line.bbox;
+    }
+  }
+
+  return null;
+}
 
 async function renderTopRightCrop(page,dpi=300){
   const scale=dpi/72;
@@ -1735,8 +1987,7 @@ async function renderTopRightCrop(page,dpi=300){
   const ctx=full.getContext('2d',{willReadFrequently:true});
   await page.render({canvasContext:ctx,viewport}).promise;
 
-  // ÚNICA ZONA AUTORIZADA:
-  // 55%-100% ancho, 0%-25% alto.
+  // ÚNICA ZONA ANALIZADA: esquina superior derecha.
   const sx=Math.floor(full.width*0.55);
   const sy=0;
   const sw=Math.max(1,full.width-sx);
@@ -1750,6 +2001,39 @@ async function renderTopRightCrop(page,dpi=300){
   cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
 
   return crop;
+}
+
+function cropCanvasByBBox(source,bbox,padX=0.35,padY=0.80){
+  if(!bbox)return null;
+
+  const bw=Math.max(1,bbox.x1-bbox.x0);
+  const bh=Math.max(1,bbox.y1-bbox.y0);
+
+  const x0=Math.max(0,Math.floor(bbox.x0-bw*padX));
+  const y0=Math.max(0,Math.floor(bbox.y0-bh*padY));
+  const x1=Math.min(source.width,Math.ceil(bbox.x1+bw*padX));
+  const y1=Math.min(source.height,Math.ceil(bbox.y1+bh*padY));
+
+  const out=document.createElement('canvas');
+  out.width=Math.max(1,x1-x0);
+  out.height=Math.max(1,y1-y0);
+
+  out.getContext('2d',{willReadFrequently:true})
+    .drawImage(source,x0,y0,out.width,out.height,0,0,out.width,out.height);
+
+  return out;
+}
+
+function scaleBBox(bbox,fromCanvas,toCanvas){
+  if(!bbox)return null;
+  const rx=toCanvas.width/fromCanvas.width;
+  const ry=toCanvas.height/fromCanvas.height;
+  return {
+    x0:bbox.x0*rx,
+    y0:bbox.y0*ry,
+    x1:bbox.x1*rx,
+    y1:bbox.y1*ry
+  };
 }
 
 function preprocessCrop(source,mode){
@@ -1770,9 +2054,9 @@ function preprocessCrop(source,mode){
     let v=gray;
 
     if(mode==='contrast'){
-      v=Math.max(0,Math.min(255,(gray-128)*1.75+128));
+      v=Math.max(0,Math.min(255,(gray-128)*1.80+128));
     }else if(mode==='threshold'){
-      v=gray>170?255:0;
+      v=gray>175?255:0;
     }else if(mode==='soft'){
       v=Math.max(0,Math.min(255,(gray-128)*1.35+128));
     }
@@ -1786,6 +2070,7 @@ function preprocessCrop(source,mode){
 
 async function recognizeCrop(crop,psm='6'){
   const worker=await getOCRWorker();
+
   await worker.setParameters({
     tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
     preserve_interword_spaces:'1',
@@ -1800,24 +2085,12 @@ async function recognizeCrop(crop,psm='6'){
     value:candidates.length===1?candidates[0]:null,
     candidates,
     raw,
-    confidence:r.data.confidence||0
+    confidence:r.data.confidence||0,
+    data:r.data
   };
 }
 
-async function auditReadPageHighPrecision(page){
-  // 1) lectura rápida 300 DPI
-  const crop300=await renderTopRightCrop(page,300);
-  const fast=await recognizeCrop(preprocessCrop(crop300,'normal'),'6');
-
-  // 2) validación precisa SIEMPRE a 600 DPI sobre la misma zona superior derecha
-  const crop600=await renderTopRightCrop(page,600);
-
-  const readings=[];
-  readings.push({name:'600-normal',...(await recognizeCrop(preprocessCrop(crop600,'normal'),'7'))});
-  readings.push({name:'600-contrast',...(await recognizeCrop(preprocessCrop(crop600,'contrast'),'7'))});
-  readings.push({name:'600-threshold',...(await recognizeCrop(preprocessCrop(crop600,'threshold'),'7'))});
-
-  // cuarto método solo si no hay acuerdo claro
+function voteReadings(readings){
   const votes=new Map();
 
   for(const r of readings){
@@ -1825,7 +2098,6 @@ async function auditReadPageHighPrecision(page){
   }
 
   let best=null,bestVotes=0;
-
   for(const [value,count] of votes.entries()){
     if(count>bestVotes){
       best=value;
@@ -1833,38 +2105,115 @@ async function auditReadPageHighPrecision(page){
     }
   }
 
-  if(bestVotes<2){
-    const soft={name:'600-soft',...(await recognizeCrop(preprocessCrop(crop600,'soft'),'7'))};
-    readings.push(soft);
+  return {best,bestVotes,total:readings.length,votes};
+}
 
-    if(soft.value)votes.set(soft.value,(votes.get(soft.value)||0)+1);
+async function locateGRLine(page){
+  // Primera lectura: el mismo principio exitoso de V1.3.
+  const crop300=await renderTopRightCrop(page,300);
+  const read300=await recognizeCrop(preprocessCrop(crop300,'normal'),'6');
 
-    best=null;
-    bestVotes=0;
+  let candidate=read300.value;
+  let bbox=findCandidateBBox(read300.data,candidate);
+  let sourceCrop=crop300;
+  let sourceRead=read300;
+  let sourceDpi=300;
 
-    for(const [value,count] of votes.entries()){
-      if(count>bestVotes){
-        best=value;
-        bestVotes=count;
-      }
+  // Si 300 DPI no localiza la línea, intentamos localizarla en 600 DPI,
+  // pero aún con PSM 6 sobre el encabezado. PSM 7 se reserva para la línea.
+  let crop600=null;
+
+  if(!candidate || !bbox){
+    crop600=await renderTopRightCrop(page,600);
+
+    const locNormal=await recognizeCrop(preprocessCrop(crop600,'normal'),'6');
+    candidate=locNormal.value;
+    bbox=findCandidateBBox(locNormal.data,candidate);
+    sourceCrop=crop600;
+    sourceRead=locNormal;
+    sourceDpi=600;
+
+    if(!candidate || !bbox){
+      const locContrast=await recognizeCrop(preprocessCrop(crop600,'contrast'),'6');
+      candidate=locContrast.value;
+      bbox=findCandidateBBox(locContrast.data,candidate);
+      sourceCrop=crop600;
+      sourceRead=locContrast;
+      sourceDpi=600;
     }
   }
 
-  // consenso fuerte:
-  // 2/3 o 3/4. Si no hay, se considera lectura dudosa.
-  const strongConsensus=
-    (readings.length===3 && bestVotes>=2) ||
-    (readings.length===4 && bestVotes>=3);
+  return {
+    crop300,
+    read300,
+    candidate,
+    bbox,
+    sourceCrop,
+    sourceRead,
+    sourceDpi,
+    crop600
+  };
+}
 
-  const preview=preprocessCrop(crop600,'contrast').toDataURL('image/jpeg',0.92);
+async function auditReadPageHighPrecision(page){
+  const located=await locateGRLine(page);
+
+  let crop600=located.crop600;
+  if(!crop600)crop600=await renderTopRightCrop(page,600);
+
+  // Si encontramos la caja del texto a 300, la escalamos a 600.
+  let bbox600=located.bbox;
+  if(located.bbox && located.sourceDpi===300){
+    bbox600=scaleBBox(located.bbox,located.sourceCrop,crop600);
+  }
+
+  // Si la localización ya fue a 600, usamos esa misma caja.
+  const lineCrop=bbox600 ? cropCanvasByBBox(crop600,bbox600,0.42,0.95) : null;
+
+  // Sin línea localizada no fingimos consenso.
+  if(!lineCrop){
+    const fallback=located.candidate||located.read300.value||null;
+    return {
+      fastValue:located.read300.value,
+      bestValue:null,
+      suggestedValue:fallback,
+      consensus:'SIN LÍNEA',
+      strongConsensus:false,
+      previewDataUrl:preprocessCrop(crop600,'contrast').toDataURL('image/jpeg',0.92),
+      readings:[]
+    };
+  }
+
+  // PSM 7 solo sobre la línea exacta de GR.
+  const readings=[];
+  readings.push({name:'600-línea-normal',...(await recognizeCrop(preprocessCrop(lineCrop,'normal'),'7'))});
+  readings.push({name:'600-línea-contraste',...(await recognizeCrop(preprocessCrop(lineCrop,'contrast'),'7'))});
+  readings.push({name:'600-línea-binario',...(await recognizeCrop(preprocessCrop(lineCrop,'threshold'),'7'))});
+
+  let vote=voteReadings(readings);
+
+  if(vote.bestVotes<2){
+    readings.push({name:'600-línea-suave',...(await recognizeCrop(preprocessCrop(lineCrop,'soft'),'7'))});
+    vote=voteReadings(readings);
+  }
+
+  const required=readings.length===3?2:3;
+  const strong=!!vote.best && vote.bestVotes>=required;
+
+  // Si falla el consenso pero alguna lectura de línea coincide con la lectura 300,
+  // se conserva como propuesta, NO como confirmación.
+  const values=readings.map(r=>r.value).filter(Boolean);
+  const suggested=strong
+    ? vote.best
+    : (values.find(v=>v===located.read300.value) || vote.best || located.read300.value || located.candidate || null);
 
   return {
-    fastValue:fast.value,
-    bestValue:strongConsensus?best:null,
-    suggestedValue:best||fast.value||null,
-    consensus:best ? `${bestVotes}/${readings.length}` : '0/'+readings.length,
-    strongConsensus,
-    previewDataUrl:preview,
+    fastValue:located.read300.value,
+    bestValue:strong?vote.best:null,
+    suggestedValue:suggested,
+    consensus:vote.best ? `${vote.bestVotes}/${readings.length}` : `0/${readings.length}`,
+    strongConsensus:strong,
+    previewDataUrl:preprocessCrop(lineCrop,'contrast').toDataURL('image/jpeg',0.95),
     readings
   };
 }
@@ -1886,6 +2235,7 @@ async function startHistoricalAudit(){
 
   document.getElementById('auditReviewBtn').disabled=true;
   document.getElementById('auditCopyBtn').disabled=true;
+  const copy2Start=document.getElementById('auditCopyBtn2'); if(copy2Start)copy2Start.disabled=true;
   document.getElementById('auditStartBtn').disabled=true;
   document.getElementById('auditCancelBtn').disabled=false;
 
@@ -1940,6 +2290,7 @@ async function startHistoricalAudit(){
             page:pn,
             detected:read.bestValue,
             suggested:read.suggestedValue,
+            fast:read.fastValue,
             consensus:read.consensus,
             strongConsensus:read.strongConsensus
           });
@@ -1983,7 +2334,6 @@ async function startHistoricalAudit(){
                 observation=`No coincide con el nombre ${expected}. Lectura confirmada: ${foundGR}`;
               }
             }else{
-              // El archivo no tiene GR en el nombre; se reporta como observación
               needsIssue=true;
               pages=related.map(r=>r.page);
               observation=`El nombre del archivo no contiene una GR reconocible. Lectura confirmada: ${foundGR}`;
@@ -1999,14 +2349,31 @@ async function startHistoricalAudit(){
         }
 
         if(weak.length){
-          needsIssue=true;
-          const weakPages=weak.map(r=>r.page);
-          pages=[...new Set([...pages,...weakPages])];
+          // V1.6: una verificación reforzada fallida no convierte por sí sola
+          // una coincidencia 300 DPI + nombre en falsa observación.
+          for(const r of weak){
+            const proposed=r.suggested||null;
 
-          if(!observation){
-            observation=`Sin lectura suficientemente segura en página(s): ${weakPages.join(', ')}`;
-          }else{
-            observation+=` · Sin lectura suficientemente segura en página(s): ${weakPages.join(', ')}`;
+            if(expected && proposed===expected){
+              // Coincidencia útil: se registra en consola, pero no ensucia el reporte.
+              continue;
+            }
+
+            needsIssue=true;
+            pages=[...new Set([...pages,r.page])];
+
+            if(proposed && expected && proposed!==expected){
+              foundGR=foundGR||proposed;
+              const msg=`Lectura sin consenso completo difiere del nombre: ${expected} → ${proposed} (pág. ${r.page})`;
+              observation+=(observation?' · ':'')+msg;
+            }else if(proposed && !expected){
+              foundGR=foundGR||proposed;
+              observation+=(observation?' · ':'')+
+                `Nombre sin GR; lectura propuesta ${proposed} en página ${r.page}`;
+            }else{
+              observation+=(observation?' · ':'')+
+                `Sin lectura suficientemente segura en página ${r.page}`;
+            }
           }
         }
       }
@@ -2082,20 +2449,16 @@ async function startHistoricalAudit(){
 
 function buildAuditReport(){
   resetAuditReport();
-
-  for(const item of historicalAuditItems){
-    appendAuditReportItem(item);
-  }
-
-  if(!historicalAuditItems.length){
-    document.getElementById('auditReport').value='SIN OBSERVACIONES';
-  }
+  for(const item of historicalAuditItems)appendAuditReportItem(item);
 }
 
 async function copyAuditReport(){
-  buildAuditReport();
-  await copyText(document.getElementById('auditReport').value);
-  alert('Reporte de observaciones copiado.');
+  if(!historicalAuditItems.length){
+    alert('No hay observaciones para copiar.');
+    return;
+  }
+  await copyText(buildAuditReportTSV());
+  alert('Reporte copiado en columnas. Puedes pegarlo directamente en Excel.');
 }
 
 function openHistoricalAuditQueue(){
@@ -2147,6 +2510,8 @@ function acceptAuditItem(){
 
   item.correctedGR=value;
   item.reviewed=true;
+  item.observation=`${item.observation} · REVISADO MANUALMENTE: ${value}`;
+  refreshAuditReportRow(item);
   historicalAuditIndex++;
 
   updateAuditCounters(
@@ -2352,7 +2717,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.5 auditoría alta precisión","ok");
+logEvent("Sistema listo · V1.6 auditoría de precisión corregida","ok");
 addJob();
 </script>
 </body>
