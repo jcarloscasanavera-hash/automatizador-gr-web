@@ -351,7 +351,7 @@ th{background:#f1f3f4}
 
 /* V1.9: selector múltiple y rutas opcionales */
 /* V1.10: OCR adaptativo rápido + selector de carpeta honesto */
-/* V1.15: doble motor Tesseract + PaddleOCR; cualquier discrepancia = REVISAR */
+/* V1.16: doble motor Tesseract + PaddleOCR; cualquier discrepancia = REVISAR */
 .folderDropZone{
   margin-top:12px;
   min-height:84px;
@@ -376,7 +376,7 @@ th{background:#f1f3f4}
 .folderPathNote{font-size:11px;color:#5f6368;margin-top:3px}
 
 
-/* V1.15: autoenderezado + auditoría manual rápida + protección de sesión */
+/* V1.16: autoenderezado + auditoría manual rápida + protección de sesión */
 .sessionBadge{
   margin-top:8px;display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;
   background:#e6f4ea;color:#137333;font-size:11px;font-weight:800
@@ -448,9 +448,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.15 · ZONA A4 + 600 DPI + ENDEREZADO + IMAGEN HQ</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.16 · IMAGEN HQ NORMAL + PRUEBA NEGATIVO A/B</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · zona A4 relativa · 600 DPI · autoenderezado · imagen HQ · Tesseract + PaddleOCR · discrepancia = REVISAR
+    V1.3 estable separada · zona A4 relativa · 600 DPI · imagen HQ normal + negativo · Tesseract + PaddleOCR · comparación A/B
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -462,12 +462,12 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.15.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.16.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.15</strong>
-      <span>Autoenderezado conservador + Tesseract + PaddleOCR; cualquier discrepancia pasa a REVISAR.</span>
+      <strong>NUEVA VERSIÓN V1.16</strong>
+      <span>Imagen maestra HQ normal + negativo del mismo recorte; ambos motores leen ambas para comparar resultados.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
@@ -838,7 +838,7 @@ let historicalAuditTotalPages=0;
 let historicalAuditProcessedPages=0;
 let historicalAuditTimer=null;
 
-// V1.15 · Auditoría manual + protección de sesión
+// V1.16 · Auditoría manual + protección de sesión
 const SESSION_KEY='AUTOMATIZADOR_GR_V113_SESSION';
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
@@ -1178,7 +1178,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: ORIGINAL PRIMERO; ENDEREZADO SOLO PARA MOTOR SIN LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · original primero + recuperación selectiva · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · A/B HQ normal + negativo · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1192,7 +1192,7 @@ async function processJob(job){
 
       const page=await source.pdf.getPage(pn);
 
-      // V1.15: el texto embebido es evidencia auxiliar, nunca decide solo.
+      // V1.16: el texto embebido es evidencia auxiliar, nunca decide solo.
       const textGR=detectFromTextLayer(await page.getTextContent(),page);
       const dual=await detectByDualEngineStrict(page,null,textGR);
       let baseGR=dual.confirmed ? dual.value : null;
@@ -1288,22 +1288,22 @@ async function processJob(job){
   );
 
   // ==========================================================
-  // V1.15: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
+  // V1.16: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
   // ==========================================================
   const pending=job.pages.filter(p=>!p.baseGR);
 
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.15 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.16 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.15 · todas las páginas superaron validación conservadora de doble motor','ok');
+    logEvent('V1.16 · todas las páginas superaron validación conservadora de doble motor','ok');
   }
 
-  // En V1.15, todo lo que no supere la validación conservadora entra a la cola manual.
+  // En V1.16, todo lo que no supere la validación conservadora entra a la cola manual.
   if(appMode==='new'){
     for(const p of job.pages){
       if(!p.baseGR){
@@ -1488,7 +1488,7 @@ function detectFromTextLayer(content,page){
 
 
 // ============================================================
-// V1.15 · DOBLE MOTOR ESTRICTO
+// V1.16 · DOBLE MOTOR ESTRICTO
 // Tesseract + PaddleOCR leen independientemente el mismo recorte.
 // Si inicialmente coinciden, se repite sobre una variante suave.
 // Las 4 lecturas deben ser idénticas. Cualquier duda => REVISAR.
@@ -1763,15 +1763,76 @@ function readingsReason(readings,textGR=null){
   return compact.join(' · ');
 }
 
+
+function invertCanvasHQ(source){
+  // Negativo EXACTO de la imagen maestra HQ. No cambia resolución, geometría ni nitidez.
+  const c=cloneCanvas(source);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  const img=ctx.getImageData(0,0,c.width,c.height);
+  const d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    d[i]=255-d[i];
+    d[i+1]=255-d[i+1];
+    d[i+2]=255-d[i+2];
+  }
+  ctx.putImageData(img,0,0);
+  return c;
+}
+
+function pairAgreement(t,p){
+  const tv=t?.value||null;
+  const pv=p?.value||null;
+  return (tv&&pv&&tv===pv)?tv:null;
+}
+
+function countSuccessfulReads(t,p){
+  return Number(!!t?.value)+Number(!!p?.value);
+}
+
+function classifyNegativeAB(tNormal,pNormal,tNegative,pNegative){
+  const nAgree=pairAgreement(tNormal,pNormal);
+  const gAgree=pairAgreement(tNegative,pNegative);
+  const nCount=countSuccessfulReads(tNormal,pNormal);
+  const gCount=countSuccessfulReads(tNegative,pNegative);
+
+  if(!nAgree && gAgree){
+    return {code:'AYUDO',label:`AYUDÓ · negativo recuperó coincidencia ${gAgree}`};
+  }
+  if(nAgree && gAgree && nAgree===gAgree){
+    return {code:'SIN_CAMBIO',label:`SIN CAMBIO · ambos formatos coinciden en ${nAgree}`};
+  }
+  if(nAgree && gAgree && nAgree!==gAgree){
+    return {code:'CONTRADICTORIO',label:`CONTRADICTORIO · normal=${nAgree} · negativo=${gAgree}`};
+  }
+  if(gCount>nCount){
+    return {code:'AYUDA_PARCIAL',label:`AYUDA PARCIAL · lecturas válidas normal ${nCount}/2 → negativo ${gCount}/2`};
+  }
+  if(gCount<nCount){
+    return {code:'EMPEORO',label:`EMPEORÓ · lecturas válidas normal ${nCount}/2 → negativo ${gCount}/2`};
+  }
+
+  const nv=[tNormal?.value,pNormal?.value].filter(Boolean);
+  const gv=[tNegative?.value,pNegative?.value].filter(Boolean);
+  const anyConflict=gv.some(v=>nv.length && !nv.includes(v));
+  if(anyConflict){
+    return {code:'CONTRADICTORIO',label:'CONTRADICTORIO · el negativo produjo una lectura distinta'};
+  }
+  return {code:'SIN_CAMBIO',label:`SIN CAMBIO · lecturas válidas ${nCount}/2 en ambos formatos`};
+}
+
 async function detectByDualEngineStrict(page,expected=null,textGR=null){
   // ============================================================
-  // V1.15 · FLUJO HQ ÚNICO PARA AMBOS MOTORES
+  // V1.16 · PRUEBA A/B CONTROLADA
   // 1) Recorte relativo A4: X 55–96% / Y 5–20%.
-  // 2) Render directo del recorte a 600 DPI (sin rasterizar toda la hoja).
-  // 3) Autoenderezado del recorte.
-  // 4) Imagen maestra HQ: grises + autocontraste + brillo + gamma + nitidez.
-  // 5) Tesseract y PaddleOCR leen EXACTAMENTE la misma imagen maestra.
-  // 6) Solo coincidencia exacta entre ambos puede confirmar. Cualquier duda => REVISAR.
+  // 2) Render directo del recorte a 600 DPI.
+  // 3) Autoenderezado conservador.
+  // 4) Una única IMAGEN MAESTRA HQ.
+  // 5) Tesseract + PaddleOCR leen la imagen HQ NORMAL.
+  // 6) Se crea SOLO un negativo exacto de esa misma imagen.
+  // 7) Tesseract + PaddleOCR vuelven a leer el NEGATIVO.
+  // 8) La consola compara NORMAL vs NEGATIVO.
+  // 9) Durante esta versión experimental, el NEGATIVO NO sustituye
+  //    automáticamente la decisión del flujo normal: sirve para medir si ayuda.
   // ============================================================
 
   const HQ_DPI=600;
@@ -1781,6 +1842,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const deskew=autoDeskewCrop(zoneCrop);
   const aligned=deskew.canvas;
   const master=enhanceGRMasterHQ(aligned);
+  const negative=invertCanvasHQ(master);
 
   const angleText=deskew.applied
     ? `${deskew.detectedTilt>0?'+':''}${deskew.detectedTilt.toFixed(2)}° → corrección ${deskew.appliedAngle>0?'+':''}${deskew.appliedAngle.toFixed(2)}°`
@@ -1788,11 +1850,33 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
 
   logEvent(`PREPROCESADO HQ · zona A4 X55–96% Y5–20% · ${HQ_DPI} DPI · ${angleText} · grises + autocontraste + brillo + nitidez`,'info');
 
-  // Ambos motores reciben exactamente el mismo canvas final.
-  const [t1,p1]=await Promise.all([
+  // A) Lectura normal: ambos motores reciben EXACTAMENTE la misma imagen maestra.
+  const [tNormal,pNormal]=await Promise.all([
     recognizeCrop(master,'6',expected),
     recognizePaddleCrop(master,expected)
   ]);
+
+  const normalValue=pairAgreement(tNormal,pNormal);
+  logEvent(
+    `A/B NORMAL HQ · Tesseract ${tNormal.value||'SIN LECTURA'} · PaddleOCR ${pNormal.value||'SIN LECTURA'} · ${normalValue?'COINCIDEN':'NO COINCIDEN'}`,
+    normalValue?'ok':'warn'
+  );
+
+  // B) Lectura negativa: mismo recorte, misma resolución y geometría; solo inversión tonal.
+  const [tNegative,pNegative]=await Promise.all([
+    recognizeCrop(negative,'6',expected),
+    recognizePaddleCrop(negative,expected)
+  ]);
+
+  const negativeValue=pairAgreement(tNegative,pNegative);
+  logEvent(
+    `A/B NEGATIVO HQ · Tesseract ${tNegative.value||'SIN LECTURA'} · PaddleOCR ${pNegative.value||'SIN LECTURA'} · ${negativeValue?'COINCIDEN':'NO COINCIDEN'}`,
+    negativeValue?'ok':'warn'
+  );
+
+  const ab=classifyNegativeAB(tNormal,pNormal,tNegative,pNegative);
+  logEvent(`A/B COMPARATIVA NEGATIVO · ${ab.label}`,
+           ab.code==='AYUDO'||ab.code==='AYUDA_PARCIAL'?'ok':(ab.code==='CONTRADICTORIO'||ab.code==='EMPEORO'?'warn':'info'));
 
   const angleMeta={
     deskewApplied:!!deskew.applied,
@@ -1801,43 +1885,47 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   };
 
   const readings=[
-    {engine:'TESSERACT',variant:`HQ ${HQ_DPI} DPI · ALINEADA`,...angleMeta,...t1},
-    {engine:'PADDLEOCR',variant:`HQ ${HQ_DPI} DPI · ALINEADA`,...angleMeta,...p1}
+    {engine:'TESSERACT',variant:`NORMAL HQ ${HQ_DPI} DPI`,...angleMeta,...tNormal},
+    {engine:'PADDLEOCR',variant:`NORMAL HQ ${HQ_DPI} DPI`,...angleMeta,...pNormal},
+    {engine:'TESSERACT',variant:`NEGATIVO HQ ${HQ_DPI} DPI`,...angleMeta,...tNegative},
+    {engine:'PADDLEOCR',variant:`NEGATIVO HQ ${HQ_DPI} DPI`,...angleMeta,...pNegative}
   ];
 
-  const tValue=t1.value||null;
-  const pValue=p1.value||null;
-  const agreement=!!(tValue&&pValue&&tValue===pValue);
-  const textConflict=!!(textGR&&agreement&&textGR!==tValue);
+  const tValue=tNormal.value||null;
+  const pValue=pNormal.value||null;
+  const agreement=!!normalValue;
+  const textConflict=!!(textGR&&agreement&&textGR!==normalValue);
   const boundaryRisk=!!deskew.boundaryRisk;
 
-  // Para la auditoría humana intentamos mostrar la línea de GR más grande,
-  // pero esta vista NO participa en la decisión OCR.
-  const humanPreview=createHQHumanPreview(master,t1);
-
-  logEvent(`DOBLE MOTOR HQ · Tesseract ${tValue||'SIN LECTURA'} · PaddleOCR ${pValue||'SIN LECTURA'}`,
-           agreement?'ok':'warn');
+  // La vista humana se mantiene basada en la imagen normal; no participa en OCR.
+  const humanPreview=createHQHumanPreview(master,tNormal);
 
   if(!agreement || textConflict || boundaryRisk){
     let reason;
     if(boundaryRisk){
       reason='La inclinación estimada quedó fuera del rango seguro; requiere revisión humana';
     }else if(textConflict){
-      reason=`La capa de texto (${textGR}) discrepa de los dos motores (${tValue})`;
+      reason=`La capa de texto (${textGR}) discrepa de los dos motores (${normalValue})`;
     }else if(tValue&&pValue){
-      reason=`Los motores discrepan sobre la misma imagen HQ: Tesseract=${tValue} · PaddleOCR=${pValue}`;
+      reason=`NORMAL HQ: los motores discrepan: Tesseract=${tValue} · PaddleOCR=${pValue}. NEGATIVO: Tesseract=${tNegative.value||'SIN LECTURA'} · PaddleOCR=${pNegative.value||'SIN LECTURA'} · ${ab.label}`;
     }else{
-      reason=`No hubo lectura completa de ambos motores sobre la misma imagen HQ: Tesseract=${tValue||'SIN LECTURA'} · PaddleOCR=${pValue||'SIN LECTURA'}`;
+      reason=`NORMAL HQ: lectura incompleta: Tesseract=${tValue||'SIN LECTURA'} · PaddleOCR=${pValue||'SIN LECTURA'}. NEGATIVO: Tesseract=${tNegative.value||'SIN LECTURA'} · PaddleOCR=${pNegative.value||'SIN LECTURA'} · ${ab.label}`;
     }
 
     return {
       confirmed:false,
       value:null,
-      suggestedValue:pValue||tValue||null,
+      // En la prueba A/B el negativo puede sugerir una lectura cuando ambos motores
+      // coinciden, pero NO la confirma automáticamente.
+      suggestedValue:pValue||tValue||negativeValue||pNegative.value||tNegative.value||null,
       reason,
       previewDataUrl:humanPreview.toDataURL('image/jpeg',0.96),
       originalPreviewDataUrl:zoneCrop.toDataURL('image/jpeg',0.92),
       zoomPreviewDataUrl:humanPreview.toDataURL('image/jpeg',0.96),
+      negativePreviewDataUrl:negative.toDataURL('image/jpeg',0.94),
+      negativeAB:ab,
+      normalAgreement:normalValue,
+      negativeAgreement:negativeValue,
       deskewApplied:!!deskew.applied,
       deskewAngle:deskew.appliedAngle||0,
       detectedTilt:deskew.detectedTilt||0,
@@ -1845,19 +1933,23 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
       readings,
       tesseract1:tValue,
       paddle1:pValue,
-      tesseract2:null,
-      paddle2:null
+      tesseract2:tNegative.value||null,
+      paddle2:pNegative.value||null
     };
   }
 
   return {
     confirmed:true,
-    value:tValue,
-    suggestedValue:tValue,
-    reason:`Coincidencia exacta sobre imagen maestra HQ ${HQ_DPI} DPI${deskew.applied?' + autoenderezado':''}`,
+    value:normalValue,
+    suggestedValue:normalValue,
+    reason:`Coincidencia exacta NORMAL sobre imagen maestra HQ ${HQ_DPI} DPI · prueba negativo: ${ab.label}`,
     previewDataUrl:humanPreview.toDataURL('image/jpeg',0.96),
     originalPreviewDataUrl:zoneCrop.toDataURL('image/jpeg',0.92),
     zoomPreviewDataUrl:humanPreview.toDataURL('image/jpeg',0.96),
+    negativePreviewDataUrl:negative.toDataURL('image/jpeg',0.94),
+    negativeAB:ab,
+    normalAgreement:normalValue,
+    negativeAgreement:negativeValue,
     deskewApplied:!!deskew.applied,
     deskewAngle:deskew.appliedAngle||0,
     detectedTilt:deskew.detectedTilt||0,
@@ -1865,15 +1957,15 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
     readings,
     tesseract1:tValue,
     paddle1:pValue,
-    tesseract2:null,
-    paddle2:null
+    tesseract2:tNegative.value||null,
+    paddle2:pNegative.value||null
   };
 }
 
-// V1.15: se eliminó la ruta automática de una sola lectura Tesseract.
+// V1.16: se eliminó la ruta automática de una sola lectura Tesseract.
 
 
-// V1.15: se eliminó la resolución reforzada por mayoría de Tesseract.
+// V1.16: se eliminó la resolución reforzada por mayoría de Tesseract.
 
 
 async function getOCRWorker(){
@@ -2251,7 +2343,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.15 · original primero + enderezado selectivo + zoom TS32/T832','info');
+  logEvent('Modo NUEVA V1.16 · prueba A/B imagen HQ normal + negativo','info');
 }
 
 function backToModes(){
@@ -3282,12 +3374,12 @@ async function recognizeCrop(crop,psm='6',expected=null){
   };
 }
 
-// V1.15: no existen funciones de votación por mayoría OCR.
+// V1.16: no existen funciones de votación por mayoría OCR.
 
 
 async function auditReadPageHighPrecision(page,expected=null){
   // ==========================================================
-  // V1.15 · AUDITORÍA DOBLE MOTOR CONSERVADORA
+  // V1.16 · AUDITORÍA DOBLE MOTOR CONSERVADORA
   // - Tesseract + PaddleOCR leen la misma imagen maestra HQ de la zona A4 a 600 DPI.
   // - El recorte se autoendereza y mejora antes de ejecutar ambos motores.
   // - Solo una coincidencia exacta entre ambos motores permite confirmar.
@@ -3514,7 +3606,7 @@ async function startHistoricalAudit(){
           for(const r of weak){
             const proposed=r.suggested||null;
 
-            // V1.15: una lectura débil SIEMPRE es observación.
+            // V1.16: una lectura débil SIEMPRE es observación.
             // Incluso si el candidato coincide con el nombre, el nombre no cuenta como voto.
             needsIssue=true;
             pages=[...new Set([...pages,r.page])];
@@ -4134,7 +4226,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.15 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.16 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4381,7 +4473,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.15 original primero + enderezado selectivo + zoom TS32/T832","ok");
+logEvent("Sistema listo · V1.16 prueba A/B imagen HQ normal + negativo","ok");
 addJob();
 </script>
 </body>
