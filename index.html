@@ -448,9 +448,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.17 · DIAGNÓSTICO OCR · 10 CONFIGURACIONES</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.18 · PADDLE ADAPTATIVO + TESSERACT ÚNICO</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · 10 configuraciones controladas · Tesseract + PaddleOCR · ranking en consola · V1.16 como configuración base
+    V1.3 estable separada · Paddle C06 con respaldo C09 · Tesseract solo C08 · comparación estricta entre motores
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -462,12 +462,12 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.17.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.18.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.17</strong>
-      <span>Diagnóstico de 10 configuraciones: cada página se lee con Tesseract y PaddleOCR en las diez; la consola compara cobertura, coincidencias y discrepancias.</span>
+      <strong>NUEVA VERSIÓN V1.18</strong>
+      <span>PaddleOCR usa C06 y solo si no logra leer prueba C09. Tesseract usa únicamente C08. Al final ambos motores se comparan de forma estricta.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
@@ -838,7 +838,7 @@ let historicalAuditTotalPages=0;
 let historicalAuditProcessedPages=0;
 let historicalAuditTimer=null;
 
-// V1.17 · Auditoría manual + diagnóstico OCR + protección de sesión
+// V1.18 · Paddle adaptativo + Tesseract único + auditoría manual + protección de sesión
 const SESSION_KEY='AUTOMATIZADOR_GR_V117_SESSION';
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
@@ -1130,7 +1130,6 @@ async function startQueue(){
 async function processJob(job){
   job.pages=[];
   job.masterBytes=null;
-  job.diagnosticStats=createDiagnosticStats();
   job.startedAt=new Date();
   job.endedAt=null;
   job.completedUnits=0;
@@ -1143,7 +1142,7 @@ async function processJob(job){
 
   logEvent(`INICIO ruta ${job.name} · ${job.files.length} PDF · DPI final ${job.dpi}`,'info');
 
-  setJobStatus(job.id,'PASADA 1 · DIAGNÓSTICO 10 CONFIGURACIONES','st-run');
+  setJobStatus(job.id,'PASADA 1 · DOBLE MOTOR ADAPTATIVO','st-run');
   document.getElementById(`pw-${job.id}`).style.display='block';
   document.getElementById(`actions-${job.id}`).style.display='none';
 
@@ -1177,9 +1176,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1: ORIGINAL PRIMERO; ENDEREZADO SOLO PARA MOTOR SIN LECTURA
+  // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · DIAGNÓSTICO 10 CONFIGURACIONES · ${totalPages} páginas · 20 lecturas OCR por página`,'info');
+  logEvent(`PASADA 1 iniciada · V1.18 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1195,7 +1194,7 @@ async function processJob(job){
 
       // V1.16: el texto embebido es evidencia auxiliar, nunca decide solo.
       const textGR=detectFromTextLayer(await page.getTextContent(),page);
-      const dual=await detectByDualEngineStrict(page,null,textGR,job.diagnosticStats);
+      const dual=await detectByDualEngineStrict(page,null,textGR);
       let baseGR=dual.confirmed ? dual.value : null;
       let detection=baseGR
         ? (textGR ? 'DOBLE MOTOR + TEXTO' : 'DOBLE MOTOR')
@@ -1212,9 +1211,9 @@ async function processJob(job){
       }
 
       logEvent(
-        `BASE V1.16 · ${source.file.name} pág. ${pn} · `+
-        `T ${dual.tesseract1||'NINGUNA'} · P ${dual.paddle1||'NINGUNA'} · `+
-        `diagnóstico completo: 10 configuraciones`,
+        `V1.18 · ${source.file.name} pág. ${pn} · `+
+        `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
+        `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
       );
 
@@ -1289,22 +1288,22 @@ async function processJob(job){
   );
 
   // ==========================================================
-  // V1.16: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
+  // V1.18: NO EXISTE RESOLUCIÓN POR MAYORÍA
   // ==========================================================
   const pending=job.pages.filter(p=>!p.baseGR);
 
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.17 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.18 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.17 · todas las páginas superaron la configuración base conservadora de doble motor','ok');
+    logEvent('V1.18 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
-  // En V1.16, todo lo que no supere la validación conservadora entra a la cola manual.
+  // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
   if(appMode==='new'){
     for(const p of job.pages){
       if(!p.baseGR){
@@ -1423,8 +1422,6 @@ async function processJob(job){
 
   rebuildResultsTable();
   updateResultStats();
-
-  printDiagnosticSummary(job.diagnosticStats,job.name);
 
   logEvent(
     `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR).length}`,
@@ -1824,73 +1821,31 @@ function classifyNegativeAB(tNormal,pNormal,tNegative,pNegative){
 }
 
 // ============================================================
-// V1.17 · DIAGNÓSTICO OCR DE 10 CONFIGURACIONES
-// Cada configuración es leída por Tesseract y PaddleOCR.
-// La consola registra las 20 lecturas por página y genera rankings.
-// IMPORTANTE: las configuraciones experimentales NO votan ni renombran.
-// La decisión operativa conserva como BASE la configuración C06,
-// equivalente al flujo normal HQ de V1.16.
+// V1.18 · PADDLE ADAPTATIVO + TESSERACT ÚNICO
+//
+// Evidencia de la prueba V1.17 sobre 19 páginas con GR verdadera:
+// - Paddle C06: 18/19 correctas, 0 errores observados.
+// - Paddle C09: 18/19 correctas, 0 errores observados.
+// - Tesseract C08: 16/19 correctas, 1 error observado.
+//
+// Flujo solicitado:
+// 1) PaddleOCR intenta C06.
+// 2) SOLO si C06 no obtiene una GR completa, PaddleOCR intenta C09.
+// 3) Tesseract ejecuta SOLO C08; no tiene segunda configuración.
+// 4) Al final se comparan el resultado final de PaddleOCR y Tesseract.
+// 5) Solo coincidencia exacta entre ambos motores confirma automáticamente.
+//    Discrepancia o lectura incompleta => REVISAR.
 // ============================================================
 
-const DIAGNOSTIC_CONFIGS=[
-  {id:'C01',name:'300 LEGACY RAW',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',note:'Referencia histórica V1.3: 300 DPI, recorte amplio, casi original'},
-  {id:'C02',name:'300 LEGACY OPTIMIZED',dpi:300,zone:'legacy',deskew:false,prep:'optimized',psm:'6',note:'300 DPI con normalización tonal conservadora'},
-  {id:'C03',name:'300 LEGACY THRESHOLD',dpi:300,zone:'legacy',deskew:false,prep:'threshold',psm:'6',note:'300 DPI binario; históricamente recuperó algunos casos difíciles'},
-  {id:'C04',name:'400 LEGACY RAW',dpi:400,zone:'legacy',deskew:false,prep:'raw',psm:'6',note:'400 DPI sin tratamiento adicional'},
-  {id:'C05',name:'450 LEGACY OPTIMIZED',dpi:450,zone:'legacy',deskew:false,prep:'optimized',psm:'6',note:'450 DPI con optimización tonal de auditorías anteriores'},
-  {id:'C06',name:'600 A4 HQ V116 BASE',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6',baseline:true,note:'Configuración base equivalente a V1.16'},
-  {id:'C07',name:'600 A4 RAW',dpi:600,zone:'a4',deskew:false,prep:'raw',psm:'6',note:'600 DPI sin enderezado ni mejora'},
-  {id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6',note:'600 DPI, solo autoenderezado'},
-  {id:'C09',name:'600 A4 DESKEW OPTIMIZED',dpi:600,zone:'a4',deskew:true,prep:'optimized',psm:'6',note:'600 DPI, enderezado + normalización tonal'},
-  {id:'C10',name:'600 A4 DESKEW SOFT PSM7',dpi:600,zone:'a4',deskew:true,prep:'soft',psm:'7',note:'600 DPI, contraste suave; Tesseract usa línea única PSM7'}
-];
-
-function createDiagnosticStats(){
-  const configs={};
-  for(const c of DIAGNOSTIC_CONFIGS){
-    configs[c.id]={
-      id:c.id,name:c.name,pages:0,tRead:0,pRead:0,bothRead:0,agree:0,disagree:0,
-      tConfidence:0,pConfidence:0,tConfN:0,pConfN:0
-    };
-  }
-  return {pages:0,configs};
-}
-
-function updateDiagnosticStats(stats,cfg,t,p){
-  if(!stats)return;
-  const s=stats.configs?.[cfg.id];
-  if(!s)return;
-  s.pages++;
-  if(t?.value){s.tRead++;s.tConfidence+=Number(t.confidence)||0;s.tConfN++;}
-  if(p?.value){s.pRead++;s.pConfidence+=Number(p.confidence)||0;s.pConfN++;}
-  if(t?.value&&p?.value){
-    s.bothRead++;
-    if(t.value===p.value)s.agree++;else s.disagree++;
-  }
-}
-
-function printDiagnosticSummary(stats,label=''){
-  if(!stats?.configs)return;
-  const rows=Object.values(stats.configs);
-  logEvent(`========== DIAGNÓSTICO OCR V1.17 · ${label||'LOTE'} · ${stats.pages||0} PÁGINAS ==========`,'info');
-  for(const s of rows){
-    const tAvg=s.tConfN?(s.tConfidence/s.tConfN).toFixed(1):'-';
-    const pAvg=s.pConfN?(s.pConfidence/s.pConfN).toFixed(1):'-';
-    logEvent(
-      `${s.id} ${s.name} · Tesseract ${s.tRead}/${s.pages} (conf.prom ${tAvg}) · `+
-      `Paddle ${s.pRead}/${s.pages} (conf.prom ${pAvg}) · ambos ${s.bothRead}/${s.pages} · `+
-      `coinciden ${s.agree} · discrepan ${s.disagree}`,
-      s.agree===s.pages?'ok':'info'
-    );
-  }
-  const byT=[...rows].sort((a,b)=>b.tRead-a.tRead||b.agree-a.agree||a.id.localeCompare(b.id));
-  const byP=[...rows].sort((a,b)=>b.pRead-a.pRead||b.agree-a.agree||a.id.localeCompare(b.id));
-  const byBoth=[...rows].sort((a,b)=>b.agree-a.agree||b.bothRead-a.bothRead||b.tRead+b.pRead-(a.tRead+a.pRead)||a.id.localeCompare(b.id));
-  logEvent(`RANKING TESSERACT (cobertura): ${byT.map(x=>`${x.id}:${x.tRead}`).join(' > ')}`,'ok');
-  logEvent(`RANKING PADDLEOCR (cobertura): ${byP.map(x=>`${x.id}:${x.pRead}`).join(' > ')}`,'ok');
-  logEvent(`RANKING DOBLE MOTOR (coincidencia exacta): ${byBoth.map(x=>`${x.id}:${x.agree}`).join(' > ')}`,'ok');
-  logEvent('NOTA: cobertura/coincidencia NO equivalen a exactitud. La lectura humana sigue siendo la referencia final para casos dudosos.','warn');
-}
+const OCR_PADDLE_PRIMARY={
+  id:'C06',name:'600 A4 HQ V116',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'
+};
+const OCR_PADDLE_FALLBACK={
+  id:'C09',name:'600 A4 DESKEW OPTIMIZED',dpi:600,zone:'a4',deskew:true,prep:'optimized',psm:'6'
+};
+const OCR_TESSERACT_ONLY={
+  id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
+};
 
 function diagnosticZone(cfg){
   return cfg.zone==='legacy'
@@ -1926,112 +1881,140 @@ async function buildDiagnosticImage(page,cfg,cache){
   return {image,raw,deskewMeta};
 }
 
-async function detectByDualEngineStrict(page,expected=null,textGR=null,diagStats=null){
+function ocrAngleText(built){
+  const d=built?.deskewMeta;
+  if(!d)return '';
+  if(d.applied)return ` · giro ${d.appliedAngle>0?'+':''}${d.appliedAngle.toFixed(2)}°`;
+  if(d.boundaryRisk)return ' · giro fuera de rango';
+  return ' · sin giro';
+}
+
+async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
-  const allReadings=[];
-  const configResults=[];
-  let baseline=null;
-  if(diagStats)diagStats.pages++;
+  const readings=[];
 
-  logEvent('DIAGNÓSTICO · iniciando 10 configuraciones × 2 motores','info');
+  // Las imágenes comparten el mismo render A4 600 DPI y el mismo cálculo de deskew,
+  // pero cada motor recibe exclusivamente la preparación definida por su configuración.
+  const paddlePrimaryBuilt=await buildDiagnosticImage(page,OCR_PADDLE_PRIMARY,cache);
+  const tesseractBuilt=await buildDiagnosticImage(page,OCR_TESSERACT_ONLY,cache);
 
-  for(const cfg of DIAGNOSTIC_CONFIGS){
-    const built=await buildDiagnosticImage(page,cfg,cache);
-    const angle=built.deskewMeta;
-    const [t,p]=await Promise.all([
-      recognizeCrop(built.image,cfg.psm,expected),
-      recognizePaddleCrop(built.image,expected)
-    ]);
+  // Primera etapa: Paddle C06 y Tesseract C08 pueden ejecutarse en paralelo.
+  const [pPrimary,tesseract]=await Promise.all([
+    recognizePaddleCrop(paddlePrimaryBuilt.image,expected),
+    recognizeCrop(tesseractBuilt.image,OCR_TESSERACT_ONLY.psm,expected)
+  ]);
 
-    const agreement=pairAgreement(t,p);
-    const angleText=cfg.deskew
-      ? (angle.applied?` · giro ${angle.appliedAngle>0?'+':''}${angle.appliedAngle.toFixed(2)}°`:(angle.boundaryRisk?' · giro fuera de rango':' · sin giro'))
-      : '';
-    const state=agreement?'COINCIDEN':(t.value&&p.value?'DISCREPAN':'LECTURA INCOMPLETA');
-    const logType=agreement?'ok':(t.value||p.value?'warn':'err');
+  readings.push({
+    engine:'PADDLEOCR',variant:`${OCR_PADDLE_PRIMARY.id} · ${OCR_PADDLE_PRIMARY.name}`,
+    configId:OCR_PADDLE_PRIMARY.id,configName:OCR_PADDLE_PRIMARY.name,...pPrimary
+  });
+  readings.push({
+    engine:'TESSERACT',variant:`${OCR_TESSERACT_ONLY.id} · ${OCR_TESSERACT_ONLY.name}`,
+    configId:OCR_TESSERACT_ONLY.id,configName:OCR_TESSERACT_ONLY.name,...tesseract
+  });
 
-    logEvent(
-      `DIAG ${cfg.id} · ${cfg.name}${angleText} · `+
-      `T=${t.value||'SIN LECTURA'} [${Math.round(Number(t.confidence)||0)}] · `+
-      `P=${p.value||'SIN LECTURA'} [${Math.round(Number(p.confidence)||0)}] · ${state}`,
-      logType
-    );
-
-    const meta={
-      configId:cfg.id,configName:cfg.name,baseline:!!cfg.baseline,
-      dpi:cfg.dpi,prep:cfg.prep,psm:cfg.psm,
-      deskewApplied:!!angle.applied,deskewAngle:angle.appliedAngle||0,
-      detectedTilt:angle.detectedTilt||0
-    };
-    allReadings.push({engine:'TESSERACT',variant:`${cfg.id} · ${cfg.name}`,...meta,...t});
-    allReadings.push({engine:'PADDLEOCR',variant:`${cfg.id} · ${cfg.name}`,...meta,...p});
-    updateDiagnosticStats(diagStats,cfg,t,p);
-
-    const row={cfg,t,p,agreement,built};
-    configResults.push(row);
-    if(cfg.baseline)baseline=row;
-    await yieldUI();
-  }
-
-  if(!baseline)baseline=configResults[0];
-  const normalValue=baseline?.agreement||null;
-  const tValue=baseline?.t?.value||null;
-  const pValue=baseline?.p?.value||null;
-  const textConflict=!!(textGR&&normalValue&&textGR!==normalValue);
-  const boundaryRisk=!!baseline?.built?.deskewMeta?.boundaryRisk;
-  const humanMaster=baseline?.built?.image||baseline?.built?.raw;
-  const humanPreview=humanMaster?createHQHumanPreview(humanMaster,baseline?.t):null;
-
-  // Resumen por página para facilitar comparación visual de las 10 configuraciones.
-  const tValues=configResults.map(r=>r.t.value).filter(Boolean);
-  const pValues=configResults.map(r=>r.p.value).filter(Boolean);
-  const bothAgreements=configResults.filter(r=>r.agreement).map(r=>`${r.cfg.id}=${r.agreement}`);
   logEvent(
-    `DIAG PÁGINA · Tesseract leyó ${tValues.length}/10 · PaddleOCR leyó ${pValues.length}/10 · `+
-    `coincidencias entre motores ${bothAgreements.length}/10`+
-    (bothAgreements.length?` · ${bothAgreements.join(' · ')}`:''),
-    bothAgreements.length?'info':'warn'
+    `PADDLE C06 PRIMARIA${ocrAngleText(paddlePrimaryBuilt)} · `+
+    `${pPrimary.value||'SIN LECTURA'} [${Math.round(Number(pPrimary.confidence)||0)}]`,
+    pPrimary.value?'info':'warn'
+  );
+  logEvent(
+    `TESSERACT C08 ÚNICA${ocrAngleText(tesseractBuilt)} · `+
+    `${tesseract.value||'SIN LECTURA'} [${Math.round(Number(tesseract.confidence)||0)}]`,
+    tesseract.value?'info':'warn'
   );
 
-  // La decisión productiva NO usa mayoría de las 10 configuraciones.
-  // Conserva exclusivamente la BASE C06 (V1.16) para que el experimento sea comparable.
-  let confirmed=!!normalValue && !textConflict && !boundaryRisk;
-  let reason='';
-  if(boundaryRisk){
-    reason='BASE C06: inclinación estimada fuera del rango seguro; REVISAR';
-  }else if(textConflict){
-    reason=`BASE C06: capa de texto (${textGR}) discrepa de ambos motores (${normalValue}); REVISAR`;
-  }else if(!normalValue){
-    reason=`BASE C06 no concluyente: Tesseract=${tValue||'SIN LECTURA'} · PaddleOCR=${pValue||'SIN LECTURA'}; REVISAR`;
-  }else{
-    reason=`BASE C06: coincidencia exacta Tesseract/PaddleOCR en ${normalValue}. Las otras 9 configuraciones son solo diagnóstico.`;
+  let paddleFinal=pPrimary;
+  let paddleSource='C06';
+  let paddleFinalBuilt=paddlePrimaryBuilt;
+  let pFallback=null;
+
+  // Respaldo Paddle: C09 SOLO se ejecuta cuando C06 no pudo devolver una GR completa.
+  if(!pPrimary.value){
+    logEvent('PADDLE C06 SIN LECTURA · ejecutando respaldo C09','warn');
+    const fallbackBuilt=await buildDiagnosticImage(page,OCR_PADDLE_FALLBACK,cache);
+    pFallback=await recognizePaddleCrop(fallbackBuilt.image,expected);
+    readings.push({
+      engine:'PADDLEOCR',variant:`${OCR_PADDLE_FALLBACK.id} · ${OCR_PADDLE_FALLBACK.name}`,
+      configId:OCR_PADDLE_FALLBACK.id,configName:OCR_PADDLE_FALLBACK.name,...pFallback
+    });
+    logEvent(
+      `PADDLE C09 RESPALDO${ocrAngleText(fallbackBuilt)} · `+
+      `${pFallback.value||'SIN LECTURA'} [${Math.round(Number(pFallback.confidence)||0)}]`,
+      pFallback.value?'info':'warn'
+    );
+    paddleFinal=pFallback;
+    paddleSource='C09';
+    paddleFinalBuilt=fallbackBuilt;
   }
 
-  const suggested=normalValue||pValue||tValue||deriveSuggestedFromReadings(allReadings)||null;
+  const tValue=tesseract.value||null;
+  const pValue=paddleFinal?.value||null;
+  const agreement=(tValue&&pValue&&tValue===pValue)?tValue:null;
+  const textConflict=!!(textGR&&agreement&&textGR!==agreement);
+  const boundaryRisk=!!(
+    tesseractBuilt?.deskewMeta?.boundaryRisk ||
+    paddleFinalBuilt?.deskewMeta?.boundaryRisk
+  );
+
+  let compareState='LECTURA INCOMPLETA';
+  let compareType='warn';
+  if(tValue&&pValue){
+    compareState=agreement?'COINCIDEN':'DISCREPAN';
+    compareType=agreement?'ok':'warn';
+  }
+  logEvent(
+    `COMPARACIÓN FINAL · Paddle ${paddleSource}=${pValue||'SIN LECTURA'} · `+
+    `Tesseract C08=${tValue||'SIN LECTURA'} · ${compareState}`,
+    compareType
+  );
+
+  let confirmed=!!agreement && !textConflict && !boundaryRisk;
+  let reason='';
+  if(boundaryRisk){
+    reason='Inclinación estimada fuera del rango seguro; REVISAR';
+  }else if(textConflict){
+    reason=`Capa de texto (${textGR}) discrepa de ambos motores (${agreement}); REVISAR`;
+  }else if(!pValue && !tValue){
+    reason='PaddleOCR y Tesseract quedaron SIN LECTURA; REVISAR';
+  }else if(!pValue){
+    reason=`PaddleOCR C06 y C09 quedaron SIN LECTURA; Tesseract C08=${tValue||'SIN LECTURA'}; REVISAR`;
+  }else if(!tValue){
+    reason=`Tesseract C08 quedó SIN LECTURA; PaddleOCR ${paddleSource}=${pValue}; REVISAR`;
+  }else if(!agreement){
+    reason=`Los motores discrepan: PaddleOCR ${paddleSource}=${pValue} · Tesseract C08=${tValue}; REVISAR`;
+  }else{
+    reason=`Coincidencia exacta: PaddleOCR ${paddleSource} y Tesseract C08 = ${agreement}`;
+  }
+
+  const humanMaster=paddleFinalBuilt?.image||tesseractBuilt?.image||paddlePrimaryBuilt?.raw;
+  const humanPreview=humanMaster?createHQHumanPreview(humanMaster,tesseract):null;
+  const suggested=agreement||pValue||tValue||deriveSuggestedFromReadings(readings)||null;
+
   return {
     confirmed,
-    value:confirmed?normalValue:null,
+    value:confirmed?agreement:null,
     suggestedValue:suggested,
     reason,
     previewDataUrl:humanPreview?humanPreview.toDataURL('image/jpeg',0.96):'',
-    originalPreviewDataUrl:baseline?.built?.raw?.toDataURL('image/jpeg',0.92)||'',
+    originalPreviewDataUrl:paddlePrimaryBuilt?.raw?.toDataURL('image/jpeg',0.92)||'',
     zoomPreviewDataUrl:humanPreview?humanPreview.toDataURL('image/jpeg',0.96):'',
     negativePreviewDataUrl:'',
     negativeAB:null,
-    normalAgreement:normalValue,
+    normalAgreement:agreement,
     negativeAgreement:null,
-    deskewApplied:!!baseline?.built?.deskewMeta?.applied,
-    deskewAngle:baseline?.built?.deskewMeta?.appliedAngle||0,
-    detectedTilt:baseline?.built?.deskewMeta?.detectedTilt||0,
+    deskewApplied:!!paddleFinalBuilt?.deskewMeta?.applied,
+    deskewAngle:paddleFinalBuilt?.deskewMeta?.appliedAngle||0,
+    detectedTilt:paddleFinalBuilt?.deskewMeta?.detectedTilt||0,
     deskewBoundaryRisk:boundaryRisk,
-    readings:allReadings,
-    diagnosticResults:configResults.map(r=>({
-      id:r.cfg.id,name:r.cfg.name,tesseract:r.t.value||null,paddle:r.p.value||null,agreement:r.agreement||null
-    })),
+    readings,
+    paddleSource,
+    paddlePrimary:pPrimary.value||null,
+    paddleFallback:pFallback?.value||null,
     tesseract1:tValue,
     paddle1:pValue,
     tesseract2:null,
-    paddle2:null
+    paddle2:pFallback?.value||null
   };
 }
 
@@ -2416,7 +2399,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.17 · diagnóstico OCR de 10 configuraciones','info');
+  logEvent('Modo NUEVA V1.18 · Paddle C06→C09 si falla + Tesseract C08 único','info');
 }
 
 function backToModes(){
@@ -3452,12 +3435,12 @@ async function recognizeCrop(crop,psm='6',expected=null){
 
 async function auditReadPageHighPrecision(page,expected=null){
   // ==========================================================
-  // V1.17 · AUDITORÍA + DIAGNÓSTICO 10 CONFIGURACIONES
-  // - Tesseract + PaddleOCR leen la misma imagen maestra HQ de la zona A4 a 600 DPI.
-  // - El recorte se autoendereza y mejora antes de ejecutar ambos motores.
-  // - Solo una coincidencia exacta entre ambos motores permite confirmar.
+  // V1.18 · AUDITORÍA CON PADDLE ADAPTATIVO + TESSERACT ÚNICO
+  // - PaddleOCR intenta C06 y solo si falla usa C09.
+  // - Tesseract usa exclusivamente C08.
+  // - Solo una coincidencia exacta entre los resultados finales de ambos motores permite confirmar.
   // - El nombre del archivo NO cuenta como voto.
-  // - Cualquier discrepancia = REVISAR.
+  // - Cualquier discrepancia o lectura incompleta = REVISAR.
   // ==========================================================
 
   const dual=await detectByDualEngineStrict(page,null,null,null);
@@ -3474,12 +3457,12 @@ async function auditReadPageHighPrecision(page,expected=null){
     suggestedValue:suggested,
     consensus:dual.confirmed
       ? 'DOBLE MOTOR ESTABLE'
-      : `REVISAR · T:${dual.tesseract1||'-'} / P:${dual.paddle1||'-'} / T2:${dual.tesseract2||'-'} / P2:${dual.paddle2||'-'}`,
+      : `REVISAR · T C08:${dual.tesseract1||'-'} / P ${dual.paddleSource||'C06'}:${dual.paddle1||'-'}`,
     strongConsensus:dual.confirmed,
     previewDataUrl:dual.previewDataUrl||'',
     readings:dual.readings||[],
-    locator:'DIAGNOSTICO-10-CONFIG-V117',
-    strategy:dual.confirmed?'BASE-C06-V117':'REVISAR-BASE-C06-V117',
+    locator:'PADDLE-C06-C09-TESSERACT-C08-V118',
+    strategy:dual.confirmed?'DOBLE-MOTOR-V118':'REVISAR-DOBLE-MOTOR-V118',
     reason:dual.reason||''
   };
 }
@@ -4299,7 +4282,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.17 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.18 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4348,7 +4331,7 @@ function buildSessionSnapshot(){
     });
   }
   return {
-    version:'1.17',savedAt:new Date().toISOString(),appMode,
+    version:'1.18',savedAt:new Date().toISOString(),appMode,
     humanCorrections, jobs:compactJobs,
     auditReview:jobReviewState.items?.length?{
       jobId:jobReviewState.jobId,index:jobReviewState.index,summary:jobReviewState.summary,
@@ -4381,7 +4364,7 @@ function readSavedSession(){
     const raw=localStorage.getItem(SESSION_KEY);
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
@@ -4546,7 +4529,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.17 diagnóstico OCR 10 configuraciones","ok");
+logEvent("Sistema listo · V1.18 Paddle adaptativo + Tesseract único","ok");
 addJob();
 </script>
 </body>
