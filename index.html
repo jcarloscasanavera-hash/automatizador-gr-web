@@ -351,6 +351,7 @@ th{background:#f1f3f4}
 
 /* V1.9: selector múltiple y rutas opcionales */
 /* V1.10: OCR adaptativo rápido + selector de carpeta honesto */
+/* V1.11: doble motor Tesseract + PaddleOCR; cualquier discrepancia = REVISAR */
 .folderDropZone{
   margin-top:12px;
   min-height:84px;
@@ -382,9 +383,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.10 · OCR ADAPTATIVO RÁPIDO + MULTICARPETA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.11 · DOBLE MOTOR + VALIDACIÓN CONSERVADORA</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · OCR adaptativo 400→450→600 · arrastre múltiple real · Excel · tiempos · auditoría robusta
+    V1.3 estable separada · Tesseract + PaddleOCR · discrepancia = REVISAR · multicarpeta · Excel · tiempos
   </div>
 </div>
 
@@ -399,8 +400,8 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.10</strong>
-      <span>Procesamiento nuevo; la auditoría histórica usa OCR adaptativo y refuerzo solo cuando hace falta.</span>
+      <strong>NUEVA VERSIÓN V1.11</strong>
+      <span>Procesamiento nuevo con Tesseract + PaddleOCR; cualquier discrepancia pasa a REVISAR.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
@@ -430,8 +431,8 @@ th{background:#f1f3f4}
 <div id="results" class="card results">
   <h3 style="margin-top:0">Resultado</h3>
   <div class="summary" style="padding:0;margin:0">
-    <div class="metric">GR detectadas<b id="rDetected">0</b></div>
-    <div class="metric">VERIFICAR<b id="rVerify">0</b></div>
+    <div class="metric">GR confirmadas<b id="rDetected">0</b></div>
+    <div class="metric">REVISAR<b id="rVerify">0</b></div>
     <div class="metric">PDF maestros<b id="rMasters">0</b></div>
     <div class="metric">Errores<b id="rErrors">0</b></div>
   </div>
@@ -461,7 +462,7 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Compara el nombre de cada PDF con la GR de la esquina superior derecha. Usa una lectura rápida optimizada y refuerza solo los casos dudosos o discrepantes.</div>
+        <div class="muted">Compara el nombre con una lectura independiente Tesseract + PaddleOCR. El nombre no cuenta como voto y cualquier discrepancia pasa a REVISAR.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
@@ -646,6 +647,9 @@ let cancelRequested=false;
 let globalPages=0;
 let stats={detected:0,verify:0,masters:0,errors:0};
 let ocrWorker=null;
+let paddleOCR=null;
+let paddleOCRInitPromise=null;
+let paddleOCRLastError=null;
 let appMode=null;
 
 let historicalAuditFolders=[];
@@ -951,7 +955,7 @@ async function processJob(job){
 
   logEvent(`INICIO ruta ${job.name} · ${job.files.length} PDF · DPI final ${job.dpi}`,'info');
 
-  setJobStatus(job.id,'PASADA 1 · OCR 300 DPI','st-run');
+  setJobStatus(job.id,'PASADA 1 · DOBLE MOTOR 300 DPI','st-run');
   document.getElementById(`pw-${job.id}`).style.display='block';
   document.getElementById(`actions-${job.id}`).style.display='none';
 
@@ -985,9 +989,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1: UNA lectura OCR a 300 DPI por página
+  // PASADA 1: TESSERACT + PADDLEOCR, MISMO RECORTE 300 DPI
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · OCR 300 DPI · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · Tesseract + PaddleOCR · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1001,25 +1005,31 @@ async function processJob(job){
 
       const page=await source.pdf.getPage(pn);
 
-      // Si hubiera texto embebido válido se aprovecha; en escaneos pasará al OCR.
-      let baseGR=detectFromTextLayer(await page.getTextContent(),page);
-      let detection='TEXTO';
+      // V1.11: el texto embebido es evidencia auxiliar, nunca decide solo.
+      const textGR=detectFromTextLayer(await page.getTextContent(),page);
+      const dual=await detectByDualEngineStrict(page,null,textGR);
+      let baseGR=dual.confirmed ? dual.value : null;
+      let detection=baseGR
+        ? (textGR ? 'DOBLE MOTOR + TEXTO' : 'DOBLE MOTOR')
+        : '';
 
-      if(!baseGR){
-        baseGR=await detectByOCRFast(page);
-        detection=baseGR?'OCR 300 DPI':'';
+      logEvent(
+        `DOBLE MOTOR · ${source.file.name} pág. ${pn} · `+
+        `T1 ${dual.tesseract1||'NINGUNA'} · P1 ${dual.paddle1||'NINGUNA'} · `+
+        `T2 ${dual.tesseract2||'NO EJECUTADA'} · P2 ${dual.paddle2||'NO EJECUTADA'}`,
+        dual.confirmed?'ok':'warn'
+      );
 
-        const dbg=detectByOCRFast.lastDebug;
-        if(dbg && (done<5 || !baseGR)){
-          logEvent(
-            `DEBUG OCR · ${source.file.name} pág. ${pn} · conf ${Math.round(dbg.confidence)} · bruto: "${dbg.raw}"`,
-            'info'
-          );
-          logEvent(
-            `DEBUG COMPACTO · pág. ${pn} · "${dbg.compact}" · candidatos: ${dbg.candidates.join(', ')||'NINGUNO'}`,
-            baseGR?'ok':'warn'
-          );
-        }
+      if(textGR){
+        logEvent(
+          `CAPA DE TEXTO · ${source.file.name} pág. ${pn} · ${textGR}`+
+          (dual.value&&textGR!==dual.value?' · DISCREPA':'') ,
+          dual.value&&textGR!==dual.value?'warn':'info'
+        );
+      }
+
+      if(!dual.confirmed){
+        logEvent(`REVISAR · ${source.file.name} pág. ${pn} · ${dual.reason}`,'warn');
       }
 
       let marker;
@@ -1050,9 +1060,10 @@ async function processJob(job){
         marker,
         detection,
         pageIndex:null,
-        needsAudit:false,
-        auditReason:'',
-        previewDataUrl:(detectByOCRFast.lastDebug&&detectByOCRFast.lastDebug.cropDataUrl)||''
+        needsAudit:!baseGR,
+        auditReason:baseGR?'':dual.reason,
+        previewDataUrl:dual.previewDataUrl||'',
+        engineReadings:dual.readings||[]
       });
 
       done++;
@@ -1069,95 +1080,32 @@ async function processJob(job){
   }
 
   logEvent(
-    `PASADA 1 terminada · reconocidas ${job.pages.filter(p=>p.baseGR).length} · VERIFICAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    `PASADA 1 terminada · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR).length}`,
     'info'
   );
 
   // ==========================================================
-  // PASADA 2: SOLO VERIFICAR, antes de convertir el PDF final
+  // V1.11: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
   // ==========================================================
   const pending=job.pages.filter(p=>!p.baseGR);
-  job.totalUnits += pending.length; // una "unidad" por caso reforzado
 
   if(pending.length){
-    setJobStatus(job.id,'PASADA 2 · VERIFICAR','st-run');
-    logEvent(`PASADA 2 iniciada · ${pending.length} páginas por verificar`,'info');
-
-    for(let i=0;i<pending.length;i++){
-      await waitIfPaused();
-
-      if(cancelRequested){
-        setJobStatus(job.id,'CANCELADO','st-err');
-        logEvent(`CANCELADO durante PASADA 2 · ${job.name}`,'warn');
-        return;
-      }
-
-      const info=pending[i];
-
-      logEvent(
-        `Revisión reforzada ${i+1}/${pending.length} · ${info.sourceFile} · pág. ${info.sourcePage}`,
-        'info'
-      );
-
-      const resolved=await detectByOCRReinforced(
-        info.sourcePdf,
-        info.sourcePage,
-        300
-      );
-
-      const reinforcedDebug=detectByOCRReinforced.lastDebug||[];
-      if(!resolved){
-        for(const d of reinforcedDebug){
-          logEvent(
-            `DEBUG REFORZADO · ${info.sourceFile} pág. ${info.sourcePage} · ${d.mode} · conf ${Math.round(d.confidence)} · bruto: "${d.raw}"`,
-            'warn'
-          );
-          logEvent(
-            `DEBUG REFORZADO COMPACTO · ${d.mode} · "${d.compact}" · candidatos: ${d.candidates.join(', ')||'NINGUNO'}`,
-            'warn'
-          );
-        }
-      }
-
-      if(resolved){
-        stats.verify=Math.max(0,stats.verify-1);
-        stats.detected++;
-
-        info.baseGR=resolved;
-        info.detection='OCR REFORZADO 300 DPI';
-
-        logEvent(
-          `${info.marker} RESUELTO → ${resolved} · ${info.sourceFile} pág. ${info.sourcePage}`,
-          'ok'
-        );
-      }else{
-        logEvent(
-          `${info.marker} continúa sin identificación segura`,
-          'warn'
-        );
-      }
-
-      job.completedUnits++;
-
-      const pct=45+Math.round(((i+1)/pending.length)*20);
-      setProgress(job.id,pct,`Pasada 2: ${i+1} / ${pending.length}`);
-      updateTiming(job);
-    }
-
+    setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `PASADA 2 terminada · quedan ${job.pages.filter(p=>!p.baseGR).length} VERIFICAR`,
-      'info'
+      `V1.11 · ${pending.length} página(s) pasan a REVISAR. `+
+      `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
+      'warn'
     );
   }else{
-    logEvent('PASADA 2 omitida: no quedaron páginas VERIFICAR','ok');
+    logEvent('V1.11 · todas las páginas superaron doble motor + estabilidad','ok');
   }
 
-  // En modo V1.4, todo lo que todavía queda VERIFICAR entra a la cola manual.
+  // En V1.11, todo lo que no supere la doble validación entra a la cola manual.
   if(appMode==='new'){
     for(const p of job.pages){
       if(!p.baseGR){
         p.needsAudit=true;
-        p.auditReason='No se obtuvo una lectura automática suficientemente segura';
+        p.auditReason=p.auditReason||'No se obtuvo coincidencia estable entre Tesseract y PaddleOCR';
       }
     }
   }
@@ -1255,7 +1203,7 @@ async function processJob(job){
   setTimeValue(job.id,'tEstimatedEnd',formatClock(job.endedAt));
 
   setProgress(job.id,100,
-    `${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} reconocidas · ${job.pages.filter(p=>!p.baseGR).length} VERIFICAR`
+    `${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} confirmadas · ${job.pages.filter(p=>!p.baseGR).length} REVISAR`
   );
 
   setJobStatus(job.id,'FINALIZADO','st-done');
@@ -1273,7 +1221,7 @@ async function processJob(job){
   updateResultStats();
 
   logEvent(
-    `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · reconocidas ${job.pages.filter(p=>p.baseGR).length} · VERIFICAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR).length}`,
     'ok'
   );
 }
@@ -1297,7 +1245,7 @@ function rebuildResultsTable(){
   tbody.innerHTML='';
   for(const job of jobs.values()){
     for(const p of job.pages){
-      addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CORRECTO · ${p.detection}`:'VERIFICAR',p.baseGR?'ok':'warn');
+      addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CONFIRMADA AUTOMÁTICAMENTE · ${p.detection}`:'REVISAR',p.baseGR?'ok':'warn');
     }
   }
 }
@@ -1333,159 +1281,215 @@ function detectFromTextLayer(content,page){
   return null;
 }
 
-async function detectByOCRFast(page){
-  const worker=await getOCRWorker();
 
-  const scale=300/72;
-  const viewport=page.getViewport({scale});
+// ============================================================
+// V1.11 · DOBLE MOTOR ESTRICTO
+// Tesseract + PaddleOCR leen independientemente el mismo recorte.
+// Si inicialmente coinciden, se repite sobre una variante suave.
+// Las 4 lecturas deben ser idénticas. Cualquier duda => REVISAR.
+// ============================================================
 
-  const full=document.createElement('canvas');
-  full.width=Math.ceil(viewport.width);
-  full.height=Math.ceil(viewport.height);
+async function getPaddleOCR(){
+  if(paddleOCR)return paddleOCR;
+  if(paddleOCRLastError)throw new Error(paddleOCRLastError);
+  if(paddleOCRInitPromise)return paddleOCRInitPromise;
 
-  const ctx=full.getContext('2d',{willReadFrequently:true});
-  await page.render({canvasContext:ctx,viewport}).promise;
+  paddleOCRInitPromise=(async()=>{
+    setQueueText('Inicializando PaddleOCR...');
+    logEvent('Inicializando motor alternativo PaddleOCR PP-OCRv5 (EN)','info');
 
-  // ROI idéntica al .py: 55% derecho y 25% superior.
-  const sx=Math.floor(full.width*0.55);
-  const sy=0;
-  const sw=Math.max(1,full.width-sx);
-  const sh=Math.max(1,Math.floor(full.height*0.25));
+    const moduleUrls=[
+      'https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle',
+      'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/dist/index.mjs'
+    ];
 
-  const crop=document.createElement('canvas');
-  crop.width=sw;
-  crop.height=sh;
+    let mod=null;
+    let lastErr=null;
 
-  const cctx=crop.getContext('2d',{willReadFrequently:true});
-  cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
-
-  const r=await worker.recognize(crop);
-  const raw=String(r.data.text||'');
-  const compact=raw.toUpperCase().replace(/\s+/g,'');
-  const candidates=findCandidates(raw);
-
-  detectByOCRFast.lastDebug={
-    raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
-    compact:compact.slice(0,220),
-    confidence:r.data.confidence||0,
-    candidates:[...candidates],
-    cropDataUrl:crop.toDataURL('image/jpeg',0.90)
-  };
-
-  return candidates.length===1 ? candidates[0] : null;
-}
-
-detectByOCRFast.lastDebug=null;
-
-async function detectByOCRReinforced(pdf,pageNumber,dpi){
-  const worker=await getOCRWorker();
-  const page=await pdf.getPage(pageNumber);
-
-  const scale=300/72;
-  const viewport=page.getViewport({scale});
-
-  const full=document.createElement('canvas');
-  full.width=Math.ceil(viewport.width);
-  full.height=Math.ceil(viewport.height);
-
-  const ctx=full.getContext('2d',{willReadFrequently:true});
-  await page.render({canvasContext:ctx,viewport}).promise;
-
-  const sx=Math.floor(full.width*0.55);
-  const sy=0;
-  const sw=Math.max(1,full.width-sx);
-  const sh=Math.max(1,Math.floor(full.height*0.25));
-
-  const debug=[];
-
-  async function readVariant(mode){
-    const crop=document.createElement('canvas');
-    crop.width=sw;
-    crop.height=sh;
-
-    const cctx=crop.getContext('2d',{willReadFrequently:true});
-    cctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
-
-    if(mode!=='normal'){
-      const img=cctx.getImageData(0,0,sw,sh);
-      const d=img.data;
-
-      for(let i=0;i<d.length;i+=4){
-        const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
-        let v=gray;
-
-        if(mode==='contrast'){
-          v=Math.max(0,Math.min(255,(gray-128)*1.65+128));
-        }else if(mode==='threshold'){
-          v=gray>170?255:0;
-        }else if(mode==='soft'){
-          v=Math.max(0,Math.min(255,(gray-128)*1.30+128));
-        }
-
-        d[i]=d[i+1]=d[i+2]=v;
+    for(const url of moduleUrls){
+      try{
+        mod=await import(url);
+        if(mod&&mod.PaddleOCR)break;
+      }catch(err){
+        lastErr=err;
       }
-
-      cctx.putImageData(img,0,0);
     }
 
-    const r=await worker.recognize(crop);
-    const raw=String(r.data.text||'');
-    const candidates=findCandidates(raw);
+    if(!mod||!mod.PaddleOCR){
+      throw lastErr||new Error('No se pudo cargar el SDK de PaddleOCR.');
+    }
 
-    debug.push({
-      mode,
-      raw:raw.replace(/\s+/g,' ').trim().slice(0,220),
-      compact:raw.toUpperCase().replace(/\s+/g,'').slice(0,220),
-      confidence:r.data.confidence||0,
-      candidates:[...candidates]
+    // Un solo hilo para no exigir cabeceras COOP/COEP en GitHub Pages.
+    paddleOCR=await mod.PaddleOCR.create({
+      lang:'en',
+      ocrVersion:'PP-OCRv5',
+      ortOptions:{
+        backend:'wasm',
+        wasmPaths:'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/',
+        numThreads:1,
+        simd:true
+      }
     });
 
-    return candidates.length===1 ? candidates[0] : null;
-  }
+    paddleOCRLastError=null;
+    setQueueText('Procesando');
+    logEvent('PaddleOCR listo · motor alternativo inicializado','ok');
+    return paddleOCR;
+  })().catch(err=>{
+    paddleOCRLastError=err?.message||String(err);
+    logEvent(`PaddleOCR NO DISPONIBLE · ${paddleOCRLastError}`,'err');
+    throw err;
+  }).finally(()=>{
+    paddleOCRInitPromise=null;
+  });
 
-  const a=await readVariant('normal');
-  const b=await readVariant('contrast');
-
-  if(a && b && a===b){
-    detectByOCRReinforced.lastDebug=debug;
-    return a;
-  }
-
-  const c=await readVariant('threshold');
-
-  const votes3=new Map();
-  for(const g of [a,b,c]){
-    if(g)votes3.set(g,(votes3.get(g)||0)+1);
-  }
-
-  for(const [gr,count] of votes3.entries()){
-    if(count>=2){
-      detectByOCRReinforced.lastDebug=debug;
-      return gr;
-    }
-  }
-
-  const d=await readVariant('soft');
-
-  const votes4=new Map();
-  for(const g of [a,b,c,d]){
-    if(g)votes4.set(g,(votes4.get(g)||0)+1);
-  }
-
-  let winner=null,max=0;
-
-  for(const [gr,count] of votes4.entries()){
-    if(count>max){
-      winner=gr;
-      max=count;
-    }
-  }
-
-  detectByOCRReinforced.lastDebug=debug;
-  return winner&&max>=3 ? winner : null;
+  return paddleOCRInitPromise;
 }
 
-detectByOCRReinforced.lastDebug=[];
+function normalizeAlternativeOCRText(s){
+  return String(s||'')
+    .replace(/[‐‑‒–—−]/g,'-')
+    .replace(/\u00a0/g,' ');
+}
+
+async function recognizePaddleCrop(crop,expected=null){
+  try{
+    const engine=await getPaddleOCR();
+    const results=await engine.predict(crop,{
+      textDetBoxThresh:0.35,
+      textRecScoreThresh:0.15
+    });
+
+    const result=Array.isArray(results)?results[0]:null;
+    const items=Array.isArray(result?.items)?result.items:[];
+    const raw=normalizeAlternativeOCRText(items.map(x=>x?.text||'').join(' '));
+    const allCandidates=findCandidates(raw);
+    const complete=filterCompleteCandidates(allCandidates,expected);
+    const scores=items.map(x=>Number(x?.score)).filter(Number.isFinite);
+    const score=scores.length ? Math.max(...scores) : 0;
+
+    return {
+      value:complete.length===1?complete[0]:null,
+      candidates:complete,
+      raw,
+      confidence:score*100,
+      metrics:result?.metrics||null,
+      error:null
+    };
+  }catch(err){
+    return {
+      value:null,
+      candidates:[],
+      raw:'',
+      confidence:0,
+      metrics:null,
+      error:err?.message||String(err)
+    };
+  }
+}
+
+function sameNonEmptyValue(readings){
+  const values=(readings||[]).map(r=>r?.value||null);
+  if(values.some(v=>!v))return null;
+  return values.every(v=>v===values[0]) ? values[0] : null;
+}
+
+function describeDualDisagreement(t1,p1,t2=null,p2=null,textGR=null){
+  const parts=[
+    `Tesseract=${t1?.value||'SIN LECTURA'}`,
+    `PaddleOCR=${p1?.value||'SIN LECTURA'}`
+  ];
+  if(t2||p2){
+    parts.push(`Tesseract variante=${t2?.value||'SIN LECTURA'}`);
+    parts.push(`PaddleOCR variante=${p2?.value||'SIN LECTURA'}`);
+  }
+  if(textGR)parts.push(`Texto PDF=${textGR}`);
+  if(p1?.error||p2?.error)parts.push(`Motor alternativo: ${p1?.error||p2?.error}`);
+  return 'Discrepancia o inestabilidad: '+parts.join(' · ');
+}
+
+async function detectByDualEngineStrict(page,expected=null,textGR=null){
+  const crop=await renderTopRightCrop(page,300);
+  const normal=preprocessCrop(crop,'normal');
+
+  const t1=await recognizeCrop(normal,'6',expected);
+  const p1=await recognizePaddleCrop(normal,expected);
+  const first=sameNonEmptyValue([t1,p1]);
+
+  const readings=[
+    {engine:'TESSERACT',variant:'NORMAL',...t1},
+    {engine:'PADDLEOCR',variant:'NORMAL',...p1}
+  ];
+
+  // Si los motores ya discrepan, NO intentamos resolver por votación.
+  if(!first){
+    return {
+      confirmed:false,
+      value:null,
+      suggestedValue:t1.value||p1.value||null,
+      reason:describeDualDisagreement(t1,p1,null,null,textGR),
+      previewDataUrl:normal.toDataURL('image/jpeg',0.94),
+      readings,
+      tesseract1:t1.value||null,
+      paddle1:p1.value||null,
+      tesseract2:null,
+      paddle2:null
+    };
+  }
+
+  // Segunda comprobación sobre una variante suave del MISMO recorte.
+  // No binariza y no cambia el contenido geométrico.
+  const variant=preprocessCrop(crop,'soft');
+  const t2=await recognizeCrop(variant,'6',expected);
+  const p2=await recognizePaddleCrop(variant,expected);
+
+  readings.push(
+    {engine:'TESSERACT',variant:'SUAVE',...t2},
+    {engine:'PADDLEOCR',variant:'SUAVE',...p2}
+  );
+
+  const stable=sameNonEmptyValue([t1,p1,t2,p2]);
+
+  // Si existe texto embebido, también debe coincidir; nunca lo usamos para
+  // corregir ni para forzar una lectura OCR.
+  const textConflict=!!(textGR&&stable&&textGR!==stable);
+
+  if(!stable||textConflict){
+    return {
+      confirmed:false,
+      value:null,
+      suggestedValue:first,
+      reason:textConflict
+        ? `La capa de texto (${textGR}) discrepa de los dos motores (${stable})`
+        : describeDualDisagreement(t1,p1,t2,p2,textGR),
+      previewDataUrl:variant.toDataURL('image/jpeg',0.94),
+      readings,
+      tesseract1:t1.value||null,
+      paddle1:p1.value||null,
+      tesseract2:t2.value||null,
+      paddle2:p2.value||null
+    };
+  }
+
+  return {
+    confirmed:true,
+    value:stable,
+    suggestedValue:stable,
+    reason:'4/4 lecturas idénticas entre dos motores y dos variantes',
+    previewDataUrl:variant.toDataURL('image/jpeg',0.94),
+    readings,
+    tesseract1:t1.value,
+    paddle1:p1.value,
+    tesseract2:t2.value,
+    paddle2:p2.value
+  };
+}
+
+// V1.11: se eliminó la ruta automática de una sola lectura Tesseract.
+
+
+// V1.11: se eliminó la resolución reforzada por mayoría de Tesseract.
+
 
 async function getOCRWorker(){
   if(ocrWorker)return ocrWorker;
@@ -1516,6 +1520,12 @@ async function terminateOCR(){
     try{await ocrWorker.terminate()}catch(e){}
     ocrWorker=null;
   }
+  if(paddleOCR){
+    try{await paddleOCR.dispose()}catch(e){}
+    paddleOCR=null;
+  }
+  paddleOCRInitPromise=null;
+  paddleOCRLastError=null;
 }
 
 function findCandidates(text){
@@ -1856,7 +1866,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.10 · cola de auditoría habilitada','info');
+  logEvent('Modo NUEVA V1.11 · doble motor + validación conservadora','info');
 }
 
 function backToModes(){
@@ -2681,7 +2691,7 @@ function preprocessCrop(source,mode){
   const img=ctx.getImageData(0,0,c.width,c.height);
   const d=img.data;
 
-  // V1.10: primera lectura optimizada sin binarizar.
+  // V1.10 legado: preprocesamiento conservado como utilidad.
   // Normaliza el rango tonal del escaneo y aplica un gamma suave.
   // Es mucho más barato que ejecutar varias lecturas OCR completas.
   if(mode==='optimized' || mode==='optimizedContrast'){
@@ -2771,211 +2781,40 @@ async function recognizeCrop(crop,psm='6',expected=null){
   };
 }
 
-function voteReadings(readings){
-  const votes=new Map();
+// V1.11: no existen funciones de votación por mayoría OCR.
 
-  for(const r of readings){
-    if(r.value)votes.set(r.value,(votes.get(r.value)||0)+1);
-  }
-
-  let best=null,bestVotes=0;
-
-  for(const [value,count] of votes.entries()){
-    if(count>bestVotes){
-      best=value;
-      bestVotes=count;
-    }
-  }
-
-  return {best,bestVotes,total:readings.length,votes};
-}
-
-function decisiveVote(readings,minVotes=2){
-  const vote=voteReadings(readings);
-  const counts=[...vote.votes.entries()].sort((a,b)=>b[1]-a[1]);
-  const secondVotes=counts[1]?.[1]||0;
-  return {
-    ...vote,
-    decisive:!!vote.best && vote.bestVotes>=minVotes && vote.bestVotes>secondVotes
-  };
-}
 
 async function auditReadPageHighPrecision(page,expected=null){
   // ==========================================================
-  // V1.10 · OCR ADAPTATIVO
-  // 1) Una sola lectura optimizada a 400 DPI.
-  // 2) Si coincide con el nombre y tiene confianza suficiente: FIN.
-  // 3) Solo discrepancias/dudas suben a 450 DPI.
-  // 4) 600 DPI y binarización quedan como último recurso.
+  // V1.11 · AUDITORÍA DOBLE MOTOR CONSERVADORA
+  // - Tesseract + PaddleOCR sobre el mismo recorte a 300 DPI.
+  // - Si coinciden, se repite con variante suave.
+  // - Las 4 lecturas deben ser idénticas.
+  // - El nombre del archivo NO cuenta como voto.
+  // - Cualquier discrepancia = REVISAR.
   // ==========================================================
 
-  const FAST_DPI=400;
-  const FAST_MIN_CONFIDENCE=50;
-  const readings=[];
+  const dual=await detectByDualEngineStrict(page,null,null);
+  const values=(dual.readings||[]).map(r=>r.value).filter(Boolean);
+  const distinct=[...new Set(values)];
 
-  const crop400=await renderTopRightCrop(page,FAST_DPI);
-  const optimized400=preprocessCrop(crop400,'optimized');
-  const r400=await recognizeCrop(optimized400,'6',expected);
-
-  readings.push({name:'400-optimizado',...r400});
-
-  let preview=optimized400.toDataURL('image/jpeg',0.94);
-
-  // Ruta rápida: el nombre ya contiene una GR y la lectura completa coincide.
-  // No se hacen más OCR si la lectura es suficientemente clara.
-  if(
-    expected &&
-    r400.value &&
-    r400.value===expected &&
-    r400.confidence>=FAST_MIN_CONFIDENCE
-  ){
-    return {
-      fastValue:r400.value,
-      bestValue:r400.value,
-      suggestedValue:r400.value,
-      consensus:'1/1',
-      strongConsensus:true,
-      previewDataUrl:preview,
-      readings,
-      locator:'400-RÁPIDO',
-      strategy:'RÁPIDO'
-    };
-  }
-
-  // Si la primera lectura discrepa, es incompleta o tiene poca confianza,
-  // reforzamos. Una discrepancia NUNCA se acepta por una sola lectura.
-  const bbox400=findCandidateBBox(r400.data,r400.value);
-  const crop450=await renderTopRightCrop(page,450);
-  const bbox450=bbox400 ? scaleBBox(bbox400,crop400,crop450) : null;
-  let band450=bbox450 ? cropWideHorizontalBand(crop450,bbox450) : crop450;
-
-  const r450n=await recognizeCrop(
-    preprocessCrop(band450,'normal'),
-    '6',
-    expected
-  );
-  readings.push({name:'450-normal',...r450n});
-
-  // Dos lecturas independientes coincidentes (400 optimizado + 450 normal)
-  // ya son suficientes si no existe otro candidato en conflicto.
-  let vote=decisiveVote(readings,2);
-  if(vote.decisive){
-    const value=vote.best;
-    return {
-      fastValue:r400.value||null,
-      bestValue:value,
-      suggestedValue:value,
-      consensus:`${vote.bestVotes}/${readings.length}`,
-      strongConsensus:true,
-      previewDataUrl:preprocessCrop(band450,'optimizedContrast').toDataURL('image/jpeg',0.94),
-      readings,
-      locator:bbox450?'400→450':'450-ROI',
-      strategy:'REFUERZO-450'
-    };
-  }
-
-  // Si la primera lectura no localizó la línea pero 450 sí, afinamos la banda.
-  if(!bbox450 && r450n.value){
-    const b450=findCandidateBBox(r450n.data,r450n.value);
-    if(b450)band450=cropWideHorizontalBand(crop450,b450);
-  }
-
-  const r450c=await recognizeCrop(
-    preprocessCrop(band450,'optimizedContrast'),
-    '6',
-    expected
-  );
-  readings.push({name:'450-contraste-optimizado',...r450c});
-
-  vote=decisiveVote(readings,2);
-  if(vote.decisive){
-    const value=vote.best;
-    return {
-      fastValue:r400.value||null,
-      bestValue:value,
-      suggestedValue:value,
-      consensus:`${vote.bestVotes}/${readings.length}`,
-      strongConsensus:true,
-      previewDataUrl:preprocessCrop(band450,'optimizedContrast').toDataURL('image/jpeg',0.94),
-      readings,
-      locator:bbox450?'400→450':'450-ROI',
-      strategy:'REFUERZO-450'
-    };
-  }
-
-  // Último nivel: 600 DPI. Solo llega aquí una minoría difícil.
-  const crop600=await renderTopRightCrop(page,600);
-
-  let refBBox=bbox400;
-  let refCanvas=crop400;
-  if(!refBBox && r450n.value){
-    refBBox=findCandidateBBox(r450n.data,r450n.value);
-    refCanvas=crop450;
-  }
-
-  const bbox600=refBBox ? scaleBBox(refBBox,refCanvas,crop600) : null;
-  let band600=bbox600 ? cropWideHorizontalBand(crop600,bbox600) : crop600;
-
-  const r600n=await recognizeCrop(
-    preprocessCrop(band600,'normal'),
-    '6',
-    expected
-  );
-  readings.push({name:'600-normal',...r600n});
-
-  vote=decisiveVote(readings,2);
-  if(!vote.decisive){
-    const r600c=await recognizeCrop(
-      preprocessCrop(band600,'optimizedContrast'),
-      '6',
-      expected
-    );
-    readings.push({name:'600-contraste-optimizado',...r600c});
-    vote=decisiveVote(readings,2);
-  }
-
-  // Binarización únicamente como último recurso.
-  if(!vote.decisive){
-    const r600b=await recognizeCrop(
-      preprocessCrop(band600,'threshold'),
-      '6',
-      expected
-    );
-    readings.push({name:'600-binario',...r600b});
-    vote=decisiveVote(readings,3);
-  }
-
-  preview=preprocessCrop(band600,'optimizedContrast')
-    .toDataURL('image/jpeg',0.94);
-
-  const validValues=readings
-    .map(r=>r.value)
-    .filter(Boolean)
-    .filter(v=>isCompleteGRForAudit(v,expected));
-
-  // Nunca proponemos fragmentos. Si no hay consenso fuerte,
-  // se conserva solo un candidato completo para revisión manual.
-  const suggested=vote.decisive
-    ? vote.best
-    : (
-        validValues.find(v=>v===r400.value) ||
-        vote.best ||
-        r400.value ||
-        null
-      );
+  let suggested=dual.confirmed
+    ? dual.value
+    : (distinct.length===1 ? distinct[0] : (dual.suggestedValue||null));
 
   return {
-    fastValue:r400.value||null,
-    bestValue:vote.decisive?vote.best:null,
+    fastValue:dual.tesseract1||null,
+    bestValue:dual.confirmed?dual.value:null,
     suggestedValue:suggested,
-    consensus:vote.best
-      ? `${vote.bestVotes}/${readings.length}`
-      : `0/${readings.length}`,
-    strongConsensus:vote.decisive,
-    previewDataUrl:preview,
-    readings,
-    locator:bbox600?'400/450→600':'600-ROI',
-    strategy:'REFUERZO-600'
+    consensus:dual.confirmed
+      ? '4/4 DOBLE MOTOR'
+      : `REVISAR · T:${dual.tesseract1||'-'} / P:${dual.paddle1||'-'} / T2:${dual.tesseract2||'-'} / P2:${dual.paddle2||'-'}`,
+    strongConsensus:dual.confirmed,
+    previewDataUrl:dual.previewDataUrl||'',
+    readings:dual.readings||[],
+    locator:'300-DOBLE-MOTOR',
+    strategy:dual.confirmed?'DOBLE-MOTOR-ESTABLE':'REVISAR-DOBLE-MOTOR',
+    reason:dual.reason||''
   };
 }
 
@@ -3098,7 +2937,8 @@ async function startHistoricalAudit(){
             suggested:read.suggestedValue,
             fast:read.fastValue,
             consensus:read.consensus,
-            strongConsensus:read.strongConsensus
+            strongConsensus:read.strongConsensus,
+            reason:read.reason||''
           });
 
           document.getElementById('auditBar').style.width=
@@ -3108,7 +2948,7 @@ async function startHistoricalAudit(){
           updateAuditTiming();
 
           logEvent(
-            `AUDIT ${fullAuditPath(entry)} · pág. ${pn} · nombre ${expected||'SIN GR'} · OCR1 ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · estrategia ${read.strategy||'-'} · localización ${read.locator||'-'}`,
+            `AUDIT ${fullAuditPath(entry)} · pág. ${pn} · nombre ${expected||'SIN GR'} · Tesseract ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · estrategia ${read.strategy||'-'} · localización ${read.locator||'-'}`,
             read.strongConsensus?'info':'warn'
           );
         }
@@ -3173,22 +3013,24 @@ async function startHistoricalAudit(){
           for(const r of weak){
             const proposed=r.suggested||null;
 
-            if(expected && proposed===expected){
-              continue;
-            }
-
+            // V1.11: una lectura débil SIEMPRE es observación.
+            // Incluso si el candidato coincide con el nombre, el nombre no cuenta como voto.
             needsIssue=true;
             pages=[...new Set([...pages,r.page])];
 
-            if(proposed && expected && proposed!==expected){
-              const msg=`Lecturas completas no concluyentes difieren del nombre ${expected} (mejor candidato: ${proposed}, pág. ${r.page})`;
-              observation+=(observation?' · ':'')+msg;
+            if(proposed && expected && proposed===expected){
+              observation+=(observation?' · ':'')+
+                `Coincide con el nombre ${expected}, pero Tesseract/PaddleOCR no fueron estables (pág. ${r.page}). REVISAR`;
+            }else if(proposed && expected){
+              observation+=(observation?' · ':'')+
+                `Doble motor no concluyente; requiere revisión. Nombre ${expected}; candidato ${proposed} (pág. ${r.page})`;
             }else if(proposed && !expected){
               observation+=(observation?' · ':'')+
-                `Nombre sin GR; lectura completa no concluyente ${proposed} en página ${r.page}`;
+                `Nombre sin GR; lectura no estable ${proposed} en página ${r.page}. REVISAR`;
             }else{
               observation+=(observation?' · ':'')+
-                `Sin lectura completa suficientemente segura en página ${r.page}`;
+                `Doble motor sin coincidencia estable en página ${r.page}; requiere revisión`+
+                (r.reason?` (${r.reason})`:'');
             }
           }
         }
@@ -3603,7 +3445,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.10 OCR adaptativo rápido + multicarpeta","ok");
+logEvent("Sistema listo · V1.11 doble motor Tesseract + PaddleOCR + validación conservadora","ok");
 addJob();
 </script>
 </body>
