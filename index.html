@@ -351,7 +351,7 @@ th{background:#f1f3f4}
 
 /* V1.9: selector múltiple y rutas opcionales */
 /* V1.10: OCR adaptativo rápido + selector de carpeta honesto */
-/* V1.13: doble motor Tesseract + PaddleOCR; cualquier discrepancia = REVISAR */
+/* V1.14: doble motor Tesseract + PaddleOCR; cualquier discrepancia = REVISAR */
 .folderDropZone{
   margin-top:12px;
   min-height:84px;
@@ -376,7 +376,7 @@ th{background:#f1f3f4}
 .folderPathNote{font-size:11px;color:#5f6368;margin-top:3px}
 
 
-/* V1.13: autoenderezado + auditoría manual rápida + protección de sesión */
+/* V1.14: autoenderezado + auditoría manual rápida + protección de sesión */
 .sessionBadge{
   margin-top:8px;display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;
   background:#e6f4ea;color:#137333;font-size:11px;font-weight:800
@@ -448,7 +448,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.13 · AUTOENDEREZADO + DOBLE MOTOR + AUDITORÍA RÁPIDA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.14 · ORIGINAL PRIMERO + ENDEREZADO SELECTIVO + ZOOM TS32/T832</strong></div>
   <div class="muted" style="margin-top:3px">
     V1.3 estable separada · autoenderezado · Tesseract + PaddleOCR · discrepancia = REVISAR · teclado · autosave
   </div>
@@ -462,11 +462,11 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.13.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.14.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.13</strong>
+      <strong>NUEVA VERSIÓN V1.14</strong>
       <span>Autoenderezado conservador + Tesseract + PaddleOCR; cualquier discrepancia pasa a REVISAR.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -838,7 +838,7 @@ let historicalAuditTotalPages=0;
 let historicalAuditProcessedPages=0;
 let historicalAuditTimer=null;
 
-// V1.13 · Auditoría manual + protección de sesión
+// V1.14 · Auditoría manual + protección de sesión
 const SESSION_KEY='AUTOMATIZADOR_GR_V113_SESSION';
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
@@ -1176,9 +1176,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1: TESSERACT + PADDLEOCR, MISMO RECORTE 300 DPI
+  // PASADA 1: ORIGINAL PRIMERO; ENDEREZADO SOLO PARA MOTOR SIN LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · Tesseract + PaddleOCR · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · original primero + recuperación selectiva · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1192,7 +1192,7 @@ async function processJob(job){
 
       const page=await source.pdf.getPage(pn);
 
-      // V1.13: el texto embebido es evidencia auxiliar, nunca decide solo.
+      // V1.14: el texto embebido es evidencia auxiliar, nunca decide solo.
       const textGR=detectFromTextLayer(await page.getTextContent(),page);
       const dual=await detectByDualEngineStrict(page,null,textGR);
       let baseGR=dual.confirmed ? dual.value : null;
@@ -1288,27 +1288,27 @@ async function processJob(job){
   );
 
   // ==========================================================
-  // V1.13: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
+  // V1.14: NO EXISTE RESOLUCIÓN POR MAYORÍA DEL MISMO MOTOR
   // ==========================================================
   const pending=job.pages.filter(p=>!p.baseGR);
 
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.13 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.14 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.13 · todas las páginas superaron doble motor + estabilidad','ok');
+    logEvent('V1.14 · todas las páginas superaron validación conservadora de doble motor','ok');
   }
 
-  // En V1.13, todo lo que no supere la doble validación entra a la cola manual.
+  // En V1.14, todo lo que no supere la validación conservadora entra a la cola manual.
   if(appMode==='new'){
     for(const p of job.pages){
       if(!p.baseGR){
         p.needsAudit=true;
-        p.auditReason=p.auditReason||'No se obtuvo coincidencia estable entre Tesseract y PaddleOCR';
+        p.auditReason=p.auditReason||'No se obtuvo coincidencia estable entre Tesseract y PaddleOCR tras los reintentos permitidos';
       }
     }
   }
@@ -1488,7 +1488,7 @@ function detectFromTextLayer(content,page){
 
 
 // ============================================================
-// V1.13 · DOBLE MOTOR ESTRICTO
+// V1.14 · DOBLE MOTOR ESTRICTO
 // Tesseract + PaddleOCR leen independientemente el mismo recorte.
 // Si inicialmente coinciden, se repite sobre una variante suave.
 // Las 4 lecturas deben ser idénticas. Cualquier duda => REVISAR.
@@ -1707,90 +1707,267 @@ function autoDeskewCrop(source){
   };
 }
 
-async function detectByDualEngineStrict(page,expected=null,textGR=null){
-  const crop=await renderTopRightCrop(page,300);
-  const deskew=autoDeskewCrop(crop);
-  const working=deskew.canvas;
+function readingHasValue(r){
+  return !!(r&&r.value);
+}
 
-  if(deskew.applied){
-    logEvent(`AUTOENDEREZADO · inclinación ${deskew.detectedTilt>0?'+':''}${deskew.detectedTilt.toFixed(2)}° · corrección ${deskew.appliedAngle>0?'+':''}${deskew.appliedAngle.toFixed(2)}°`,'info');
-  }else if(deskew.boundaryRisk){
-    logEvent('AUTOENDEREZADO · inclinación fuera del rango seguro ±10° · se fuerza REVISAR','warn');
+function isTS32AmbiguousValue(value){
+  const v=String(value||'').toUpperCase();
+  return /^(?:TS32|T832|T532|TS832)-\d+$/.test(v);
+}
+
+function upscaleCanvas(source,factor=2.35){
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(source.width*factor));
+  c.height=Math.max(1,Math.round(source.height*factor));
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(source,0,0,c.width,c.height);
+  return c;
+}
+
+function createTS32SpecialZoom(source,tesseractRead=null){
+  let bbox=null;
+  if(tesseractRead?.value && tesseractRead?.data){
+    try{bbox=findCandidateBBox(tesseractRead.data,tesseractRead.value);}catch(_){bbox=null;}
   }
+  const band=cropWideHorizontalBand(source,bbox);
+  const x0=Math.max(0,Math.floor(band.width*0.04));
+  const x1=Math.min(band.width,Math.ceil(band.width*0.98));
+  const trimmed=document.createElement('canvas');
+  trimmed.width=Math.max(1,x1-x0);
+  trimmed.height=band.height;
+  trimmed.getContext('2d',{willReadFrequently:true})
+    .drawImage(band,x0,0,trimmed.width,trimmed.height,0,0,trimmed.width,trimmed.height);
+  return upscaleCanvas(trimmed,2.35);
+}
 
-  const normal=preprocessCrop(working,'normal');
-  const t1=await recognizeCrop(normal,'6',expected);
-  const p1=await recognizePaddleCrop(normal,expected);
-  const first=sameNonEmptyValue([t1,p1]);
+function engineReads(readings,engine){
+  return (readings||[]).filter(r=>r?.engine===engine);
+}
 
-  const angleMeta={deskewApplied:deskew.applied,deskewAngle:deskew.appliedAngle,detectedTilt:deskew.detectedTilt};
+function engineExecutionValue(readings,engine,index){
+  return engineReads(readings,engine)[index]?.value||null;
+}
+
+function readingsReason(readings,textGR=null){
+  const compact=(readings||[]).map(r=>{
+    const e=r.engine==='PADDLEOCR'?'PaddleOCR':'Tesseract';
+    return `${e} ${r.variant||''}=${r.value||'SIN LECTURA'}`;
+  });
+  if(textGR)compact.push(`Texto PDF=${textGR}`);
+  return compact.join(' · ');
+}
+
+async function detectByDualEngineStrict(page,expected=null,textGR=null){
+  // V1.14: AMBOS motores leen primero el recorte ORIGINAL.
+  // Solo si un motor queda SIN LECTURA se calcula el enderezado y se reintenta
+  // exclusivamente ese motor. Una lectura válida nunca se reemplaza por el giro.
+  const crop=await renderTopRightCrop(page,300);
+  const originalNormal=preprocessCrop(crop,'normal');
+
+  const t1=await recognizeCrop(originalNormal,'6',expected);
+  const p1=await recognizePaddleCrop(originalNormal,expected);
   const readings=[
-    {engine:'TESSERACT',variant:deskew.applied?'NORMAL · ENDEREZADO':'NORMAL',...angleMeta,...t1},
-    {engine:'PADDLEOCR',variant:deskew.applied?'NORMAL · ENDEREZADO':'NORMAL',...angleMeta,...p1}
+    {engine:'TESSERACT',variant:'NORMAL · ORIGINAL',deskewApplied:false,deskewAngle:0,detectedTilt:0,...t1},
+    {engine:'PADDLEOCR',variant:'NORMAL · ORIGINAL',deskewApplied:false,deskewAngle:0,detectedTilt:0,...p1}
   ];
 
-  const common={
-    previewDataUrl:normal.toDataURL('image/jpeg',0.94),
-    originalPreviewDataUrl:crop.toDataURL('image/jpeg',0.90),
-    deskewApplied:deskew.applied,
-    deskewAngle:deskew.appliedAngle,
-    detectedTilt:deskew.detectedTilt,
-    deskewBoundaryRisk:deskew.boundaryRisk
-  };
+  let tCurrent=t1.value||null;
+  let pCurrent=p1.value||null;
+  let tRecoveryCanvas=originalNormal;
+  let pRecoveryCanvas=originalNormal;
+  let deskew=null;
+  let zoomCanvas=null;
+  let zoomT=null;
+  let zoomP=null;
 
-  // Si los motores ya discrepan, NO intentamos resolver por votación.
-  if(!first){
+  const originalBoth=!!(tCurrent&&pCurrent);
+  const originalMismatch=originalBoth&&tCurrent!==pCurrent;
+  const originalAmbiguous=isTS32AmbiguousValue(tCurrent)||isTS32AmbiguousValue(pCurrent);
+
+  // Si ambos leyeron pero discrepan, NO se endereza: ya hubo dos lecturas reales.
+  // En TS32/T832 sí generamos zoom especial como evidencia adicional y para la auditoría,
+  // pero la discrepancia original sigue obligando a REVISAR.
+  if(originalMismatch){
+    if(originalAmbiguous){
+      zoomCanvas=createTS32SpecialZoom(crop,t1);
+      const zNormal=preprocessCrop(zoomCanvas,'normal');
+      zoomT=await recognizeCrop(zNormal,'6',expected);
+      zoomP=await recognizePaddleCrop(zNormal,expected);
+      readings.push(
+        {engine:'TESSERACT',variant:'ZOOM ESPECIAL TS32/T832',deskewApplied:false,deskewAngle:0,detectedTilt:0,...zoomT},
+        {engine:'PADDLEOCR',variant:'ZOOM ESPECIAL TS32/T832',deskewApplied:false,deskewAngle:0,detectedTilt:0,...zoomP}
+      );
+      logEvent(`ZOOM TS32/T832 · Tesseract ${zoomT.value||'SIN LECTURA'} · PaddleOCR ${zoomP.value||'SIN LECTURA'}`,'info');
+    }
+    const suggested=(zoomT?.value&&zoomP?.value&&zoomT.value===zoomP.value)?zoomT.value:(pCurrent||tCurrent);
     return {
-      ...common,
-      confirmed:false,value:null,
-      suggestedValue:t1.value||p1.value||null,
-      reason:describeDualDisagreement(t1,p1,null,null,textGR)+(deskew.applied?` · autoenderezado ${deskew.appliedAngle.toFixed(2)}°`:''),
+      confirmed:false,value:null,suggestedValue:suggested,
+      reason:'Discrepancia en el recorte original; no se permite resolverla por giro ni por mayoría · '+readingsReason(readings,textGR),
+      previewDataUrl:(zoomCanvas||originalNormal).toDataURL('image/jpeg',0.95),
+      originalPreviewDataUrl:originalNormal.toDataURL('image/jpeg',0.92),
+      zoomPreviewDataUrl:zoomCanvas?zoomCanvas.toDataURL('image/jpeg',0.95):'',
+      deskewApplied:false,deskewAngle:0,detectedTilt:0,deskewBoundaryRisk:false,
       readings,
-      tesseract1:t1.value||null,paddle1:p1.value||null,tesseract2:null,paddle2:null
+      tesseract1:engineExecutionValue(readings,'TESSERACT',0),
+      paddle1:engineExecutionValue(readings,'PADDLEOCR',0),
+      tesseract2:engineExecutionValue(readings,'TESSERACT',1),
+      paddle2:engineExecutionValue(readings,'PADDLEOCR',1)
     };
   }
 
-  // Segunda comprobación sobre una variante suave del MISMO recorte enderezado.
-  const variant=preprocessCrop(working,'soft');
-  const t2=await recognizeCrop(variant,'6',expected);
-  const p2=await recognizePaddleCrop(variant,expected);
+  // Solo entramos aquí si por lo menos un motor quedó SIN LECTURA.
+  const missingT=!tCurrent;
+  const missingP=!pCurrent;
+  if(missingT||missingP){
+    deskew=autoDeskewCrop(crop);
+    const recoveryBase=deskew.canvas;
+    const recoveryNormal=preprocessCrop(recoveryBase,'normal');
+    const angleMeta={deskewApplied:deskew.applied,deskewAngle:deskew.appliedAngle,detectedTilt:deskew.detectedTilt};
 
+    if(deskew.applied){
+      logEvent(`AUTOENDEREZADO SELECTIVO · inclinación ${deskew.detectedTilt>0?'+':''}${deskew.detectedTilt.toFixed(2)}° · corrección ${deskew.appliedAngle>0?'+':''}${deskew.appliedAngle.toFixed(2)}° · reintenta ${missingT&&missingP?'AMBOS':missingT?'Tesseract':'PaddleOCR'}`,'info');
+    }else if(deskew.boundaryRisk){
+      logEvent('AUTOENDEREZADO SELECTIVO · inclinación fuera del rango seguro ±10° · se permite leer pero se fuerza REVISAR','warn');
+    }else{
+      logEvent(`AUTOENDEREZADO SELECTIVO · no se detectó giro útil · reintenta ${missingT&&missingP?'AMBOS':missingT?'Tesseract':'PaddleOCR'} sin alterar la lectura ya válida`,'info');
+    }
+
+    if(missingT){
+      const tr=await recognizeCrop(recoveryNormal,'6',expected);
+      readings.push({engine:'TESSERACT',variant:deskew.applied?'RECUPERACIÓN · ENDEREZADO':'RECUPERACIÓN · SIN GIRO',...angleMeta,...tr});
+      if(tr.value){tCurrent=tr.value;tRecoveryCanvas=recoveryNormal;}
+    }
+    if(missingP){
+      const pr=await recognizePaddleCrop(recoveryNormal,expected);
+      readings.push({engine:'PADDLEOCR',variant:deskew.applied?'RECUPERACIÓN · ENDEREZADO':'RECUPERACIÓN · SIN GIRO',...angleMeta,...pr});
+      if(pr.value){pCurrent=pr.value;pRecoveryCanvas=recoveryNormal;}
+    }
+
+    // Si aún falta un motor y la lectura disponible pertenece a la familia TS32/T832,
+    // se hace un zoom especial y se reintenta SOLO el motor que continúa sin leer.
+    const familyNow=isTS32AmbiguousValue(tCurrent)||isTS32AmbiguousValue(pCurrent);
+    if((!tCurrent||!pCurrent)&&familyNow){
+      zoomCanvas=createTS32SpecialZoom(deskew?.applied?deskew.canvas:crop,t1);
+      const zNormal=preprocessCrop(zoomCanvas,'normal');
+      if(!tCurrent){
+        zoomT=await recognizeCrop(zNormal,'6',expected);
+        readings.push({engine:'TESSERACT',variant:'RECUPERACIÓN · ZOOM TS32/T832',deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,...zoomT});
+        if(zoomT.value){tCurrent=zoomT.value;tRecoveryCanvas=zNormal;}
+      }
+      if(!pCurrent){
+        zoomP=await recognizePaddleCrop(zNormal,expected);
+        readings.push({engine:'PADDLEOCR',variant:'RECUPERACIÓN · ZOOM TS32/T832',deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,...zoomP});
+        if(zoomP.value){pCurrent=zoomP.value;pRecoveryCanvas=zNormal;}
+      }
+      logEvent(`ZOOM TS32/T832 · recuperación · Tesseract ${zoomT?.value||tCurrent||'SIN LECTURA'} · PaddleOCR ${zoomP?.value||pCurrent||'SIN LECTURA'}`,'info');
+    }
+  }
+
+  const availableAgreement=!!(tCurrent&&pCurrent&&tCurrent===pCurrent);
+  const previewAmbiguous=isTS32AmbiguousValue(tCurrent)||isTS32AmbiguousValue(pCurrent);
+
+  // Para TS32/T832 generamos también una vista grande para la revisión humana,
+  // incluso cuando el zoom no fue necesario para recuperar un motor.
+  if(previewAmbiguous&&!zoomCanvas){
+    zoomCanvas=createTS32SpecialZoom(crop,t1);
+  }
+
+  if(!availableAgreement){
+    return {
+      confirmed:false,value:null,suggestedValue:pCurrent||tCurrent||null,
+      reason:'No se logró una coincidencia entre ambos motores tras el reintento selectivo · '+readingsReason(readings,textGR),
+      previewDataUrl:(zoomCanvas||(deskew?.applied?deskew.canvas:originalNormal)).toDataURL('image/jpeg',0.95),
+      originalPreviewDataUrl:originalNormal.toDataURL('image/jpeg',0.92),
+      zoomPreviewDataUrl:zoomCanvas?zoomCanvas.toDataURL('image/jpeg',0.95):'',
+      deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,
+      deskewBoundaryRisk:!!deskew?.boundaryRisk,
+      readings,
+      tesseract1:engineExecutionValue(readings,'TESSERACT',0),
+      paddle1:engineExecutionValue(readings,'PADDLEOCR',0),
+      tesseract2:engineExecutionValue(readings,'TESSERACT',1),
+      paddle2:engineExecutionValue(readings,'PADDLEOCR',1)
+    };
+  }
+
+  const agreed=tCurrent;
+
+  // Segunda comprobación de estabilidad. Cada motor se repite sobre la misma familia
+  // de imagen que le permitió leer: ORIGINAL para quien leyó al inicio y ENDEREZADO/ZOOM
+  // solo para quien necesitó recuperación.
+  const tSoftCanvas=preprocessCrop(t1.value?crop:tRecoveryCanvas,'soft');
+  const pSoftCanvas=preprocessCrop(p1.value?crop:pRecoveryCanvas,'soft');
+  const tStable=await recognizeCrop(tSoftCanvas,'6',expected);
+  const pStable=await recognizePaddleCrop(pSoftCanvas,expected);
   readings.push(
-    {engine:'TESSERACT',variant:deskew.applied?'SUAVE · ENDEREZADO':'SUAVE',...angleMeta,...t2},
-    {engine:'PADDLEOCR',variant:deskew.applied?'SUAVE · ENDEREZADO':'SUAVE',...angleMeta,...p2}
+    {engine:'TESSERACT',variant:t1.value?'SUAVE · ORIGINAL':'SUAVE · RECUPERACIÓN',deskewApplied:!t1.value&&!!deskew?.applied,deskewAngle:!t1.value?(deskew?.appliedAngle||0):0,detectedTilt:!t1.value?(deskew?.detectedTilt||0):0,...tStable},
+    {engine:'PADDLEOCR',variant:p1.value?'SUAVE · ORIGINAL':'SUAVE · RECUPERACIÓN',deskewApplied:!p1.value&&!!deskew?.applied,deskewAngle:!p1.value?(deskew?.appliedAngle||0):0,detectedTilt:!p1.value?(deskew?.detectedTilt||0):0,...pStable}
   );
 
-  const stable=sameNonEmptyValue([t1,p1,t2,p2]);
-  const textConflict=!!(textGR&&stable&&textGR!==stable);
+  const stable=!!(tStable.value&&pStable.value&&tStable.value===agreed&&pStable.value===agreed);
+  const textConflict=!!(textGR&&textGR!==agreed);
+  const boundaryRisk=!!deskew?.boundaryRisk;
 
-  // Si la mejor inclinación cae en el límite del rango, no confirmamos automáticamente.
-  if(!stable||textConflict||deskew.boundaryRisk){
+  // Zoom especial de verificación para familia TS32/T832. No corrige una discrepancia;
+  // únicamente puede detectar una contradicción adicional y mandarla a REVISAR.
+  if(previewAmbiguous){
+    const zNormal=preprocessCrop(zoomCanvas,'normal');
+    if(!zoomT)zoomT=await recognizeCrop(zNormal,'6',expected);
+    if(!zoomP)zoomP=await recognizePaddleCrop(zNormal,expected);
+    readings.push(
+      {engine:'TESSERACT',variant:'VERIFICACIÓN · ZOOM TS32/T832',deskewApplied:false,deskewAngle:0,detectedTilt:0,...zoomT},
+      {engine:'PADDLEOCR',variant:'VERIFICACIÓN · ZOOM TS32/T832',deskewApplied:false,deskewAngle:0,detectedTilt:0,...zoomP}
+    );
+    const zoomContradiction=(zoomT.value&&zoomT.value!==agreed)||(zoomP.value&&zoomP.value!==agreed);
+    if(zoomContradiction){
+      return {
+        confirmed:false,value:null,suggestedValue:agreed,
+        reason:`El zoom especial TS32/T832 contradice la lectura candidata ${agreed} · `+readingsReason(readings,textGR),
+        previewDataUrl:zoomCanvas.toDataURL('image/jpeg',0.95),
+        originalPreviewDataUrl:originalNormal.toDataURL('image/jpeg',0.92),zoomPreviewDataUrl:zoomCanvas.toDataURL('image/jpeg',0.95),
+        deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,deskewBoundaryRisk:boundaryRisk,
+        readings,
+        tesseract1:engineExecutionValue(readings,'TESSERACT',0),paddle1:engineExecutionValue(readings,'PADDLEOCR',0),
+        tesseract2:engineExecutionValue(readings,'TESSERACT',1),paddle2:engineExecutionValue(readings,'PADDLEOCR',1)
+      };
+    }
+  }
+
+  if(!stable||textConflict||boundaryRisk){
     let reason;
-    if(deskew.boundaryRisk)reason='Inclinación posiblemente superior a ±10°; requiere revisión humana';
-    else if(textConflict)reason=`La capa de texto (${textGR}) discrepa de los dos motores (${stable})`;
-    else reason=describeDualDisagreement(t1,p1,t2,p2,textGR);
-    if(deskew.applied)reason+=` · autoenderezado ${deskew.appliedAngle.toFixed(2)}°`;
+    if(boundaryRisk)reason='Inclinación posiblemente superior a ±10°; requiere revisión humana';
+    else if(textConflict)reason=`La capa de texto (${textGR}) discrepa de los dos motores (${agreed})`;
+    else reason='La segunda comprobación no mantuvo la misma lectura en ambos motores';
     return {
-      ...common,confirmed:false,value:null,suggestedValue:first,reason,readings,
-      previewDataUrl:variant.toDataURL('image/jpeg',0.94),
-      tesseract1:t1.value||null,paddle1:p1.value||null,tesseract2:t2.value||null,paddle2:p2.value||null
+      confirmed:false,value:null,suggestedValue:agreed,reason:reason+' · '+readingsReason(readings,textGR),
+      previewDataUrl:(zoomCanvas||(deskew?.applied?deskew.canvas:originalNormal)).toDataURL('image/jpeg',0.95),
+      originalPreviewDataUrl:originalNormal.toDataURL('image/jpeg',0.92),zoomPreviewDataUrl:zoomCanvas?zoomCanvas.toDataURL('image/jpeg',0.95):'',
+      deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,deskewBoundaryRisk:boundaryRisk,
+      readings,
+      tesseract1:engineExecutionValue(readings,'TESSERACT',0),paddle1:engineExecutionValue(readings,'PADDLEOCR',0),
+      tesseract2:engineExecutionValue(readings,'TESSERACT',1),paddle2:engineExecutionValue(readings,'PADDLEOCR',1)
     };
   }
 
   return {
-    ...common,
-    confirmed:true,value:stable,suggestedValue:stable,
-    reason:`4/4 lecturas idénticas entre dos motores y dos variantes${deskew.applied?` · autoenderezado ${deskew.appliedAngle.toFixed(2)}°`:''}`,
-    previewDataUrl:variant.toDataURL('image/jpeg',0.94),
+    confirmed:true,value:agreed,suggestedValue:agreed,
+    reason:`Coincidencia estable entre ambos motores${deskew?.applied?' con recuperación selectiva enderezada':''}${previewAmbiguous?' + verificación zoom TS32/T832':''}`,
+    previewDataUrl:(zoomCanvas||(deskew?.applied?deskew.canvas:originalNormal)).toDataURL('image/jpeg',0.95),
+    originalPreviewDataUrl:originalNormal.toDataURL('image/jpeg',0.92),zoomPreviewDataUrl:zoomCanvas?zoomCanvas.toDataURL('image/jpeg',0.95):'',
+    deskewApplied:!!deskew?.applied,deskewAngle:deskew?.appliedAngle||0,detectedTilt:deskew?.detectedTilt||0,deskewBoundaryRisk:boundaryRisk,
     readings,
-    tesseract1:t1.value,paddle1:p1.value,tesseract2:t2.value,paddle2:p2.value
+    tesseract1:engineExecutionValue(readings,'TESSERACT',0),paddle1:engineExecutionValue(readings,'PADDLEOCR',0),
+    tesseract2:engineExecutionValue(readings,'TESSERACT',1),paddle2:engineExecutionValue(readings,'PADDLEOCR',1)
   };
 }
 
-// V1.13: se eliminó la ruta automática de una sola lectura Tesseract.
+// V1.14: se eliminó la ruta automática de una sola lectura Tesseract.
 
 
-// V1.13: se eliminó la resolución reforzada por mayoría de Tesseract.
+// V1.14: se eliminó la resolución reforzada por mayoría de Tesseract.
 
 
 async function getOCRWorker(){
@@ -2168,7 +2345,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.13 · doble motor + auditoría humana + recuperación','info');
+  logEvent('Modo NUEVA V1.14 · original primero + enderezado selectivo + zoom TS32/T832','info');
 }
 
 function backToModes(){
@@ -3087,15 +3264,15 @@ async function recognizeCrop(crop,psm='6',expected=null){
   };
 }
 
-// V1.13: no existen funciones de votación por mayoría OCR.
+// V1.14: no existen funciones de votación por mayoría OCR.
 
 
 async function auditReadPageHighPrecision(page,expected=null){
   // ==========================================================
-  // V1.13 · AUDITORÍA DOBLE MOTOR CONSERVADORA
-  // - Tesseract + PaddleOCR sobre el mismo recorte a 300 DPI.
-  // - Si coinciden, se repite con variante suave.
-  // - Las 4 lecturas deben ser idénticas.
+  // V1.14 · AUDITORÍA DOBLE MOTOR CONSERVADORA
+  // - Tesseract + PaddleOCR leen primero el recorte original a 300 DPI.
+  // - Si un motor no lee, solo ese motor se reintenta tras autoenderezado.
+  // - La estabilidad se comprueba con una segunda lectura conservadora.
   // - El nombre del archivo NO cuenta como voto.
   // - Cualquier discrepancia = REVISAR.
   // ==========================================================
@@ -3113,13 +3290,13 @@ async function auditReadPageHighPrecision(page,expected=null){
     bestValue:dual.confirmed?dual.value:null,
     suggestedValue:suggested,
     consensus:dual.confirmed
-      ? '4/4 DOBLE MOTOR'
+      ? 'DOBLE MOTOR ESTABLE'
       : `REVISAR · T:${dual.tesseract1||'-'} / P:${dual.paddle1||'-'} / T2:${dual.tesseract2||'-'} / P2:${dual.paddle2||'-'}`,
     strongConsensus:dual.confirmed,
     previewDataUrl:dual.previewDataUrl||'',
     readings:dual.readings||[],
-    locator:'300-DOBLE-MOTOR',
-    strategy:dual.confirmed?'DOBLE-MOTOR-ESTABLE':'REVISAR-DOBLE-MOTOR',
+    locator:'300-ORIGINAL-ENDEREZADO-SELECTIVO',
+    strategy:dual.confirmed?'DOBLE-MOTOR-ESTABLE-V114':'REVISAR-DOBLE-MOTOR-V114',
     reason:dual.reason||''
   };
 }
@@ -3319,7 +3496,7 @@ async function startHistoricalAudit(){
           for(const r of weak){
             const proposed=r.suggested||null;
 
-            // V1.13: una lectura débil SIEMPRE es observación.
+            // V1.14: una lectura débil SIEMPRE es observación.
             // Incluso si el candidato coincide con el nombre, el nombre no cuenta como voto.
             needsIssue=true;
             pages=[...new Set([...pages,r.page])];
@@ -3939,7 +4116,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.13 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.14 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -3988,7 +4165,7 @@ function buildSessionSnapshot(){
     });
   }
   return {
-    version:'1.12',savedAt:new Date().toISOString(),appMode,
+    version:'1.14',savedAt:new Date().toISOString(),appMode,
     humanCorrections, jobs:compactJobs,
     auditReview:jobReviewState.items?.length?{
       jobId:jobReviewState.jobId,index:jobReviewState.index,summary:jobReviewState.summary,
@@ -4021,7 +4198,7 @@ function readSavedSession(){
     const raw=localStorage.getItem(SESSION_KEY);
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return data?.version==='1.12'?data:null;
+    return ['1.12','1.13','1.14'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
@@ -4186,7 +4363,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.13 doble motor + auditoría humana + recuperación de sesión","ok");
+logEvent("Sistema listo · V1.14 original primero + enderezado selectivo + zoom TS32/T832","ok");
 addJob();
 </script>
 </body>
