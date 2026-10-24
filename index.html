@@ -178,7 +178,7 @@ th{background:#f1f3f4}
 
 /* V1.6: alineación rígida */
 .modeGrid{
-  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   align-items:stretch !important;
 }
 .modeBtn{
@@ -441,7 +441,7 @@ th{background:#f1f3f4}
 }
 
 
-/* V1.24 · auditoría total sin deduplicación */
+/* V1.22 · auditoría total sin deduplicación */
 .header{position:sticky;top:0;z-index:850;margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .app{padding-top:0;padding-bottom:74px}
 .appFooter{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;border-top:1px solid #d9dee4;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:8px max(18px,calc((100vw - 1360px)/2 + 22px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
@@ -456,24 +456,8 @@ th{background:#f1f3f4}
 @media(max-width:760px){.appFooter{position:static;padding:10px;flex-direction:column;align-items:stretch}.app{padding-bottom:22px}.auditGridV119{grid-template-columns:1fr !important}.auditStats{grid-template-columns:1fr 1fr !important}.reviewPreviewWrap{height:260px;min-height:260px;max-height:260px}}
 
 
-/* V1.24 · helpers OCR internos para auditoría histórica */
-#diagnosticArea{margin-bottom:16px}
-.diagWarning{margin-top:10px;padding:10px;border-radius:7px;background:#fff7e0;color:#7a4b00;font-size:13px}
-.diagStats{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:8px;margin-top:12px}
-.diagCurrentText{margin-top:7px;font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.diagConsoleBox{height:520px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:8px;padding:11px;font-family:Consolas,monospace;font-size:11px;line-height:1.45;white-space:pre-wrap}
-.diagOk{color:#86efac}.diagWarn{color:#fde68a}.diagErr{color:#fca5a5}.diagInfo{color:#93c5fd}.diagSection{color:#fff;font-weight:900}
-.diagConfigTable{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}
-.diagConfigTable th,.diagConfigTable td{border:1px solid #d9dee4;padding:5px;text-align:left}
-.diagConfigTable th{background:#eef3f8;position:sticky;top:0;z-index:2}
-.diagTableWrap{max-height:290px;overflow:auto;border:1px solid #d9dee4;border-radius:7px}
-#diagnosticArea input[type=file]{max-width:100%}
-@media(max-width:850px){.diagStats{grid-template-columns:1fr 1fr}}
+/* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
-
-/* V1.24 · pantalla principal de 3 opciones */
-.modeGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
-@media(max-width:1000px){.modeGrid{grid-template-columns:1fr !important}}
 </style>
 </head>
 
@@ -482,9 +466,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.24 · ACTUALIZACIÓN DE V1.22</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.25 · AUDITORÍA 20 VARIANTES × 3 MOTORES</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · flujo normal V1.22 preservado · auditoría histórica 20 variantes × 3 motores
+    V1.3 estable separada · V1.21 preservada · diagnóstico 20 variantes × 3 motores integrado
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">DATOS DE SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -492,20 +476,20 @@ th{background:#f1f3f4}
 
 <div id="modeScreen" class="card modeScreen">
   <div class="modeTitle">¿QUÉ QUIERES HACER?</div>
-  <div class="muted">Tres opciones: base estable, trabajo normal y auditoría histórica.</div>
+  <div class="muted">La V1.3 estable permanece protegida. Las nuevas funciones se ejecutan por separado.</div>
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. Respaldo estable sin cambios.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.22.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.24</strong>
-      <span>Flujo normal del sistema basado en V1.22 para procesar archivos nuevos. No ejecuta la auditoría masiva de 20 variantes.</span>
+      <strong>NUEVA VERSIÓN V1.25</strong>
+      <span>Flujo normal de trabajo preservado desde V1.22. No ejecuta la auditoría masiva de 20 variantes.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
-      <span>Revisa PDF anteriores con 20 variantes × 3 motores, revisión humana, reporte, autoguardado progresivo y recuperación.</span>
+      <span>Revisa PDF anteriores con 20 variantes × 3 motores, revisión humana, reporte y autoguardado progresivo.</span>
     </button>
   </div>
 </div>
@@ -563,7 +547,7 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Audita nombres completos y contenido OCR con 20 variantes y 3 motores (Tesseract, PaddleOCR y TrOCR). Puedes seleccionar una carpeta madre (incluye todas sus subcarpetas) y/o PDF individuales. El nombre nunca cuenta como voto OCR. La auditoría se autoguarda progresivamente y puede reanudarse tras una recarga.</div>
+        <div class="muted">Audita nombres completos y contenido OCR. Puedes seleccionar una carpeta madre (incluye todas sus subcarpetas) y/o PDF individuales. El nombre nunca cuenta como voto OCR.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
@@ -709,7 +693,7 @@ th{background:#f1f3f4}
             LECTURAS OCR DE ESTA PÁGINA
             <div class="reviewEngineChoices">
               <button id="auditTessChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('TESSERACT')">
-                <span class="engineName">TESSERACT</span>
+                <span class="engineName">TESSERACT C08</span>
                 <span id="auditTessValue" class="engineValue">SIN LECTURA</span>
               </button>
               <button id="auditPaddleChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('PADDLEOCR')">
@@ -829,7 +813,6 @@ th{background:#f1f3f4}
 </div>
 
 
-
 <div id="leaveGuardModal" class="auditModal">
   <div class="auditDialog leaveDialog">
     <strong>SESIÓN DE TRABAJO ACTIVA</strong>
@@ -854,7 +837,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.24</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.25</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -927,9 +910,10 @@ let historicalAuditProcessedPages=0;
 let historicalAuditTotalFiles=0;
 let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
+let historicalAuditCheckpoint=null;
 
-// V1.24 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
-const SESSION_KEY='AUTOMATIZADOR_GR_V124_SESSION';
+// V1.25 · auditoría total 20 variantes × 3 motores + protección de sesión sin base de datos
+const SESSION_KEY='AUTOMATIZADOR_GR_V125_SESSION';
 const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V121_SESSION','AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
@@ -937,36 +921,6 @@ let guardExitRequested=false;
 let restoredHumanCorrections={};
 let recoveredSnapshot=null;
 let sessionSaveTimer=null;
-let auditResumeState=null;
-let historicalAuditRecoveredFiles=[];
-const AUDIT_DB_NAME='AUTOMATIZADOR_GR_V124_AUDIT';
-const AUDIT_DB_STORE='runtime';
-function auditDbOpen(){return new Promise((resolve,reject)=>{const q=indexedDB.open(AUDIT_DB_NAME,1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(AUDIT_DB_STORE))q.result.createObjectStore(AUDIT_DB_STORE);};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}
-async function auditDbPut(key,value){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readwrite');tx.objectStore(AUDIT_DB_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
-async function auditDbGet(key){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readonly'),q=tx.objectStore(AUDIT_DB_STORE).get(key);q.onsuccess=()=>{const v=q.result;db.close();resolve(v);};q.onerror=()=>{db.close();reject(q.error);};});}
-async function auditDbDelete(key){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readwrite');tx.objectStore(AUDIT_DB_STORE).delete(key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
-async function auditPersistFlatFiles(files){
-  const stored=[];
-  for(let i=0;i<files.length;i++){
-    const e=files[i],file=await e.handle.getFile();
-    stored.push({file,name:e.name,relativePath:e.relativePath||e.name,auditFolderId:e.auditFolderId||null,auditFolderName:e.auditFolderName||'',auditRootPath:e.auditRootPath||'',source:e.source||''});
-    if(i%20===0)await yieldUI();
-  }
-  await auditDbPut('files',stored);
-}
-async function auditLoadFlatFiles(){
-  const stored=await auditDbGet('files').catch(()=>null); if(!Array.isArray(stored))return [];
-  return stored.map(x=>({handle:makeAuditFileHandle(x.file),parentHandle:null,name:x.name||x.file?.name||'',relativePath:x.relativePath||x.name||'',auditFolderId:x.auditFolderId||null,auditFolderName:x.auditFolderName||'',auditRootPath:x.auditRootPath||'',source:x.source||'recovered'}));
-}
-function auditSerializableItem(item){
-  return {_id:item._id,relativePath:item.relativePath||'',auditFolderName:item.auditFolderName||'',auditRootPath:item.auditRootPath||'',name:item.name||'',originalName:item.originalName||'',expectedGR:item.expectedGR||'',foundGR:item.foundGR||'',correctedGR:item.correctedGR||'',consensus:item.consensus||'',pages:item.pages||[],observation:item.observation||'',baseObservation:item.baseObservation||'',reviewed:!!item.reviewed,isOtherDocument:!!item.isOtherDocument,skipReview:!!item.skipReview,result:item.result||'',previewDataUrl:item.previewDataUrl||'',pageResults:(item.pageResults||[]).map(r=>({page:r.page,detected:r.detected||null,suggested:r.suggested||null,fast:r.fast||null,consensus:r.consensus||'',strongConsensus:!!r.strongConsensus,reason:r.reason||'',readings:compactEngineReadings(r.readings),previewDataUrl:r.previewDataUrl||''})),reviewPages:(item.reviewPages||[]).map(r=>r.page||r)};
-}
-async function auditSaveCheckpoint(state){
-  const payload={version:'1.24',savedAt:new Date().toISOString(),...state,items:(historicalAuditItems||[]).map(auditSerializableItem)};
-  auditResumeState=payload; await auditDbPut('checkpoint',payload);
-}
-async function auditLoadCheckpoint(){return await auditDbGet('checkpoint').catch(()=>null);}
-async function auditClearCheckpoint(){auditResumeState=null;historicalAuditRecoveredFiles=[];await auditDbDelete('checkpoint').catch(()=>{});await auditDbDelete('files').catch(()=>{});}
 
 
 // Longitud variable: T + bloque alfanumérico + "-" + bloque numérico.
@@ -1315,7 +1269,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.24 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.22 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1351,7 +1305,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.24 · ${source.file.name} pág. ${pn} · `+
+        `V1.22 · ${source.file.name} pág. ${pn} · `+
         `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
@@ -1439,12 +1393,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.24 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.22 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.24 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
+    logEvent('V1.25 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2213,6 +2167,12 @@ async function terminateOCR(){
   }
   paddleOCRInitPromise=null;
   paddleOCRLastError=null;
+  if(typeof auditTrocrPipe!=='undefined' && auditTrocrPipe){
+    try{if(auditTrocrPipe.dispose)await auditTrocrPipe.dispose()}catch(e){}
+    auditTrocrPipe=null;
+  }
+  if(typeof auditTrocrInitPromise!=='undefined')auditTrocrInitPromise=null;
+  if(typeof auditTrocrLastError!=='undefined')auditTrocrLastError=null;
 }
 
 function findCandidates(text){
@@ -2540,7 +2500,6 @@ function openStableVersion(){
 }
 
 function chooseMode(mode){
-  if(mode!=='new' && mode!=='audit')return;
   appMode=mode;
   const fm=document.getElementById('footerMode');
   if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':'NUEVA';
@@ -2551,13 +2510,12 @@ function chooseMode(mode){
   if(mode==='audit'){
     document.getElementById('auditArea').style.display='block';
     document.querySelector('.consoleCard').style.display='block';
-    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · 20 variantes × 3 motores · recuperación progresiva','info');
+    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · 20 variantes × 3 motores · autoguardado progresivo','info');
     return;
   }
-
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.24 · flujo normal V1.22 preservado','info');
+  logEvent('Modo NUEVA V1.22 · OCR operativo V1.21 preservado · Paddle C06→C09 si falla + Tesseract C08 único','info');
 }
 
 function backToModes(){
@@ -3629,14 +3587,21 @@ async function recognizeCrop(crop,psm='6',expected=null){
 
 
 // ============================================================
-// V1.24 · AUDITORÍA 20 VARIANTES × 3 MOTORES
-// C01–C10 reproducen exactamente el diagnóstico histórico V1.17.
-// C11–C20 amplían resolución/recortes/preprocesado sin crear otro módulo.
-// Cada variante genera UNA imagen común para Tesseract, PaddleOCR y TrOCR.
-// Confirmación automática: los TRES motores deben producir una lectura estable
-// e idéntica. No existe mayoría 2/3; toda discrepancia pasa a revisión humana.
+// V1.25 · AUDITORÍA 20 VARIANTES × 3 MOTORES
+// Base exclusiva V1.22. Sin módulo adicional y sin base de datos.
+// C01-C10 conservan las configuraciones históricas; C11-C20 amplían
+// la lectura. Cada variante genera una sola imagen, evaluada por
+// Tesseract, PaddleOCR y TrOCR. La confirmación automática exige 3/3.
 // ============================================================
-const AUDIT_V124_CONFIGS=[
+const AUDIT_V125_ZONES={
+  legacy:{x0:.55,x1:1.00,y0:.00,y1:.25},
+  wide:{x0:.48,x1:.99,y0:.00,y1:.27},
+  a4:{x0:.55,x1:.96,y0:.05,y1:.20},
+  tight:{x0:.56,x1:.97,y0:.04,y1:.18},
+  line:{x0:.53,x1:.98,y0:.035,y1:.145},
+  micro:{x0:.57,x1:.96,y0:.045,y1:.125}
+};
+const AUDIT_V125_CONFIGS=[
   {id:'C01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6'},
   {id:'C02',dpi:300,zone:'legacy',deskew:false,prep:'optimized',psm:'6'},
   {id:'C03',dpi:300,zone:'legacy',deskew:false,prep:'threshold',psm:'6'},
@@ -3659,142 +3624,250 @@ const AUDIT_V124_CONFIGS=[
   {id:'C20',dpi:700,zone:'micro',deskew:true,prep:'hq',psm:'7'}
 ];
 
-function auditV124FilterRead(read,expected){
-  const candidates=filterCompleteCandidates(read?.candidates||[],expected);
-  return {...read,candidates,value:candidates.length===1?candidates[0]:null};
+let auditTrocrPipe=null;
+let auditTrocrInitPromise=null;
+let auditTrocrRawImage=null;
+let auditTrocrLastError=null;
+
+function auditV125Otsu(source){
+  const c=cloneCanvas(source),ctx=c.getContext('2d',{willReadFrequently:true});
+  const img=ctx.getImageData(0,0,c.width,c.height),d=img.data,hist=new Uint32Array(256);
+  for(let i=0;i<d.length;i+=4){const g=Math.max(0,Math.min(255,Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2])));hist[g]++;}
+  const total=Math.max(1,d.length/4);let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];
+  let sumB=0,wB=0,max=0,t=175;
+  for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;sumB+=i*hist[i];const mB=sumB/wB,mF=(sum-sumB)/wF,between=wB*wF*(mB-mF)*(mB-mF);if(between>max){max=between;t=i;}}
+  for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>t?255:0;d[i]=d[i+1]=d[i+2]=v;}
+  ctx.putImageData(img,0,0);return c;
 }
-function auditV124Stable(readings,engine){
+function auditV125Prep(source,mode){
+  if(mode==='raw')return cloneCanvas(source);
+  if(mode==='hq')return enhanceGRMasterHQ(source);
+  if(mode==='otsu')return auditV125Otsu(source);
+  return preprocessCrop(source,mode);
+}
+async function auditV125BuildVariant(page,cfg,cache){
+  const zone=AUDIT_V125_ZONES[cfg.zone]||AUDIT_V125_ZONES.a4;
+  const key=`${cfg.dpi}|${cfg.zone}`;
+  let raw=cache.raw.get(key);
+  if(!raw){raw=await renderRelativeGRZone(page,cfg.dpi,zone);cache.raw.set(key,raw);}
+  let base=raw,deskewMeta={applied:false,appliedAngle:0,detectedTilt:0,boundaryRisk:false,improvement:0};
+  if(cfg.deskew){let d=cache.deskew.get(key);if(!d){d=autoDeskewCrop(raw);cache.deskew.set(key,d);}deskewMeta=d;base=d.canvas;}
+  return {image:auditV125Prep(base,cfg.prep),raw,deskewMeta};
+}
+async function auditV125Tesseract(image,cfg,expected){
+  try{return await recognizeCrop(image,cfg.psm,expected);}catch(err){return {value:null,candidates:[],raw:'',confidence:0,error:err?.message||String(err)};}
+}
+async function auditV125Paddle(image,expected){
+  try{return await recognizePaddleCrop(image,expected);}catch(err){return {value:null,candidates:[],raw:'',confidence:0,error:err?.message||String(err)};}
+}
+async function auditV125GetTrOCR(){
+  if(auditTrocrPipe)return auditTrocrPipe;
+  if(auditTrocrLastError)throw new Error(auditTrocrLastError);
+  if(auditTrocrInitPromise)return auditTrocrInitPromise;
+  logEvent('Inicializando tercer motor TrOCR Small Printed…','info');
+  auditTrocrInitPromise=(async()=>{
+    const mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+    const {pipeline,RawImage,env}=mod;auditTrocrRawImage=RawImage;
+    try{if(env?.backends?.onnx?.wasm)env.backends.onnx.wasm.numThreads=1;}catch(e){}
+    auditTrocrPipe=await pipeline('image-to-text','Xenova/trocr-small-printed',{dtype:'q8',device:'wasm'});
+    logEvent('TrOCR listo · tercer motor inicializado','ok');
+    return auditTrocrPipe;
+  })().catch(err=>{auditTrocrLastError=err?.message||String(err);logEvent(`TrOCR NO DISPONIBLE · ${auditTrocrLastError}`,'err');throw err;}).finally(()=>{auditTrocrInitPromise=null;});
+  return auditTrocrInitPromise;
+}
+async function auditV125TrOCR(image,expected){
+  try{
+    const pipe=await auditV125GetTrOCR();
+    const rawImage=auditTrocrRawImage.fromCanvas(image);
+    const out=await pipe(rawImage,{max_new_tokens:32,num_beams:1});
+    const raw=Array.isArray(out)?String(out[0]?.generated_text||''):String(out?.generated_text||out||'');
+    const allCandidates=findCandidates(raw),complete=filterCompleteCandidates(allCandidates,expected);
+    return {value:complete.length===1?complete[0]:null,candidates:complete,raw,confidence:0,error:null};
+  }catch(err){return {value:null,candidates:[],raw:'',confidence:0,error:err?.message||String(err)};}
+}
+function auditV125Stable(readings,engine){
   const vals=(readings||[]).filter(r=>r.engine===engine&&r.value).map(r=>String(r.value).toUpperCase());
-  if(!vals.length)return {value:null,count:0,unique:[]};
-  const counts=new Map(); for(const v of vals)counts.set(v,(counts.get(v)||0)+1);
+  if(!vals.length)return {value:null,count:0};
+  const counts=new Map();for(const v of vals)counts.set(v,(counts.get(v)||0)+1);
   const ranked=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
-  const first=ranked[0],second=ranked[1];
-  const stable=first && first[1]>=2 && (!second || first[1]>second[1]);
-  return {value:stable?first[0]:null,count:first?.[1]||0,unique:ranked.map(x=>x[0])};
+  const a=ranked[0],b=ranked[1];
+  return {value:(a&&a[1]>=2&&(!b||a[1]>b[1]))?a[0]:null,count:a?.[1]||0};
 }
 async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resumeVariant=0,resumeReadings=[]){
-  const cache={raw:new Map(),deskew:new Map()}, readings=[...(resumeReadings||[])];
-  let previewDataUrl='';
-  for(let ci=Math.max(0,Number(resumeVariant)||0);ci<AUDIT_V124_CONFIGS.length;ci++){
+  const cache={raw:new Map(),deskew:new Map()};
+  const readings=[...(resumeReadings||[])];let previewDataUrl='';
+  for(let ci=Math.max(0,Number(resumeVariant)||0);ci<AUDIT_V125_CONFIGS.length;ci++){
     if(historicalAuditCancelRequested)break;
-    const cfg=AUDIT_V124_CONFIGS[ci];
-    const built=await diagBuildVariant(page,cfg,cache);
-    if(cfg.id==='C08'){try{previewDataUrl=built.image.toDataURL('image/jpeg',.88);}catch(e){}}
-    const [t0,p0]=await Promise.all([diagRecognizeTesseract(built.image,cfg.psm),diagRecognizePaddle(built.image)]);
-    const r0=await diagRecognizeTrOCR(built.image);
-    const t=auditV124FilterRead(t0,expected),p=auditV124FilterRead(p0,expected),r=auditV124FilterRead(r0,expected);
-    readings.push({engine:'TESSERACT',variant:cfg.id,value:t.value||null,confidence:Number(t.confidence)||0,candidates:t.candidates||[]});
-    readings.push({engine:'PADDLEOCR',variant:cfg.id,value:p.value||null,confidence:Number(p.confidence)||0,candidates:p.candidates||[]});
-    readings.push({engine:'TROCR',variant:cfg.id,value:r.value||null,confidence:0,candidates:r.candidates||[]});
+    const cfg=AUDIT_V125_CONFIGS[ci];
     document.getElementById('auditProgressText').textContent=`20 variantes × 3 motores · ${cfg.id} (${ci+1}/20)`;
+    const built=await auditV125BuildVariant(page,cfg,cache);
+    if(cfg.id==='C08'){try{previewDataUrl=built.image.toDataURL('image/jpeg',.92);}catch(e){}}
+    const [t,p]=await Promise.all([auditV125Tesseract(built.image,cfg,expected),auditV125Paddle(built.image,expected)]);
+    const r=await auditV125TrOCR(built.image,expected);
+    readings.push({engine:'TESSERACT',variant:cfg.id,value:t.value||null,confidence:Number(t.confidence)||0,error:t.error||''});
+    readings.push({engine:'PADDLEOCR',variant:cfg.id,value:p.value||null,confidence:Number(p.confidence)||0,error:p.error||''});
+    readings.push({engine:'TROCR',variant:cfg.id,value:r.value||null,confidence:0,error:r.error||''});
+    logEvent(`AUDIT ${cfg.id} · T=${t.value||'-'} · P=${p.value||'-'} · R=${r.value||'-'}`,(t.value||p.value||r.value)?'info':'warn');
     if(onVariant)await onVariant(ci+1,readings);
     if(ci%2===1)await yieldUI();
   }
   cache.raw.clear();cache.deskew.clear();
-  const T=auditV124Stable(readings,'TESSERACT'),P=auditV124Stable(readings,'PADDLEOCR'),R=auditV124Stable(readings,'TROCR');
+  const T=auditV125Stable(readings,'TESSERACT'),P=auditV125Stable(readings,'PADDLEOCR'),R=auditV125Stable(readings,'TROCR');
   readings.push({engine:'TESSERACT',variant:'ESTABLE',value:T.value||null,confidence:0,baseline:true});
   readings.push({engine:'PADDLEOCR',variant:'ESTABLE',value:P.value||null,confidence:0,baseline:true});
   readings.push({engine:'TROCR',variant:'ESTABLE',value:R.value||null,confidence:0,baseline:true});
   const confirmed=!!(T.value&&P.value&&R.value&&T.value===P.value&&P.value===R.value);
-  const suggested=confirmed?T.value:(P.value||T.value||R.value||null);
+  const suggested=confirmed?T.value:(P.value||T.value||R.value||deriveSuggestedFromReadings(readings)||null);
   const reason=confirmed
     ? `Coincidencia estricta 3/3: ${T.value} · T=${T.count}/20 · P=${P.count}/20 · R=${R.count}/20`
     : `REVISAR · T=${T.value||'-'} (${T.count}/20) · P=${P.value||'-'} (${P.count}/20) · R=${R.value||'-'} (${R.count}/20)`;
-  return {
-    fastValue:T.value,bestValue:confirmed?T.value:null,suggestedValue:suggested,
-    consensus:confirmed?'TRIPLE MOTOR ESTABLE':reason,strongConsensus:confirmed,
-    previewDataUrl,readings,locator:'20VARIANTES-3MOTORES-V124',strategy:confirmed?'TRIPLE-MOTOR-V124':'REVISAR-TRIPLE-MOTOR-V124',reason
-  };
+  return {fastValue:T.value,bestValue:confirmed?T.value:null,suggestedValue:suggested,consensus:confirmed?'TRIPLE MOTOR ESTABLE':reason,strongConsensus:confirmed,previewDataUrl,readings,locator:'20VARIANTES-3MOTORES-V125',strategy:confirmed?'TRIPLE-MOTOR-V125':'REVISAR-TRIPLE-MOTOR-V125',reason};
+}
+
+function auditV125CompactPageResults(rows){
+  return (rows||[]).map(r=>({page:r.page,detected:r.detected||null,suggested:r.suggested||null,fast:r.fast||null,consensus:r.consensus||'',strongConsensus:!!r.strongConsensus,reason:r.reason||'',readings:compactEngineReadings(r.readings),previewDataUrl:''}));
+}
+async function auditV125SaveCheckpoint(state){
+  historicalAuditCheckpoint={version:'1.25',savedAt:new Date().toISOString(),inProgress:true,...state};
+  await saveSessionSnapshotNow();
 }
 
 async function startHistoricalAudit(){
   if(historicalAuditRunning)return;
-  const resuming=!!(auditResumeState?.inProgress && historicalAuditRecoveredFiles.length);
-  if(!resuming && !historicalAuditFolders.length&&!historicalAuditLooseFiles.length){setAuditInlineStatus('Agrega una carpeta madre o uno o varios PDF.','warn');openAuditFolderManager();return;}
-
-  historicalAuditRunning=true;historicalAuditCancelRequested=false;
-  if(!resuming){
-    historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditStartedAt=Date.now();historicalAuditOcrStartedAt=null;historicalAuditEndedAt=null;
-    historicalAuditTotalPages=0;historicalAuditProcessedPages=0;historicalAuditTotalFiles=0;historicalAuditProcessedFiles=0;historicalAuditSkippedOver10=0;resetAuditReport();
-  }else{
-    historicalAuditStartedAt=auditResumeState.startedAt||Date.now();historicalAuditOcrStartedAt=Date.now();historicalAuditEndedAt=null;
-    historicalAuditTotalPages=Number(auditResumeState.totalPages)||0;historicalAuditProcessedPages=Number(auditResumeState.processedPages)||0;
-    historicalAuditTotalFiles=Number(auditResumeState.totalFiles)||historicalAuditRecoveredFiles.length;historicalAuditProcessedFiles=Number(auditResumeState.processedFiles)||0;
-    historicalAuditSkippedOver10=Number(auditResumeState.skippedOver10)||0;
-    historicalAuditItems=(auditResumeState.items||[]).map(raw=>{const item={...raw,handle:null};ensureAuditItemId(item);const map=new Map((item.pageResults||[]).map(r=>[r.page,r]));item.reviewPages=(raw.reviewPages||[]).map(pg=>map.get(pg)).filter(Boolean);return item;});
-    buildAuditReport();logEvent(`RECUPERACIÓN V1.24 · reanudando desde PDF ${Number(auditResumeState.fileIndex||0)+1}, página ${Number(auditResumeState.pageNext||1)}`,'ok');
+  if(!historicalAuditFolders.length&&!historicalAuditLooseFiles.length){
+    setAuditInlineStatus(historicalAuditCheckpoint?.inProgress
+      ? 'Para reanudar, vuelve a seleccionar la misma carpeta o los mismos PDF.'
+      : 'Agrega una carpeta madre o uno o varios PDF.','warn');
+    openAuditFolderManager();return;
   }
-  document.getElementById('auditReviewBtn').disabled=true;document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
-  document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;document.getElementById('auditCurrentFile').textContent=resuming?'Recuperando auditoría…':'Preparando auditoría…';
-  updateAuditCounters(historicalAuditProcessedFiles,Number(auditResumeState?.okCount)||0,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);startAuditTimer();
 
-  let files=[],okCount=Number(auditResumeState?.okCount)||0,processed=Number(auditResumeState?.processed)||0;
+  const resume=!!historicalAuditCheckpoint?.inProgress;
+  const cp=resume?historicalAuditCheckpoint:null;
+  historicalAuditRunning=true;historicalAuditCancelRequested=false;
+  if(!resume){
+    historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;
+    historicalAuditStartedAt=Date.now();historicalAuditOcrStartedAt=null;historicalAuditEndedAt=null;
+    historicalAuditTotalPages=0;historicalAuditProcessedPages=0;historicalAuditTotalFiles=0;historicalAuditProcessedFiles=0;historicalAuditSkippedOver10=0;
+    historicalAuditCheckpoint=null;resetAuditReport();
+  }else{
+    historicalAuditStartedAt=Number(cp.startedAt)||Date.now();historicalAuditOcrStartedAt=Date.now();historicalAuditEndedAt=null;
+    historicalAuditTotalPages=Number(cp.totalPages)||0;historicalAuditProcessedPages=Number(cp.processedPages)||0;
+    historicalAuditProcessedFiles=Number(cp.processedFiles)||0;historicalAuditSkippedOver10=Number(cp.skippedOver10)||historicalAuditSkippedOver10;
+    buildAuditReport();
+    logEvent(`REANUDACIÓN V1.25 · ${historicalAuditProcessedFiles} PDF ya completados · punto guardado: ${cp.currentPath||'siguiente PDF'}`,'ok');
+  }
+  document.getElementById('auditReviewBtn').disabled=true;
+  document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
+  document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;const copy2Start=document.getElementById('auditCopyBtn2');if(copy2Start)copy2Start.disabled=historicalAuditItems.length===0;
+  document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
+  document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;
+  document.getElementById('auditBar').style.width='0%';document.getElementById('auditCurrentFile').textContent=resume?'Preparando reanudación…':'Preparando auditoría…';
+  updateAuditCounters(historicalAuditProcessedFiles,Number(cp?.okCount)||0,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);startAuditTimer();scheduleSessionSave();
+
+  let files=[],okCount=Number(cp?.okCount)||0,processed=Number(cp?.processed)||0;
+  const completedPaths=new Set(cp?.completedPaths||[]);
+  const countedPaths=new Set(cp?.countedPaths||[]);
   try{
-    if(resuming){files=historicalAuditRecoveredFiles;}
-    else{
-      for(const folder of historicalAuditFolders){if(historicalAuditCancelRequested)break;const found=await collectAuditFolderFiles(folder);files.push(...found);logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');}
-      files.push(...collectAuditLooseFiles());
-      logEvent(`Auditoría V1.24: ${files.length} PDF · 20 variantes × 3 motores · sin deduplicación`,'info');
-      if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
-      document.getElementById('auditProgressText').textContent=`Guardando fuentes para recuperación · ${files.length} PDF`;
-      await auditPersistFlatFiles(files);
+    for(const folder of historicalAuditFolders){
+      if(historicalAuditCancelRequested)break;
+      const found=await collectAuditFolderFiles(folder);files.push(...found);
+      logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
     }
+    files.push(...collectAuditLooseFiles());
+    logEvent(`Auditoría V1.25: ${files.length} PDF · 20 variantes × 3 motores · sin deduplicación`,'info');
+    if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
 
+    historicalAuditTotalFiles=files.length;historicalAuditOcrStartedAt=historicalAuditOcrStartedAt||Date.now();
     const includeOver10=!!document.getElementById('auditIncludeOver10')?.checked;
-    historicalAuditTotalFiles=files.length;historicalAuditOcrStartedAt=Date.now();setAuditStatus('AUDITANDO','st-run');updateAuditTiming();
-    const startFile=resuming?Number(auditResumeState.fileIndex||0):0;
-    for(let i=startFile;i<files.length;i++){
-      if(historicalAuditCancelRequested){logEvent(`Auditoría cancelada · ${historicalAuditProcessedFiles}/${files.length} PDF revisados`,'warn');break;}
-      const entry=files[i],expected=extractGRFromFilename(entry.name);let pdf=null,openError=null;
-      let pageResults=(resuming&&i===startFile&&Array.isArray(auditResumeState.pageResults))?[...auditResumeState.pageResults]:[];
-      let pageStart=(resuming&&i===startFile)?Math.max(1,Number(auditResumeState.pageNext)||1):1;
-      document.getElementById('auditCurrentFile').textContent=`Abriendo PDF ${i+1}/${files.length}: ${fullAuditPath(entry)}`;
+    setAuditStatus(resume?'REANUDANDO':'AUDITANDO','st-run');updateAuditTiming();
+
+    for(let i=0;i<files.length;i++){
+      if(historicalAuditCancelRequested){logEvent(`Auditoría cancelada · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF revisados`,'warn');break;}
+      const entry=files[i],path=fullAuditPath(entry);
+      if(completedPaths.has(path))continue;
+
+      const expected=extractGRFromFilename(entry.name);
+      let pdf=null,pageResults=[],openError=null,pagesAttempted=0;
+      const isCurrentResume=resume&&cp.currentPath===path;
+      let pageStart=isCurrentResume?Math.max(1,Number(cp.currentPage)||1):1;
+      if(isCurrentResume)pageResults=(cp.currentPdfPageResults||[]).map(r=>({...r,previewDataUrl:''}));
+
+      document.getElementById('auditCurrentFile').textContent=`Abriendo PDF ${i+1}/${files.length}: ${path}`;
+      document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · abriendo archivo…`;
+      document.getElementById('auditBar').style.width=`${files.length?Math.round((i/files.length)*100):0}%`;
+      updateAuditTiming();if(i%5===0)await yieldUI();
+
       try{
-        const file=await entry.handle.getFile(),bytes=new Uint8Array(await file.arrayBuffer());pdf=await pdfjsLib.getDocument({data:bytes}).promise;entry.pageCount=pdf.numPages;
-        if(!includeOver10&&pdf.numPages>10){
-          historicalAuditSkippedOver10++;const item={...entry,expectedGR:expected,foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};item.baseObservation=item.observation;historicalAuditItems.push(item);appendAuditReportItem(item);processed++;historicalAuditProcessedFiles=i+1;
-          await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i+1,pageNext:1,pageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});continue;
+        const file=await entry.handle.getFile();
+        const bytes=new Uint8Array(await file.arrayBuffer());
+        pdf=await pdfjsLib.getDocument({data:bytes}).promise;entry.pageCount=pdf.numPages;
+
+        if(!includeOver10 && pdf.numPages>10){
+          entry.skipOver10=true;historicalAuditSkippedOver10++;
+          const item={...entry,expectedGR:expected,foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};
+          item.baseObservation=item.observation;historicalAuditItems.push(item);appendAuditReportItem(item);
+          completedPaths.add(path);historicalAuditProcessedFiles=completedPaths.size;processed++;
+          await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          continue;
         }
-        if(pageStart===1)historicalAuditTotalPages+=pdf.numPages;
+
+        entry.skipOver10=false;
+        if(!countedPaths.has(path)){historicalAuditTotalPages+=pdf.numPages;countedPaths.add(path);}
         for(let pn=pageStart;pn<=pdf.numPages;pn++){
           if(historicalAuditCancelRequested)break;
-          document.getElementById('auditCurrentFile').textContent=`PDF ${i+1}/${files.length}: ${fullAuditPath(entry)} · página ${pn}/${pdf.numPages}`;
+          document.getElementById('auditCurrentFile').textContent=`Procesando PDF ${i+1}/${files.length}: ${path} · página ${pn}/${pdf.numPages}`;
           const page=await pdf.getPage(pn);
-          const resumeVariant=(resuming&&i===startFile&&pn===pageStart)?Number(auditResumeState.partialVariant||0):0;
-          const resumeReadings=(resuming&&i===startFile&&pn===pageStart)?(auditResumeState.partialReadings||[]):[];
-          const read=await auditReadPageHighPrecision(page,expected,async(variantDone,partialReadings)=>{
-            if(variantDone%5===0)await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i,pageNext:pn,pageResults,partialVariant:variantDone,partialReadings:compactEngineReadings(partialReadings),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
-          },resumeVariant,resumeReadings);
-          historicalAuditProcessedPages++;
+          const resumeThisPage=isCurrentResume&&pn===pageStart;
+          const variantStart=resumeThisPage?Math.max(0,Number(cp.nextVariant)||0):0;
+          const resumeReadings=resumeThisPage?(cp.partialReadings||[]):[];
+          const read=await auditReadPageHighPrecision(page,expected,async(variantDone,readings)=>{
+            if(variantDone%5!==0&&variantDone!==20)return;
+            await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:path,currentPage:pn,nextVariant:variantDone,partialReadings:compactEngineReadings(readings),currentPdfPageResults:auditV125CompactPageResults(pageResults),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          },variantStart,resumeReadings);
+          pagesAttempted++;historicalAuditProcessedPages++;
           pageResults.push({page:pn,detected:read.bestValue,suggested:read.suggestedValue,fast:read.fastValue,consensus:read.consensus,strongConsensus:read.strongConsensus,reason:read.reason||'',readings:read.readings||[],previewDataUrl:read.previewDataUrl||''});
-          const frac=(i+(pn/pdf.numPages))/files.length;document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;updateAuditTiming();
-          logEvent(`AUDIT V1.24 ${fullAuditPath(entry)} · pág. ${pn} · ${read.reason}`,read.strongConsensus?'info':'warn');
-          await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i,pageNext:pn+1,pageResults,processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:path,currentPage:pn+1,nextVariant:0,partialReadings:[],currentPdfPageResults:auditV125CompactPageResults(pageResults),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          const frac=(i+(pn/pdf.numPages))/files.length;document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;
+          document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · página ${pn}/${pdf.numPages} · páginas OCR ${historicalAuditProcessedPages}`;updateAuditTiming();
+          logEvent(`PÁGINA FINAL · ${path} · pág. ${pn} · T/P/R · ${read.consensus}`,read.strongConsensus?'ok':'warn');
+        }
+
+        // Si se reanudó un PDF, las páginas ya terminadas antes de la recarga no guardan imágenes
+        // en localStorage. Regeneramos únicamente la vista previa C08, sin repetir OCR.
+        for(const r of pageResults){
+          if(r.previewDataUrl)continue;
+          try{const pg=await pdf.getPage(r.page);const cache={raw:new Map(),deskew:new Map()};const b=await auditV125BuildVariant(pg,AUDIT_V125_CONFIGS[7],cache);r.previewDataUrl=b.image.toDataURL('image/jpeg',.92);}catch(e){}
         }
       }catch(err){openError=err?.message||String(err);}finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
       if(historicalAuditCancelRequested)break;
 
       let observation='',foundGR=null,consensus='',pages=[],needsIssue=false,result='CORRECTO',reviewPages=[];
-      if(openError){needsIssue=true;result='ERROR DE LECTURA';observation=`No se pudo analizar el PDF: ${openError}`;}
+      if(openError){needsIssue=true;result='ERROR DE LECTURA';observation=`No se pudo abrir o renderizar el PDF: ${openError}`;}
       else{
         const strong=pageResults.filter(r=>r.strongConsensus&&r.detected),weak=pageResults.filter(r=>!r.strongConsensus),values=[...new Set(strong.map(r=>r.detected))];
         if(values.length>1){needsIssue=true;result='VARIAS GR EN EL PDF';foundGR=values.join(' / ');pages=strong.map(r=>r.page);consensus=strong.map(r=>`p${r.page}:${r.detected}`).join(' / ');observation=`El PDF contiene GR confirmadas diferentes entre páginas: ${values.join(', ')}.`;reviewPages=[...strong,...weak];}
-        else if(weak.length){needsIssue=true;result='REVISAR OCR';foundGR=values[0]||null;pages=weak.map(r=>r.page);consensus=weak.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Los 3 motores no lograron coincidencia estricta en ${weak.length} página(s). Revisión humana obligatoria.`;reviewPages=weak;}
-        else if(values.length===1){foundGR=values[0];if(!isValidAuditFilenameForGR(entry.name,foundGR)){needsIssue=true;result='NOMBRE INCORRECTO';pages=[strong[0]?.page||1];consensus=strong.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Nombre actual incorrecto. Nombre esperado según OCR confirmado: ${foundGR}.pdf`;reviewPages=strong.length?[strong[0]]:[];}}
+        else if(weak.length){needsIssue=true;result='REVISAR OCR';foundGR=values.length===1?values[0]:null;pages=weak.map(r=>r.page);consensus=weak.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Los 3 motores no lograron una coincidencia estricta en ${weak.length} página(s). Revisión humana obligatoria.`;reviewPages=weak;}
+        else if(values.length===1){foundGR=values[0];const expectedFullName=`${foundGR}.pdf`;if(!isValidAuditFilenameForGR(entry.name,foundGR)){needsIssue=true;result='NOMBRE INCORRECTO';pages=[strong[0]?.page||1];consensus=strong.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Nombre actual incorrecto. Nombre esperado según OCR confirmado: ${expectedFullName}`;reviewPages=strong.length?[strong[0]]:[];}}
         else{needsIssue=true;result='REVISAR OCR';pages=pageResults.map(r=>r.page);observation='No se obtuvo una GR confirmada por los tres motores.';reviewPages=pageResults;}
       }
-      if(needsIssue){const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:!!openError};historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${fullAuditPath(entry)} · ${result}`,'warn');}else okCount++;
-      processed++;historicalAuditProcessedFiles=i+1;document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
-      await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i+1,pageNext:1,pageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+
+      if(needsIssue){const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:!!openError};historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${path} · ${result} · ${observation}`,'warn');}
+      else okCount++;
+
+      processed++;completedPaths.add(path);historicalAuditProcessedFiles=completedPaths.size;
+      document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;
+      updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
+      await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+      if((i+1)%2===0)await yieldUI();
     }
 
     buildHistoricalAuditReviewQueue();historicalAuditEndedAt=Date.now();updateAuditTiming();
-    if(historicalAuditCancelRequested){setAuditStatus('CANCELADO · RECUPERABLE','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF`;document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';}
-    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF · ${historicalAuditItems.length} observaciones`;setAuditStatus('FINALIZADO','st-done');document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await auditClearCheckpoint();}
+    if(historicalAuditCancelRequested){setAuditStatus('CANCELADO · RECUPERABLE','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF`;document.getElementById('auditCurrentFile').textContent='Procesando: cancelado';document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';}
+    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');historicalAuditCheckpoint=null;document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await saveSessionSnapshotNow();logEvent(`Auditoría V1.25 terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');}
     updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
-    document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;await saveSessionSnapshotNow();
-  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.24: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error guardado para recuperación: ${err?.message||err}`;}
-  finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();scheduleSessionSave();}
+    document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
+  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.25: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;await saveSessionSnapshotNow();}
+  finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();}
 }
 
 function buildAuditReport(){
@@ -4052,13 +4125,15 @@ function deriveSuggestedFromReadings(readings){
   const paddle=engineOptionFromReadings(readings,'PADDLEOCR');
   if(paddle.value)return paddle.value;
   const tess=engineOptionFromReadings(readings,'TESSERACT');
-  return tess.value||null;
+  if(tess.value)return tess.value;
+  const trocr=engineOptionFromReadings(readings,'TROCR');
+  return trocr.value||null;
 }
 
 function formatEngineReadings(readings){
   if(!readings?.length)return '<span class="muted">Sin lecturas registradas.</span>';
   return readings.map(r=>{
-    const eng=r.engine==='PADDLEOCR'?'PaddleOCR':'Tesseract';
+    const eng=r.engine==='PADDLEOCR'?'PaddleOCR':r.engine==='TROCR'?'TrOCR':'Tesseract';
     const vari=String(r.variant||'normal').toLowerCase();
     const angle=Number(r.deskewAngle||0);
     const ang=angle ? ` · giro ${angle>0?'+':''}${angle.toFixed(2)}°` : '';
@@ -4418,14 +4493,14 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.24 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.22 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
 }
 
 function hasActiveSession(){
-  if(queueRunning||historicalAuditRunning||diagRunning)return true;
+  if(queueRunning||historicalAuditRunning)return true;
   if(document.getElementById('jobReviewModal')?.classList.contains('open'))return true;
   for(const j of jobs.values()){
     if(j.files?.length||j.pages?.length||j.name||j.folder)return true;
@@ -4443,7 +4518,7 @@ function setSessionBadge(saved){
 }
 
 function compactEngineReadings(readings){
-  return (readings||[]).map(r=>({engine:r.engine||'',variant:r.variant||'',value:r.value||null,confidence:Number(r.confidence)||0,baseline:!!r.baseline}));
+  return (readings||[]).map(r=>({engine:r.engine||'',variant:r.variant||'',value:r.value||null,confidence:Number(r.confidence)||0}));
 }
 
 function buildSessionSnapshot(){
@@ -4466,7 +4541,7 @@ function buildSessionSnapshot(){
     reviewPages:(item.reviewPages||[]).map(r=>r.page)
   }));
 
-  return {version:'1.24',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
+  return {version:'1.25',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,historicalAuditCheckpoint,
     auditSettings:{includeOver10:!!document.getElementById('auditIncludeOver10')?.checked,folderNames:historicalAuditFolders.map(f=>f.name),looseFileNames:historicalAuditLooseFiles.map(f=>f.name),skippedOver10:historicalAuditSkippedOver10},
     historicalAuditItems:auditItems,
     historicalReviewQueue:(historicalAuditReviewQueue||[]).map(q=>({parentId:q.parentItem?._id||'',page:q.pageResult?.page||0,manualGR:q.manualGR||'',isOtherDocument:!!q.isOtherDocument,reviewed:!!q.reviewed})),
@@ -4496,27 +4571,33 @@ function readSavedSession(){
     if(!raw){for(const key of LEGACY_SESSION_KEYS){raw=localStorage.getItem(key);if(raw)break;}}
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22','1.24'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22','1.25'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
-async function showRecoveryIfAvailable(){
+function showRecoveryIfAvailable(){
   const data=readSavedSession();
-  const cp=await auditLoadCheckpoint();
-  const jobsCount=(data?.jobs||[]).length,pages=(data?.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0),corrections=Object.keys(data?.humanCorrections||{}).length;
-  const auditItems=Math.max((data?.historicalAuditItems||[]).length,(cp?.items||[]).length);
-  if(!jobsCount&&!pages&&!corrections&&!auditItems&&!cp?.inProgress)return;
-  recoveredSnapshot=data||{version:'1.24',humanCorrections:{},historicalAuditItems:[]};auditResumeState=cp||null;
-  const dt=new Date(cp?.savedAt||data?.savedAt||Date.now()),when=!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
-  document.getElementById('recoveryMessage').innerHTML=`Guardado: <b>${esc(when)}</b><br>Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`+(cp?.inProgress?`<br><b>Auditoría interrumpida recuperable:</b> PDF ${Number(cp.fileIndex||0)+1}/${cp.totalFiles||'?'} · próxima página ${cp.pageNext||1}.`:'');
+  if(!data)return;
+  const jobsCount=(data.jobs||[]).length;
+  const pages=(data.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0);
+  const corrections=Object.keys(data.humanCorrections||{}).length;
+  const auditItems=(data.historicalAuditItems||[]).length;
+  const auditInterrupted=!!data.historicalAuditCheckpoint?.inProgress;
+  if(!jobsCount&&!pages&&!corrections&&!auditItems&&!auditInterrupted)return;
+  recoveredSnapshot=data;
+  const dt=data.savedAt?new Date(data.savedAt):null;
+  const when=dt&&!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
+  document.getElementById('recoveryMessage').innerHTML=
+    `Guardado: <b>${esc(when)}</b><br>`+
+    `Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`+
+    (auditInterrupted?'<br><b>Auditoría interrumpida recuperable.</b> Después de recuperar, vuelve a seleccionar la misma carpeta y pulsa REANUDAR AUDITORÍA.':'');
   document.getElementById('recoveryModal').classList.add('open');
 }
 
-async function recoverPreviousSession(){
+function recoverPreviousSession(){
   if(!recoveredSnapshot)return;
-  const cp=await auditLoadCheckpoint();
-  if(cp?.inProgress){auditResumeState=cp;historicalAuditRecoveredFiles=await auditLoadFlatFiles();}
   restoredHumanCorrections={...(recoveredSnapshot.humanCorrections||{})};
+  historicalAuditCheckpoint=recoveredSnapshot.historicalAuditCheckpoint||null;
   if(recoveredSnapshot.auditSettings){
     const chk=document.getElementById('auditIncludeOver10');if(chk)chk.checked=!!recoveredSnapshot.auditSettings.includeOver10;
     historicalAuditSkippedOver10=Number(recoveredSnapshot.auditSettings.skippedOver10)||0;
@@ -4534,17 +4615,20 @@ async function recoverPreviousSession(){
     buildAuditReport();document.getElementById('auditCopyBtn').disabled=false;document.getElementById('auditExcelBtn').disabled=false;document.getElementById('auditExcelBtn2').disabled=false;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.every(q=>q.reviewed);document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.filter(q=>!q.reviewed).length})`;
   }
   document.getElementById('auditSkippedCount').textContent=historicalAuditSkippedOver10;
+  if(historicalAuditCheckpoint?.inProgress){
+    const b=document.getElementById('auditStartBtn');if(b)b.textContent='REANUDAR AUDITORÍA';
+    setAuditInlineStatus('Auditoría recuperada. Vuelve a seleccionar la misma carpeta o PDF y pulsa REANUDAR AUDITORÍA.','info');
+  }
   document.getElementById('recoveryModal').classList.remove('open');
   logEvent(`RECUPERACIÓN cargada · ${Object.keys(restoredHumanCorrections).length} corrección(es) · ${historicalAuditItems.length} observación(es) de auditoría`,'ok');
-  if(auditResumeState?.inProgress&&historicalAuditRecoveredFiles.length){document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';setAuditStatus('AUDITORÍA RECUPERADA','st-ready');document.getElementById('auditProgressText').textContent=`Avance recuperado · PDF ${Number(auditResumeState.fileIndex||0)+1}/${auditResumeState.totalFiles||'?'} · página ${auditResumeState.pageNext||1}`;}
   setSessionBadge(true);
 }
 
-async function discardRecoveredSession(){
-  await auditClearCheckpoint();
+function discardRecoveredSession(){
   localStorage.removeItem(SESSION_KEY);for(const key of LEGACY_SESSION_KEYS)localStorage.removeItem(key);
   recoveredSnapshot=null;
   restoredHumanCorrections={};
+  historicalAuditCheckpoint=null;
   document.getElementById('recoveryModal').classList.remove('open');
   setSessionBadge(true);
 }
@@ -4552,9 +4636,8 @@ async function discardRecoveredSession(){
 async function clearWorkingSession(){
   if(queueRunning||historicalAuditRunning){logEvent('No se puede limpiar la sesión mientras hay un proceso en ejecución.','warn');return;}
   if(hasActiveSession()&&!confirm('¿Iniciar una sesión nueva? Se eliminarán de la memoria del navegador los datos de trabajo y el autoguardado. Los archivos ya guardados en disco no se borran.'))return;
-  await auditClearCheckpoint();
   jobs.clear();nextId=0;globalPages=0;stats={detected:0,verify:0,masters:0,errors:0};
-  historicalAuditFolders=[];historicalAuditLooseFiles=[];historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditSkippedOver10=0;
+  historicalAuditFolders=[];historicalAuditLooseFiles=[];historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditSkippedOver10=0;historicalAuditCheckpoint=null;
   jobReviewState={jobId:null,items:[],index:0,summary:false};restoredHumanCorrections={};recoveredSnapshot=null;
   localStorage.removeItem(SESSION_KEY);for(const key of LEGACY_SESSION_KEYS)localStorage.removeItem(key);
   document.getElementById('jobs').innerHTML='';rebuildResultsTable();resetAuditReport();updateAuditCounters(0,0,0,0,0);updateAuditFolderSummary();
@@ -4599,7 +4682,7 @@ window.addEventListener('beforeunload',ev=>{
   ev.returnValue='';
 });
 
-setTimeout(()=>{showRecoveryIfAvailable();},350);
+setTimeout(showRecoveryIfAvailable,350);
 
 function logEvent(message,type='info'){
   const box=document.getElementById('consoleBox');
@@ -4692,262 +4775,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-// V1.24 · HELPERS OCR INTERNOS COMPARTIDOS POR AUDITORÍA
-// ============================================================
-
-const diagGR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
-const diagZONES={
-  legacy:{x0:.55,x1:1.00,y0:.00,y1:.25},
-  wide:{x0:.48,x1:.99,y0:.00,y1:.27},
-  a4:{x0:.55,x1:.96,y0:.05,y1:.20},
-  tight:{x0:.56,x1:.97,y0:.04,y1:.18},
-  line:{x0:.53,x1:.98,y0:.035,y1:.145},
-  micro:{x0:.57,x1:.96,y0:.045,y1:.125}
-};
-
-// D08/D09/D10 preservan equivalentes de las configuraciones operativas actuales:
-// D08 ~= C08 (Tesseract 600 A4 DESKEW RAW), D09 ~= C06 (Paddle 600 A4 HQ), D10 ~= C09 (Paddle respaldo 600 A4 OPTIMIZED).
-// D11-D20 incorporan recortes focalizados y preparaciones pensadas para TrOCR y para reforzar Paddle/Tesseract.
-const diagCONFIGS=[
-  {id:'D01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',targets:'BASE',note:'Control histórico 300 DPI RAW sin enderezado'},
-  {id:'D02',dpi:300,zone:'legacy',deskew:true, prep:'optimized',psm:'6',targets:'TESS/PADDLE',note:'300 DPI + autoenderezado V2 + normalización'},
-  {id:'D03',dpi:400,zone:'legacy',deskew:true, prep:'raw',psm:'6',targets:'TESS/PADDLE',note:'400 DPI + autoenderezado V2'},
-  {id:'D04',dpi:450,zone:'legacy',deskew:true, prep:'optimized',psm:'6',targets:'TESS/PADDLE',note:'450 DPI + normalización tonal'},
-  {id:'D05',dpi:500,zone:'wide',deskew:true, prep:'raw',psm:'6',targets:'PADDLE',note:'500 DPI + recorte amplio para formatos variables'},
-  {id:'D06',dpi:500,zone:'wide',deskew:true, prep:'hq',psm:'6',targets:'PADDLE',note:'500 DPI amplio + HQ conservador'},
-  {id:'D07',dpi:550,zone:'wide',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE/TESS',note:'550 DPI amplio + optimización tonal'},
-  {id:'D08',dpi:600,zone:'a4',deskew:true, prep:'raw',psm:'6',targets:'TESS ACTUAL',note:'Referencia actual C08 · 600 A4 DESKEW RAW'},
-  {id:'D09',dpi:600,zone:'a4',deskew:true, prep:'hq',psm:'6',targets:'PADDLE ACTUAL',note:'Referencia actual C06 · 600 A4 HQ'},
-  {id:'D10',dpi:600,zone:'a4',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE RESPALDO',note:'Referencia actual C09 · 600 A4 OPTIMIZED'},
-  {id:'D11',dpi:600,zone:'tight',deskew:true, prep:'raw',psm:'7',targets:'TROCR/TESS',note:'600 DPI focalizado RAW · línea única'},
-  {id:'D12',dpi:600,zone:'tight',deskew:true, prep:'hq',psm:'7',targets:'TROCR/PADDLE',note:'600 DPI focalizado HQ · trazos limpios'},
-  {id:'D13',dpi:600,zone:'line',deskew:true, prep:'optimizedContrast',psm:'7',targets:'TROCR',note:'600 DPI línea compacta + contraste moderado'},
-  {id:'D14',dpi:600,zone:'line',deskew:true, prep:'otsu',psm:'7',targets:'TESS/TROCR',note:'600 DPI línea + Otsu · alto contraste'},
-  {id:'D15',dpi:600,zone:'wide',deskew:true, prep:'hq',psm:'11',targets:'PADDLE/TESS',note:'600 DPI amplio HQ · texto disperso PSM11'},
-  {id:'D16',dpi:650,zone:'a4',deskew:true, prep:'raw',psm:'6',targets:'PADDLE',note:'650 DPI A4 RAW · más detalle'},
-  {id:'D17',dpi:650,zone:'tight',deskew:true, prep:'hq',psm:'7',targets:'TROCR',note:'650 DPI focalizado HQ · TrOCR impreso'},
-  {id:'D18',dpi:700,zone:'a4',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE',note:'700 DPI A4 + optimización tonal'},
-  {id:'D19',dpi:700,zone:'line',deskew:true, prep:'raw',psm:'7',targets:'TROCR',note:'700 DPI línea RAW · máxima preservación de caracteres'},
-  {id:'D20',dpi:700,zone:'micro',deskew:true, prep:'hq',psm:'7',targets:'TROCR/TESS',note:'700 DPI microrecorte HQ · una sola línea GR'}
-];
-
-let diagTessWorker=null,diagPaddleOCR=null,diagPaddleInitPromise=null,diagTrocrPipe=null,diagTrocrInitPromise=null,diagTrocrRawImage=null;
-let diagRunning=false,diagCancelRequested=false;
-let diagAllRows=[];
-
-function diagEscText(v){return String(v??'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim();}
-function diagNowClock(){return new Date().toLocaleTimeString('es-PE',{hour12:false});}
-function diagLog(msg,type='info'){
-  const box=document.getElementById('diagConsole');
-  const line=document.createElement('div');line.className=type==='ok'?'diagOk':type==='warn'?'diagWarn':type==='err'?'diagErr':'diagInfo';line.textContent=`[${diagNowClock()}] ${msg}`;box.appendChild(line);box.scrollTop=box.scrollHeight;
-}
-function diagSection(msg){const box=document.getElementById('diagConsole');const line=document.createElement('div');line.className='diagSection';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
-function diagYieldUI(){return new Promise(r=>setTimeout(r,0));}
-function diagFindCandidates(text){
-  const source=String(text||'').toUpperCase().replace(/[‐‑‒–—−]/g,'-');
-  const variants=[source,source.replace(/\s+/g,'')];const out=[];
-  for(const v of variants){for(const m of (v.match(diagGR_REGEX)||[])){const g=m.toUpperCase().replace(/\s+/g,'');if(!out.includes(g)&&diagIsGenericGR(g))out.push(g);}}
-  return out;
-}
-function diagSplitGR(g){const m=String(g||'').toUpperCase().match(/^(T[A-Z0-9]+)-(\d+)$/);return m?{prefix:m[1],number:m[2]}:null;}
-function diagIsGenericGR(g){const p=diagSplitGR(g);return !!p&&p.prefix.length>=3&&p.prefix.length<=6&&p.number.length>=4&&p.number.length<=12;}
-function diagTruthForFilePage(name,page=1){
-  const base=String(name||'').replace(/\.pdf$/i,'');
-  const lower=base.toLowerCase();
-
-  // 1) Conjunto de calibración: lo que está DESPUÉS de "verdadero" es la verdad.
-  // Si el nombre codifica verdades por página (pag1-..., pag2-...), usa la correspondiente.
-  const vi=lower.indexOf('verdadero');
-  if(vi>=0){
-    const tail=base.slice(vi+'verdadero'.length);
-    const pageRe=new RegExp(`pag(?:ina)?\\s*${Number(page)}[^A-Z0-9]*(T[A-Z0-9]+-\\d+)`,'i');
-    const pm=tail.match(pageRe);
-    if(pm)return pm[1].toUpperCase();
-    const c=diagFindCandidates(tail);
-    if(c.length)return c[0];
-  }
-
-  // 2) Conjunto "-estabien": normalmente hay una sola GR válida antes de esa marca.
-  const ei=lower.indexOf('estabien');
-  if(ei>=0){
-    const head=base.slice(0,ei);
-    const c=diagFindCandidates(head);
-    if(c.length)return c[0];
-  }
-
-  // 3) Compatibilidad: si no hay marcador explícito, usa la primera GR válida del nombre.
-  const c=diagFindCandidates(base);
-  return c[0]||null;
-}
-function diagClassify(read,truth){
-  if(!truth)return 'SIN_VERDAD';
-  if(read.value===truth)return 'CORRECTO';
-  if(!read.value && read.candidates.includes(truth))return 'AMBIGUO_CON_VERDAD';
-  if(read.value && read.value!==truth)return 'ERROR';
-  return 'SIN_LECTURA';
-}
-function diagStatusShort(s){return s==='CORRECTO'?'OK':s==='ERROR'?'ERROR':s==='AMBIGUO_CON_VERDAD'?'AMBIGUO':s==='SIN_LECTURA'?'SIN LECTURA':'SIN VERDAD';}
-function diagStatusType(s){return s==='CORRECTO'?'ok':s==='ERROR'?'err':'warn';}
-
-function diagCloneCanvas(source){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;c.getContext('2d',{willReadFrequently:true}).drawImage(source,0,0);return c;}
-function diagRotateCanvasSameSize(source,angleDeg){if(Math.abs(angleDeg)<.001)return diagCloneCanvas(source);const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.save();ctx.translate(c.width/2,c.height/2);ctx.rotate(angleDeg*Math.PI/180);ctx.drawImage(source,-source.width/2,-source.height/2);ctx.restore();return c;}
-function diagResizeCanvas(source,maxW=560,maxH=280){const ratio=Math.min(1,maxW/source.width,maxH/source.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(source.width*ratio));c.height=Math.max(1,Math.round(source.height*ratio));const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(source,0,0,c.width,c.height);return c;}
-function diagProjectionScore(source){const ctx=source.getContext('2d',{willReadFrequently:true});const img=ctx.getImageData(0,0,source.width,source.height);const d=img.data,rows=new Float64Array(source.height);const xm=Math.floor(source.width*.03),ym=Math.floor(source.height*.03);for(let y=ym;y<source.height-ym;y++){let sum=0;for(let x=xm;x<source.width-xm;x++){const i=(y*source.width+x)*4,g=.299*d[i]+.587*d[i+1]+.114*d[i+2];if(g<225)sum+=(225-g);}rows[y]=sum;}let mean=0,n=0;for(let y=ym;y<source.height-ym;y++){mean+=rows[y];n++;}mean/=Math.max(1,n);let v=0;for(let y=ym;y<source.height-ym;y++){const q=rows[y]-mean;v+=q*q;}return (v/Math.max(1,n))/(mean+1);}
-function diagAutoDeskewV2(source){
-  const sample=diagResizeCanvas(source),cache=new Map();const score=a=>{const k=a.toFixed(2);if(cache.has(k))return cache.get(k);const c=Math.abs(a)<.001?sample:diagRotateCanvasSameSize(sample,a);const s=diagProjectionScore(c);cache.set(k,s);return s;};
-  const base=score(0);let bestA=0,bestS=base;
-  for(let a=-12;a<=12.001;a+=1){const s=score(a);if(s>bestS){bestS=s;bestA=a;}}
-  const coarse=bestA;for(let a=Math.max(-12,coarse-1);a<=Math.min(12,coarse+1)+.001;a+=.2){const s=score(a);if(s>bestS){bestS=s;bestA=a;}}
-  const improvement=(bestS-base)/Math.max(1,base);const boundary=Math.abs(bestA)>=11.8;const apply=!boundary&&Math.abs(bestA)>=.25&&improvement>=.02;const applied=apply?Math.round(bestA*100)/100:0;
-  return {canvas:apply?diagRotateCanvasSameSize(source,applied):diagCloneCanvas(source),applied:apply,angle:applied,improvement,boundaryRisk:boundary&&improvement>=.02};
-}
-
-async function diagRenderZone(page,dpi,zoneName,cache){
-  const key=`${dpi}|${zoneName}`;if(cache.raw.has(key))return cache.raw.get(key);
-  const z=diagZONES[zoneName],scale=dpi/72,viewport=page.getViewport({scale});
-  const sx=Math.floor(viewport.width*z.x0),sy=Math.floor(viewport.height*z.y0),ex=Math.ceil(viewport.width*z.x1),ey=Math.ceil(viewport.height*z.y1);
-  const c=document.createElement('canvas');c.width=Math.max(1,ex-sx);c.height=Math.max(1,ey-sy);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
-  await page.render({canvasContext:ctx,viewport,transform:[1,0,0,1,-sx,-sy],background:'rgb(255,255,255)'}).promise;
-  cache.raw.set(key,c);return c;
-}
-
-function diagHistogramLevels(d,lowPct=.015,highPct=.985){const hist=new Uint32Array(256);for(let i=0;i<d.length;i+=4){const g=Math.max(0,Math.min(255,Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2])));hist[g]++;}const total=Math.max(1,d.length/4),loT=total*lowPct,hiT=total*highPct;let a=0,lo=0,hi=255;for(let v=0;v<256;v++){a+=hist[v];if(a>=loT){lo=v;break;}}a=0;for(let v=0;v<256;v++){a+=hist[v];if(a>=hiT){hi=v;break;}}if(hi<=lo+12){lo=0;hi=255;}return {lo,hi,hist};}
-function diagApplyUnsharp(c,amount=.32){const ctx=c.getContext('2d',{willReadFrequently:true}),src=ctx.getImageData(0,0,c.width,c.height),out=ctx.createImageData(c.width,c.height),s=src.data,o=out.data,w=c.width,h=c.height;o.set(s);const side=amount/4,center=1+amount;for(let y=1;y<h-1;y++){for(let x=1;x<w-1;x++){const i=(y*w+x)*4,v=Math.max(0,Math.min(255,s[i]*center-(s[i-4]+s[i+4]+s[i-w*4]+s[i+w*4])*side));o[i]=o[i+1]=o[i+2]=v;o[i+3]=255;}}ctx.putImageData(out,0,0);return c;}
-function diagOtsuThreshold(hist,total){let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sumB=0,wB=0,max=0,t=175;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;sumB+=i*hist[i];const mB=sumB/wB,mF=(sum-sumB)/wF,between=wB*wF*(mB-mF)*(mB-mF);if(between>max){max=between;t=i;}}return t;}
-function diagPreprocess(source,mode){
-  if(mode==='raw')return diagCloneCanvas(source);
-  const c=diagCloneCanvas(source),ctx=c.getContext('2d',{willReadFrequently:true}),img=ctx.getImageData(0,0,c.width,c.height),d=img.data;
-  if(mode==='hq'){
-    const {lo,hi}=diagHistogramLevels(d,.005,.9965),span=Math.max(1,hi-lo);for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let n=Math.max(0,Math.min(1,(g-lo)/span)),v=255*Math.pow(n,.94);v=(v-128)*1.16+131;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return diagApplyUnsharp(c,.32);
-  }
-  if(mode==='optimized'||mode==='optimizedContrast'){
-    const {lo,hi}=diagHistogramLevels(d,.015,.985),span=Math.max(1,hi-lo);for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let n=Math.max(0,Math.min(1,(g-lo)/span)),v=255*Math.pow(n,.92);if(mode==='optimizedContrast')v=(v-128)*1.18+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
-  }
-  if(mode==='otsu'||mode==='threshold'){
-    const t=mode==='threshold'?175:diagOtsuThreshold(diagHistogramLevels(d,0,1).hist,Math.max(1,d.length/4));for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>t?255:0;d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
-  }
-  for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let v=g;if(mode==='soft')v=(g-128)*1.35+128;else if(mode==='contrast')v=(g-128)*1.72+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
-}
-async function diagBuildVariant(page,cfg,cache){
-  const raw=await diagRenderZone(page,cfg.dpi,cfg.zone,cache);let base=raw,meta={applied:false,angle:0,improvement:0,boundaryRisk:false};
-  if(cfg.deskew){const k=`${cfg.dpi}|${cfg.zone}`;if(!cache.deskew.has(k))cache.deskew.set(k,diagAutoDeskewV2(raw));meta=cache.deskew.get(k);base=meta.canvas;}
-  return {image:diagPreprocess(base,cfg.prep),meta};
-}
-
-async function diagGetTesseract(){
-  if(diagTessWorker)return diagTessWorker;diagLog('Inicializando Tesseract.js…','info');
-  diagTessWorker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')document.getElementById('diagCurrent').textContent=`Tesseract ${Math.round((m.progress||0)*100)}%`;}});
-  await diagTessWorker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',preserve_interword_spaces:'1',tessedit_pageseg_mode:'6'});diagLog('Tesseract listo.','ok');return diagTessWorker;
-}
-async function diagGetPaddle(){
-  if(diagPaddleOCR)return diagPaddleOCR;if(diagPaddleInitPromise)return diagPaddleInitPromise;diagLog('Inicializando PaddleOCR PP-OCRv5…','info');
-  diagPaddleInitPromise=(async()=>{let mod=null,lastErr=null;for(const url of ['https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle','https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/dist/index.mjs']){try{mod=await import(url);if(mod?.PaddleOCR)break;}catch(e){lastErr=e;}}if(!mod?.PaddleOCR)throw lastErr||new Error('No se pudo cargar PaddleOCR');diagPaddleOCR=await mod.PaddleOCR.create({lang:'en',ocrVersion:'PP-OCRv5',ortOptions:{backend:'wasm',wasmPaths:'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/',numThreads:1,simd:true}});diagLog('PaddleOCR listo.','ok');return diagPaddleOCR;})().finally(()=>diagPaddleInitPromise=null);return diagPaddleInitPromise;
-}
-async function diagGetTrOCR(){
-  if(diagTrocrPipe)return diagTrocrPipe;if(diagTrocrInitPromise)return diagTrocrInitPromise;
-  diagLog('Inicializando TrOCR Small Printed (Transformers.js · q8 · WASM)…','info');
-  diagTrocrInitPromise=(async()=>{
-    const mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
-    const {pipeline,RawImage,env}=mod;diagTrocrRawImage=RawImage;
-    try{if(env?.backends?.onnx?.wasm)env.backends.onnx.wasm.numThreads=1;}catch(e){}
-    let lastMilestone=-10;
-    const progress_callback=(info)=>{
-      const p=Number(info?.progress);
-      if(Number.isFinite(p)){
-        const pct=Math.max(0,Math.min(100,Math.round(p)));
-        document.getElementById('diagCurrent').textContent=`TrOCR cargando modelo ${pct}%`;
-        if(pct>=lastMilestone+10||pct===100){lastMilestone=Math.floor(pct/10)*10;diagLog(`TrOCR carga modelo: ${pct}% · ${info?.file||info?.name||info?.status||''}`,'info');}
-      }
-    };
-    diagTrocrPipe=await pipeline('image-to-text','Xenova/trocr-small-printed',{dtype:'q8',device:'wasm',progress_callback});
-    diagLog('TrOCR listo · Xenova/trocr-small-printed q8.','ok');
-    return diagTrocrPipe;
-  })().finally(()=>diagTrocrInitPromise=null);
-  return diagTrocrInitPromise;
-}
-async function diagRecognizeTesseract(image,psm){const w=await diagGetTesseract();await w.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',preserve_interword_spaces:'1',tessedit_pageseg_mode:String(psm)});const t0=performance.now(),r=await w.recognize(image),ms=performance.now()-t0,raw=String(r.data.text||''),candidates=diagFindCandidates(raw);return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:Number(r.data.confidence)||0,ms};}
-async function diagRecognizePaddle(image){try{const p=await diagGetPaddle(),t0=performance.now(),results=await p.predict(image,{textDetThresh:.25,textDetBoxThresh:.30,textDetUnclipRatio:1.8,textRecScoreThresh:.10}),ms=performance.now()-t0,result=Array.isArray(results)?results[0]:null,items=Array.isArray(result?.items)?result.items:[],raw=items.map(x=>x?.text||'').join(' '),candidates=diagFindCandidates(raw),scores=items.map(x=>Number(x?.score)).filter(Number.isFinite),conf=scores.length?Math.max(...scores)*100:0;return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:conf,ms};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:0,error:e?.message||String(e)};}}
-async function diagRecognizeTrOCR(image){
-  try{
-    const pipe=await diagGetTrOCR(),t0=performance.now();
-    const rawImage=diagTrocrRawImage.fromCanvas(image);
-    const out=await pipe(rawImage,{max_new_tokens:32,num_beams:1});
-    const ms=performance.now()-t0;
-    const raw=Array.isArray(out)?String(out[0]?.generated_text||''):String(out?.generated_text||out||'');
-    const candidates=diagFindCandidates(raw);
-    return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:null,ms};
-  }catch(e){return {value:null,candidates:[],raw:'',confidence:null,ms:0,error:e?.message||String(e)};}
-}
-
-function diagEmptyBucket(){return {pages:0,correct:0,amb:0,wrong:0,none:0,conf:0,confN:0,ms:0};}
-function diagMakeStats(){const s={};for(const c of diagCONFIGS)s[c.id]={cfg:c,t:diagEmptyBucket(),p:diagEmptyBucket(),r:diagEmptyBucket(),all3Correct:0,atLeast2Correct:0,eitherCorrect:0};return s;}
-function diagBump(bucket,status,read){bucket.pages++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO_CON_VERDAD')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else if(status==='SIN_LECTURA')bucket.none++;if(Number.isFinite(read.confidence)){bucket.conf+=read.confidence;bucket.confN++;}bucket.ms+=Number(read.ms)||0;}
-function diagSortBuckets(stats,engine){return Object.values(stats).sort((a,b)=>{const A=a[engine],B=b[engine];return B.correct-A.correct || A.wrong-B.wrong || B.amb-A.amb || A.none-B.none || A.ms-B.ms;});}
-function diagRankLine(i,x,engine){const b=x[engine],avgC=b.confN?b.conf/b.confN:null,avgMs=b.pages?b.ms/b.pages:0;return `${String(i+1).padStart(2,'0')}. ${x.cfg.id} | OK ${b.correct}/${b.pages} | ERROR ${b.wrong} | AMBIGUO ${b.amb} | SIN LECTURA ${b.none} | conf.prom ${avgC===null?'N/D':avgC.toFixed(1)} | ms/prom ${Math.round(avgMs)} | objetivo ${x.cfg.targets} | ${x.cfg.note}`;}
-function diagCombinedRank(stats){return Object.values(stats).sort((a,b)=>b.all3Correct-a.all3Correct || b.atLeast2Correct-a.atLeast2Correct || b.eitherCorrect-a.eitherCorrect || (b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct));}
-
-async function diagStartDiagnostic(){
-  if(diagRunning)return;const files=[...document.getElementById('diagPdfFiles').files];if(!files.length){alert('Selecciona uno o varios PDF.');return;}
-  diagRunning=true;diagCancelRequested=false;diagAllRows=[];document.getElementById('diagStartBtn').disabled=true;document.getElementById('diagCancelBtn').disabled=false;document.getElementById('diagMFiles').textContent=files.length;document.getElementById('diagMState').textContent='EJECUTANDO';document.getElementById('diagBar').style.width='0%';
-  const stats=diagMakeStats();let pagesDone=0,totalPagesKnown=0,totalUnits=0,unitsDone=0;
-  diagClearConsole();diagSection('INICIO DIAGNÓSTICO OCR 20 VARIANTES · 3 MOTORES');
-  diagLog(`Archivos seleccionados: ${files.length}`,'info');diagLog('La verdad se resuelve por archivo y página: después de "verdadero"; si hay pagN, usa la GR de esa página; en -estabien usa la GR del nombre. Solo puntúa: nunca se pasa como pista a ningún motor.','warn');
-  diagLog('Autoorientación: PDF.js respeta la rotación del PDF + autoenderezado fino V2 (±12°, búsqueda fina 0.2°, umbral de mejora 2%).','info');
-  diagLog('Cada variante usa la MISMA imagen para PaddleOCR, Tesseract y TrOCR; solo PSM es específico de Tesseract.','info');
-  diagLog('D08=C08 actual de Tesseract; D09=C06 actual de Paddle; D10=C09 respaldo actual de Paddle. D11-D20 añaden recortes/preprocesados orientados a TrOCR y a reforzar los otros motores.','info');
-  try{
-    // Conteo ligero solo para progreso del conjunto controlado. No se usa en la app operativa.
-    const sources=[];
-    for(const f of files){const bytes=new Uint8Array(await f.arrayBuffer()),pdf=await pdfjsLib.getDocument({data:bytes}).promise;sources.push({f,pdf});totalPagesKnown+=pdf.numPages;}
-    totalUnits=totalPagesKnown*diagCONFIGS.length;document.getElementById('diagMRuns').textContent=(totalUnits*3).toLocaleString('es-PE');
-    diagLog(`Páginas totales: ${totalPagesKnown} · variantes por página: 20 · motores: 3 · ejecuciones OCR: ${totalUnits*3}`,'info');
-    await Promise.all([diagGetTesseract(),diagGetPaddle(),diagGetTrOCR()]);
-    for(const src of sources){
-      if(diagCancelRequested)break;diagSection(`ARCHIVO ${src.f.name}`);diagLog(`Verdad de referencia: se resolverá por página desde marcador verdadero / pagN / -estabien · páginas: ${src.pdf.numPages}`,'info');
-      for(let pn=1;pn<=src.pdf.numPages;pn++){
-        if(diagCancelRequested)break;const page=await src.pdf.getPage(pn),truth=diagTruthForFilePage(src.f.name,pn),cache={raw:new Map(),deskew:new Map()};pagesDone++;document.getElementById('diagMPages').textContent=pagesDone;diagSection(`${src.f.name} · PÁGINA ${pn}/${src.pdf.numPages} · VERDAD ${truth||'N/D'} · ROTACIÓN PDF ${page.rotate||0}°`);
-        for(const cfg of diagCONFIGS){
-          if(diagCancelRequested)break;document.getElementById('diagCurrent').textContent=`${src.f.name} · pág. ${pn} · ${cfg.id} · ${cfg.dpi} DPI · ${cfg.zone} · ${cfg.prep}`;
-          const built=await diagBuildVariant(page,cfg,cache);
-          const [t,p]=await Promise.all([diagRecognizeTesseract(built.image,cfg.psm),diagRecognizePaddle(built.image)]);
-          const r=await diagRecognizeTrOCR(built.image);
-          const ts=diagClassify(t,truth),ps=diagClassify(p,truth),rs=diagClassify(r,truth);
-          diagBump(stats[cfg.id].t,ts,t);diagBump(stats[cfg.id].p,ps,p);diagBump(stats[cfg.id].r,rs,r);
-          const correctCount=[ts,ps,rs].filter(x=>x==='CORRECTO').length;if(correctCount===3)stats[cfg.id].all3Correct++;if(correctCount>=2)stats[cfg.id].atLeast2Correct++;if(correctCount>=1)stats[cfg.id].eitherCorrect++;
-          const tilt=built.meta.applied?`${built.meta.angle>0?'+':''}${built.meta.angle.toFixed(2)}°`:(built.meta.boundaryRisk?'FUERA_RANGO':'0°');
-          const base=`${cfg.id} | ${cfg.dpi}DPI ${cfg.zone.toUpperCase()} ${cfg.prep.toUpperCase()} PSM${cfg.psm} | objetivo ${cfg.targets} | giro ${tilt} | `;
-          diagLog(base+`TESS=${t.value||'-'} [${diagStatusShort(ts)}] conf=${t.confidence.toFixed(1)} ms=${Math.round(t.ms)} cand=${t.candidates.join(',')||'-'} | RAW="${diagEscText(t.raw).slice(0,180)}"`,diagStatusType(ts));
-          diagLog(base+`PADDLE=${p.value||'-'} [${diagStatusShort(ps)}] conf=${p.confidence.toFixed(1)} ms=${Math.round(p.ms)} cand=${p.candidates.join(',')||'-'}${p.error?' err='+p.error:''} | RAW="${diagEscText(p.raw).slice(0,180)}"`,diagStatusType(ps));
-          diagLog(base+`TROCR=${r.value||'-'} [${diagStatusShort(rs)}] conf=N/D ms=${Math.round(r.ms)} cand=${r.candidates.join(',')||'-'}${r.error?' err='+r.error:''} | RAW="${diagEscText(r.raw).slice(0,180)}"`,diagStatusType(rs));
-          diagAllRows.push({file:src.f.name,page:pn,truth:truth||'',config:cfg.id,dpi:cfg.dpi,zone:cfg.zone,prep:cfg.prep,psm:cfg.psm,targets:cfg.targets,deskewAngle:built.meta.angle||0,tValue:t.value||'',tStatus:ts,tConfidence:t.confidence,tCandidates:t.candidates.join('|'),tMs:t.ms,pValue:p.value||'',pStatus:ps,pConfidence:p.confidence,pCandidates:p.candidates.join('|'),pMs:p.ms,rValue:r.value||'',rStatus:rs,rCandidates:r.candidates.join('|'),rMs:r.ms});
-          unitsDone++;document.getElementById('diagBar').style.width=`${Math.round(unitsDone/Math.max(1,totalUnits)*100)}%`;await diagYieldUI();
-        }
-        cache.raw.clear();cache.deskew.clear();
-      }
-    }
-    diagSection(diagCancelRequested?'RESUMEN PARCIAL POR CANCELACIÓN':'RESUMEN FINAL');
-    const tested=Object.values(stats)[0]?.t.pages||0;diagLog(`Páginas puntuadas por configuración: ${tested}`,'info');
-    diagSection('RANKING TESSERACT · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');diagSortBuckets(stats,'t').forEach((x,i)=>diagLog(diagRankLine(i,x,'t'),i<3?'ok':'info'));
-    diagSection('RANKING PADDLEOCR · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');diagSortBuckets(stats,'p').forEach((x,i)=>diagLog(diagRankLine(i,x,'p'),i<3?'ok':'info'));
-    diagSection('RANKING TROCR · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');diagSortBuckets(stats,'r').forEach((x,i)=>diagLog(diagRankLine(i,x,'r'),i<3?'ok':'info'));
-    diagSection('COMPLEMENTARIEDAD DE LOS 3 MOTORES POR VARIANTE');diagCombinedRank(stats).forEach((x,i)=>diagLog(`${String(i+1).padStart(2,'0')}. ${x.cfg.id} | LOS 3 CORRECTOS ${x.all3Correct}/${x.t.pages} | AL MENOS 2 CORRECTOS ${x.atLeast2Correct}/${x.t.pages} | AL MENOS 1 CORRECTO ${x.eitherCorrect}/${x.t.pages} | T ${x.t.correct} | P ${x.p.correct} | R ${x.r.correct} | objetivo ${x.cfg.targets} | ${x.cfg.note}`,i<3?'ok':'info'));
-    diagSection('FIN');diagLog(diagCancelRequested?'Prueba cancelada por el usuario. Rankings calculados con lo procesado.':'Prueba completada. Copia o descarga esta consola para el análisis.','ok');
-    document.getElementById('diagMState').textContent=diagCancelRequested?'CANCELADO':'FINALIZADO';
-  }catch(e){console.error(e);diagLog(`ERROR GENERAL: ${e?.stack||e?.message||e}`,'err');document.getElementById('diagMState').textContent='ERROR';}
-  finally{diagRunning=false;document.getElementById('diagStartBtn').disabled=false;document.getElementById('diagCancelBtn').disabled=true;document.getElementById('diagCurrent').textContent=diagCancelRequested?'Prueba cancelada.':'Prueba terminada.';}
-}
-function diagCancelDiagnostic(){diagCancelRequested=true;document.getElementById('diagMState').textContent='CANCELANDO';diagLog('Solicitud de cancelación recibida. Se detendrá al terminar la ejecución OCR actual.','warn');}
-async function diagCopyConsole(){const txt=document.getElementById('diagConsole').innerText;try{await navigator.clipboard.writeText(txt);alert('Consola copiada.');}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Consola copiada.');}}
-function diagDownloadConsole(){const txt=document.getElementById('diagConsole').innerText,blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OCR20VARIANTES3M_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-function diagCsvCell(v){const s=String(v??'');return /[";,\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
-function diagDownloadCSV(){if(!diagAllRows.length){alert('Todavía no hay resultados.');return;}const cols=Object.keys(diagAllRows[0]),lines=[cols.join(';'),...diagAllRows.map(r=>cols.map(c=>diagCsvCell(r[c])).join(';'))],blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OCR20VARIANTES3M_RESULTADOS.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-function diagClearConsole(){document.getElementById('diagConsole').innerHTML='';}
-function diagRenderConfigTable(){const body=document.getElementById('diagCfgBody');body.innerHTML='';for(const c of diagCONFIGS){const tr=document.createElement('tr');tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${c.zone}</td><td>${c.deskew?'AUTO V2':'SIN DESKEW'}</td><td>${c.prep}</td><td>${c.psm}</td><td>${c.targets}</td><td>${c.note}</td>`;body.appendChild(tr);}}
-window.addEventListener('beforeunload',()=>{try{if(diagTessWorker)diagTessWorker.terminate();if(diagPaddleOCR)diagPaddleOCR.dispose();if(diagTrocrPipe?.dispose)diagTrocrPipe.dispose();}catch(e){}});
-
-
-
-logEvent("Sistema listo · V1.24 · flujo V1.22 preservado · auditoría 20 variantes × 3 motores sin deduplicación","ok");
+logEvent("Sistema listo · V1.25 · flujo V1.22 preservado · auditoría 20 variantes × 3 motores sin deduplicación","ok");
 addJob();
 </script>
 </body>
