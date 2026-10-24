@@ -459,7 +459,7 @@ th{background:#f1f3f4}
 /* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
 
-/* V1.26 · módulo aislado de pruebas OCR */
+/* V1.27 · módulo aislado de pruebas OCR */
 .testCard{padding:18px;margin-bottom:14px}
 .testTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
 .testActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -483,7 +483,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.26 · MÓDULO DE PRUEBAS OCR AISLADO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.27 · MÓDULO DE PRUEBAS OCR AISLADO</strong></div>
   <div class="muted" style="margin-top:3px">
     V1.25 operativa preservada · módulo de pruebas independiente · 10 configuraciones × 3 motores
   </div>
@@ -501,7 +501,7 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.26</strong>
+      <strong>NUEVA VERSIÓN V1.27</strong>
       <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -955,7 +955,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.26</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.27</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -2630,7 +2630,7 @@ function chooseMode(mode){
     document.getElementById('testArea').style.display='block';
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
-    testLog('Módulo de pruebas OCR V1.26 · 10 configuraciones × 3 motores · solo calibración','ok');
+    testLog('Módulo de pruebas OCR V1.27 · 10 configuraciones × 3 motores · solo calibración','ok');
     return;
   }
 
@@ -2642,7 +2642,7 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.26 · flujo operativo preservado · módulo de pruebas aislado','info');
+  logEvent('Modo NUEVA V1.27 · flujo operativo preservado · módulo de pruebas aislado','info');
 }
 
 function backToModes(){
@@ -4000,11 +4000,11 @@ async function startHistoricalAudit(){
 
 
 // ============================================================
-// V1.26 · MÓDULO AISLADO DE PRUEBAS OCR
+// V1.27 · MÓDULO AISLADO DE PRUEBAS OCR
 // 10 configuraciones candidatas × Tesseract + PaddleOCR + TrOCR.
 // No modifica ni renombra archivos. La verdad del nombre solo puntúa.
 // ============================================================
-const TEST_V126_CONFIGS=[
+const TEST_V127_CONFIGS=[
   {id:'P01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',origin:'CONTROL HISTÓRICO',note:'300 DPI · recorte legacy · RAW'},
   {id:'P02',dpi:300,zone:'legacy',deskew:true, prep:'optimized',psm:'6',origin:'HISTÓRICA OPTIMIZADA',note:'300 DPI · legacy · enderezado + optimized'},
   {id:'P03',dpi:400,zone:'legacy',deskew:true, prep:'raw',psm:'6',origin:'HISTÓRICA',note:'400 DPI · legacy · enderezado RAW'},
@@ -4053,7 +4053,7 @@ function renderTestSelection(){
 function renderTestConfigTable(){
   const body=document.getElementById('testConfigRows');if(!body)return;
   body.innerHTML='';
-  for(const c of TEST_V126_CONFIGS){
+  for(const c of TEST_V127_CONFIGS){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${esc(c.zone.toUpperCase())}</td><td>${c.deskew?'AUTO':'NO'}</td><td>${esc(c.prep.toUpperCase())}</td><td>${c.psm}</td><td><b>${esc(c.origin)}</b><br>${esc(c.note)}</td>`;
     body.appendChild(tr);
@@ -4067,7 +4067,7 @@ function testLog(msg,type='info'){
 function testSection(msg){const box=document.getElementById('testConsoleBox');if(!box)return;const line=document.createElement('div');line.className='section';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
 function clearTestConsole(){const b=document.getElementById('testConsoleBox');if(b)b.innerHTML='';}
 async function copyTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'';await copyText(txt);alert('Consola de pruebas copiada.');}
-function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV126_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV127_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
 function testFindTruth(name,page=1){
   const base=String(name||'').replace(/\.pdf$/i,'');const lower=base.toLowerCase();
@@ -4082,6 +4082,47 @@ function testFindTruth(name,page=1){
   if(ei>=0){const head=base.slice(0,ei),c=findCandidates(head);if(c.length)return c[0];}
   return null;
 }
+// V1.27 · normalización exclusiva del MÓDULO DE PRUEBAS.
+// Regla solicitada: después de la lectura OCR se eliminan TODOS los espacios
+// para detectar/comparar la GR. El RAW original se conserva intacto en consola.
+// No usa la GR verdadera ni el nombre del archivo como pista.
+function testFindCandidatesNoSpaces(raw){
+  const compact=normalizeAlternativeOCRText(raw)
+    .toUpperCase()
+    .replace(/\s+/g,'');
+  const out=[];
+  const re=/([A-Z0-9]+)-(\d{4,12})/g;
+  let m;
+  while((m=re.exec(compact))!==null){
+    const left=m[1]||'';
+    const number=m[2]||'';
+    // Tras quitar espacios el texto anterior puede quedar pegado a la GR,
+    // p.ej. REMITENTET596-00023081. Recuperamos el sufijo T... más corto
+    // que cumpla la estructura genérica aceptada (prefijo total 3..6).
+    for(let len=3;len<=6;len++){
+      if(left.length<len)continue;
+      const prefix=left.slice(-len);
+      if(prefix[0]!=='T')continue;
+      const candidate=`${prefix}-${number}`;
+      if(isGenericCompleteGR(candidate)){
+        if(!out.includes(candidate))out.push(candidate);
+        break;
+      }
+    }
+  }
+  return out;
+}
+function testNormalizeEngineRead(read){
+  const base=read||{};
+  const candidates=testFindCandidatesNoSpaces(base.raw||'');
+  return {
+    ...base,
+    value:candidates.length===1?candidates[0]:null,
+    candidates,
+    normalizedNoSpaces:normalizeAlternativeOCRText(base.raw||'').toUpperCase().replace(/\s+/g,'')
+  };
+}
+
 function testClassify(read,truth){
   if(!truth)return 'SIN_VERDAD';
   if(read?.value===truth)return 'CORRECTO';
@@ -4093,14 +4134,14 @@ function testStatusShort(s){return s==='CORRECTO'?'OK':s==='ERROR'?'ERROR':s==='
 function testStatusType(s){return s==='CORRECTO'?'ok':s==='ERROR'?'err':'warn';}
 function testCleanRaw(v){return String(v??'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim();}
 function testEmptyBucket(){return {scored:0,correct:0,amb:0,wrong:0,none:0,noTruth:0,ms:0,conf:0,confN:0};}
-function makeTestStats(){const out={};for(const c of TEST_V126_CONFIGS)out[c.id]={cfg:c,t:testEmptyBucket(),p:testEmptyBucket(),r:testEmptyBucket(),all3Correct:0,atLeast2Correct:0,anyCorrect:0};return out;}
+function makeTestStats(){const out={};for(const c of TEST_V127_CONFIGS)out[c.id]={cfg:c,t:testEmptyBucket(),p:testEmptyBucket(),r:testEmptyBucket(),all3Correct:0,atLeast2Correct:0,anyCorrect:0};return out;}
 function testBump(bucket,status,read){
   if(status==='SIN_VERDAD')bucket.noTruth++;else{bucket.scored++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else bucket.none++;}
   bucket.ms+=Number(read?.ms)||0;const conf=Number(read?.confidence);if(Number.isFinite(conf)){bucket.conf+=conf;bucket.confN++;}
 }
-async function testReadTesseract(image,cfg){const t0=performance.now();try{const r=await recognizeCrop(image,cfg.psm,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
-async function testReadPaddle(image){const t0=performance.now();try{const r=await recognizePaddleCrop(image,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
-async function testReadTrOCR(image){const t0=performance.now();try{const r=await auditV125TrOCR(image,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
+async function testReadTesseract(image,cfg){const t0=performance.now();try{const r=await recognizeCrop(image,cfg.psm,null);return testNormalizeEngineRead({...r,ms:performance.now()-t0});}catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});}}
+async function testReadPaddle(image){const t0=performance.now();try{const r=await recognizePaddleCrop(image,null);return testNormalizeEngineRead({...r,ms:performance.now()-t0});}catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});}}
+async function testReadTrOCR(image){const t0=performance.now();try{const r=await auditV125TrOCR(image,null);return testNormalizeEngineRead({...r,ms:performance.now()-t0});}catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});}}
 
 function testLogReading(file,pn,cfg,engine,read,status){
   const conf=Number.isFinite(Number(read?.confidence))?Number(read.confidence).toFixed(1):'N/D';
@@ -4109,7 +4150,7 @@ function testLogReading(file,pn,cfg,engine,read,status){
 function testBestHits(pageReads,engine,truth){return pageReads.filter(x=>x.engine===engine&&truth&&x.value===truth);}
 function testBestConfigSummary(pageReads,truth){
   let best=null;
-  for(const c of TEST_V126_CONFIGS){
+  for(const c of TEST_V127_CONFIGS){
     const rs=pageReads.filter(x=>x.config===c.id);const correct=rs.filter(x=>truth&&x.value===truth).length;const totalMs=rs.reduce((n,x)=>n+(Number(x.ms)||0),0);
     if(!best||correct>best.correct||(correct===best.correct&&totalMs<best.totalMs))best={id:c.id,correct,totalMs};
   }
@@ -4117,7 +4158,7 @@ function testBestConfigSummary(pageReads,truth){
 }
 function testThreeOfThree(pageReads,truth){
   if(!truth)return null;
-  for(const c of TEST_V126_CONFIGS){const rs=pageReads.filter(x=>x.config===c.id);if(rs.length===3&&rs.every(x=>x.value===truth))return {config:c.id,value:truth};}
+  for(const c of TEST_V127_CONFIGS){const rs=pageReads.filter(x=>x.config===c.id);if(rs.length===3&&rs.every(x=>x.value===truth))return {config:c.id,value:truth};}
   return null;
 }
 function appendTestPageSummary(file,pn,truth,pageReads){
@@ -4151,9 +4192,10 @@ async function startOcrTest(){
   testRunning=true;testCancelRequested=false;testRows=[];testPageSummaries=[];testStats=makeTestStats();testTotalPages=0;testPagesDone=0;testRunsDone=0;
   document.getElementById('testStartBtn').disabled=true;document.getElementById('testCancelBtn').disabled=false;document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
   document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';clearTestConsole();
-  testSection('INICIO · PRUEBAS OCR V1.26 · 10 CONFIGURACIONES × 3 MOTORES');
+  testSection('INICIO · PRUEBAS OCR V1.27 · 10 CONFIGURACIONES × 3 MOTORES');
   testLog(`PDF seleccionados: ${testFiles.length}`,'info');
   testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a Tesseract, PaddleOCR ni TrOCR.','warn');
+  testLog('V1.27: para detectar/comparar la GR se eliminan todos los espacios de cada lectura OCR; el RAW original se conserva sin modificar en consola.','info');
   testLog('Configuraciones P06/P07/P08 preservan las configuraciones operativas elegidas C08 Tesseract, C06 Paddle y C09 Paddle respaldo.','info');
   try{
     document.getElementById('testProgressText').textContent='Contando páginas…';
@@ -4162,7 +4204,7 @@ async function startOcrTest(){
       try{const bytes=new Uint8Array(await f.arrayBuffer()),pdf=await pdfjsLib.getDocument({data:bytes}).promise;testTotalPages+=pdf.numPages;await pdf.destroy();}catch(e){testLog(`ERROR ABRIENDO ${testFileLabel(f)} · ${e?.message||e}`,'err');}
       await yieldUI();
     }
-    const totalUnits=testTotalPages*TEST_V126_CONFIGS.length*3;testUpdateProgress(totalUnits);
+    const totalUnits=testTotalPages*TEST_V127_CONFIGS.length*3;testUpdateProgress(totalUnits);
     testLog(`Páginas totales: ${testTotalPages} · configuraciones: 10 · motores: 3 · lecturas previstas: ${totalUnits}`,'info');
     document.getElementById('testProgressText').textContent='Inicializando motores…';
     testLog('Inicializando Tesseract…','info');await getOCRWorker();testLog('Tesseract listo.','ok');
@@ -4177,7 +4219,7 @@ async function startOcrTest(){
           if(testCancelRequested)break;const page=await pdf.getPage(pn),truth=testFindTruth(f.name,pn),cache={raw:new Map(),deskew:new Map()},pageReads=[];
           document.getElementById('testCurrent').textContent=`${testFileLabel(f)} · página ${pn}/${pdf.numPages}`;document.getElementById('testProgressText').textContent=`PDF ${fi+1}/${testFiles.length} · página ${pn}/${pdf.numPages}`;
           testSection(`${testFileLabel(f)} · PÁGINA ${pn}/${pdf.numPages} · VERDAD ${truth||'N/D'}`);
-          for(const cfg of TEST_V126_CONFIGS){
+          for(const cfg of TEST_V127_CONFIGS){
             if(testCancelRequested)break;
             const built=await auditV125BuildVariant(page,cfg,cache);
             const [t,p]=await Promise.all([testReadTesseract(built.image,cfg),testReadPaddle(built.image)]);const r=await testReadTrOCR(built.image);
@@ -4221,7 +4263,7 @@ function downloadTestExcel(){
   Object.values(testStats||{}).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct)).forEach((x,i)=>rank.push([i+1,x.cfg.id,x.cfg.dpi,x.cfg.zone,x.cfg.prep,`${x.t.correct}/${x.t.scored}`,`${x.p.correct}/${x.p.scored}`,`${x.r.correct}/${x.r.scored}`,x.all3Correct,x.atLeast2Correct,x.t.correct+x.p.correct+x.r.correct]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rank),'Ranking');
   const detailHeaders=['file','page','truth','config','dpi','zone','deskew','prep','psm','engine','value','status','confidence','ms','candidates','raw','error'];const detail=[detailHeaders,...testRows.map(r=>detailHeaders.map(k=>r[k]??''))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'DetalleLecturas');
-  const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V126_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
+  const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V127_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
   XLSX.writeFile(wb,'PRUEBASOCRV126_RESULTADOS.xlsx');
 }
 
@@ -5131,7 +5173,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.26 · V1.25 preservada · módulo de pruebas OCR 10 configuraciones × 3 motores","ok");
+logEvent("Sistema listo · V1.27 · V1.25 preservada · módulo de pruebas OCR 10 configuraciones × 3 motores","ok");
 addJob();
 </script>
 </body>
