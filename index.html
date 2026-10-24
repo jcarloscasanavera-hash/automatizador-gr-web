@@ -106,7 +106,7 @@ th{background:#f1f3f4}
 .modeBtn strong{display:block;font-size:17px;margin-bottom:8px;color:#174ea6}
 .modeBtn span{font-weight:400;color:#5f6368;line-height:1.35}
 .modeBadge{display:inline-block;margin-top:8px;padding:3px 7px;border-radius:999px;background:#e6f4ea;color:#137333;font-size:11px;font-weight:800}
-#processArea,#auditArea{display:none}
+#processArea,#auditArea,#testArea{display:none}
 
 .jobgrid{
   grid-template-columns:150px minmax(360px,2.3fr) minmax(300px,1.8fr) 110px 145px;
@@ -458,6 +458,23 @@ th{background:#f1f3f4}
 
 /* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
+
+/* V1.26 · módulo aislado de pruebas OCR */
+.testCard{padding:18px;margin-bottom:14px}
+.testTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.testActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.testSelected{margin-top:12px;border:1px solid #d9dee4;border-radius:8px;background:#fafafa;padding:10px;max-height:120px;overflow:auto;font-size:12px}
+.testStats{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin-top:12px}
+.testGrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.testTableWrap{overflow:auto;border:1px solid #d9dee4;border-radius:8px;background:#fff;max-height:360px}
+.testTable{width:100%;border-collapse:collapse;font-size:12px;min-width:980px}
+.testTable th,.testTable td{border:1px solid #d9dee4;padding:7px 8px;vertical-align:top;text-align:left}
+.testTable th{position:sticky;top:0;background:#eef3f8;z-index:2}
+.testConsole{margin-top:10px;height:330px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:8px;padding:10px 12px;font-family:Consolas,monospace;font-size:12px;line-height:1.45;white-space:pre-wrap}
+.testConsole .ok{color:#86efac}.testConsole .warn{color:#fde68a}.testConsole .err{color:#fca5a5}.testConsole .info{color:#93c5fd}.testConsole .section{color:#fff;font-weight:800;margin-top:8px}
+.testRankGood{font-weight:800;color:#137333}
+@media(max-width:950px){.testStats{grid-template-columns:1fr 1fr}.testGrid2{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -466,9 +483,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.25 · AUDITORÍA 20 VARIANTES × 3 MOTORES</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.26 · MÓDULO DE PRUEBAS OCR AISLADO</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · V1.21 preservada · diagnóstico 20 variantes × 3 motores integrado
+    V1.25 operativa preservada · módulo de pruebas independiente · 10 configuraciones × 3 motores
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">DATOS DE SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -484,12 +501,17 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.25</strong>
-      <span>Flujo normal de trabajo preservado desde V1.22. No ejecuta la auditoría masiva de 20 variantes.</span>
+      <strong>NUEVA VERSIÓN V1.26</strong>
+      <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
       <span>Revisa PDF anteriores con 20 variantes × 3 motores, revisión humana, reporte y autoguardado progresivo.</span>
+    </button>
+    <button class="modeBtn" onclick="chooseMode('test')">
+      <strong>PRUEBAS OCR · 10 CONFIGURACIONES</strong>
+      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a Tesseract, PaddleOCR y TrOCR, mide aciertos verdaderos y no modifica los PDF.</span>
+      <span class="modeBadge">SOLO PRUEBAS</span>
     </button>
   </div>
 </div>
@@ -627,6 +649,102 @@ th{background:#f1f3f4}
       </table>
       <div id="auditReportEmpty" class="reportEmpty">Todavía no hay observaciones.</div>
     </div>
+  </div>
+</div>
+
+<div id="testArea">
+  <div class="card testCard">
+    <div class="testTop">
+      <div>
+        <h3 style="margin:0 0 4px">PRUEBAS OCR · 10 CONFIGURACIONES × 3 MOTORES</h3>
+        <div class="muted">Módulo de calibración aislado. No renombra ni modifica archivos. La verdad del nombre se usa únicamente para puntuar después del OCR y nunca como pista para los motores.</div>
+      </div>
+      <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
+    </div>
+
+    <input id="testPdfPicker" type="file" accept=".pdf,application/pdf" multiple style="display:none" onchange="testFilesChosen(event)">
+    <input id="testFolderPicker" type="file" accept=".pdf,application/pdf" webkitdirectory directory multiple style="display:none" onchange="testFolderChosen(event)">
+
+    <div class="testActions">
+      <button class="primary" onclick="document.getElementById('testPdfPicker').click()">SELECCIONAR PDF</button>
+      <button class="light" onclick="document.getElementById('testFolderPicker').click()">SELECCIONAR CARPETA</button>
+      <button class="light" onclick="testClearSelection()">LIMPIAR SELECCIÓN</button>
+      <button class="green" id="testStartBtn" onclick="startOcrTest()">INICIAR PRUEBA</button>
+      <button class="red" id="testCancelBtn" onclick="cancelOcrTest()" disabled>CANCELAR</button>
+    </div>
+
+    <div id="testSelected" class="testSelected">Ningún PDF seleccionado.</div>
+
+    <div class="auditProgress">
+      <div class="progress"><div id="testBar" class="bar"></div></div>
+      <div id="testProgressText" class="progressText">Esperando</div>
+    </div>
+
+    <div class="testStats">
+      <div class="auditMetric">PDF seleccionados<b id="testFilesCount">0</b></div>
+      <div class="auditMetric">Páginas procesadas<b id="testPagesCount">0 / 0</b></div>
+      <div class="auditMetric">Configuraciones<b>10</b></div>
+      <div class="auditMetric">Motores<b>3</b></div>
+      <div class="auditMetric">Lecturas OCR<b id="testRunsCount">0</b></div>
+    </div>
+
+    <div class="auditCurrent" id="testCurrent">Procesando: —</div>
+
+    <div class="auditReportHead">
+      <label style="margin:0">10 CONFIGURACIONES DE PRUEBA</label>
+      <span class="small muted">Las mismas 10 imágenes se entregan a los tres motores.</span>
+    </div>
+    <div class="testTableWrap">
+      <table class="testTable">
+        <thead><tr><th>ID</th><th>DPI</th><th>RECORTE</th><th>ENDEREZADO</th><th>PREPROCESADO</th><th>PSM TESS</th><th>ORIGEN / MOTIVO</th></tr></thead>
+        <tbody id="testConfigRows"></tbody>
+      </table>
+    </div>
+
+    <div class="testGrid2">
+      <div>
+        <div class="auditReportHead"><label style="margin:0">RANKING POR CONFIGURACIÓN</label></div>
+        <div class="testTableWrap">
+          <table class="testTable">
+            <thead><tr><th>#</th><th>CONFIG</th><th>TESS</th><th>PADDLE</th><th>TROCR</th><th>3/3</th><th>≥2/3</th><th>TOTAL ACIERTOS</th></tr></thead>
+            <tbody id="testRankingRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="auditReportHead"><label style="margin:0">RESUMEN POR MOTOR</label></div>
+        <div class="testTableWrap">
+          <table class="testTable">
+            <thead><tr><th>MOTOR</th><th>MEJOR CONFIG</th><th>ACIERTOS</th><th>ERRORES</th><th>SIN LECTURA</th><th>TIEMPO PROM.</th></tr></thead>
+            <tbody id="testEngineRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="auditReportHead">
+      <label style="margin:0">REPORTE DE OBSERVACIONES / RESULTADOS</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="light" id="testCopyReportBtn" onclick="copyTestReport()" disabled>COPIAR REPORTE</button>
+        <button class="green" id="testExcelBtn" onclick="downloadTestExcel()" disabled>DESCARGAR EXCEL</button>
+      </div>
+    </div>
+    <div class="testTableWrap">
+      <table class="testTable" style="min-width:1500px">
+        <thead><tr><th>ARCHIVO</th><th>PÁG.</th><th>VERDAD</th><th>GR OCR 3/3</th><th>NOMBRE PROPUESTO</th><th>TESS ACIERTOS</th><th>PADDLE ACIERTOS</th><th>TROCR ACIERTOS</th><th>MEJOR CONFIG</th><th>RESULTADO</th><th>OBSERVACIÓN</th></tr></thead>
+        <tbody id="testReportRows"></tbody>
+      </table>
+    </div>
+
+    <div class="auditReportHead">
+      <label style="margin:0">CONSOLA COMPLETA DE PRUEBAS</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="light" onclick="copyTestConsole()">COPIAR CONSOLA</button>
+        <button class="light" onclick="downloadTestConsole()">DESCARGAR CONSOLA</button>
+        <button class="light" onclick="clearTestConsole()">LIMPIAR CONSOLA</button>
+      </div>
+    </div>
+    <div id="testConsoleBox" class="testConsole"></div>
   </div>
 </div>
 
@@ -837,7 +955,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.25</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.26</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -2502,10 +2620,19 @@ function openStableVersion(){
 function chooseMode(mode){
   appMode=mode;
   const fm=document.getElementById('footerMode');
-  if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':'NUEVA';
+  if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':mode==='test'?'PRUEBAS OCR':'NUEVA';
   document.getElementById('modeScreen').style.display='none';
   document.getElementById('processArea').style.display='none';
   document.getElementById('auditArea').style.display='none';
+  document.getElementById('testArea').style.display='none';
+
+  if(mode==='test'){
+    document.getElementById('testArea').style.display='block';
+    document.querySelector('.consoleCard').style.display='none';
+    renderTestConfigTable();
+    testLog('Módulo de pruebas OCR V1.26 · 10 configuraciones × 3 motores · solo calibración','ok');
+    return;
+  }
 
   if(mode==='audit'){
     document.getElementById('auditArea').style.display='block';
@@ -2515,11 +2642,11 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.22 · OCR operativo V1.21 preservado · Paddle C06→C09 si falla + Tesseract C08 único','info');
+  logEvent('Modo NUEVA V1.26 · flujo operativo preservado · módulo de pruebas aislado','info');
 }
 
 function backToModes(){
-  if(queueRunning||historicalAuditRunning){
+  if(queueRunning||historicalAuditRunning||testRunning){
     alert('Hay un proceso en ejecución. Usa CANCELAR antes de regresar al inicio.');
     return;
   }
@@ -2528,6 +2655,7 @@ function backToModes(){
   }
   document.getElementById('processArea').style.display='none';
   document.getElementById('auditArea').style.display='none';
+  document.getElementById('testArea').style.display='none';
   document.getElementById('modeScreen').style.display='block';
   document.getElementById('auditFolderModal')?.classList.remove('open');
   appMode=null;
@@ -3870,6 +3998,234 @@ async function startHistoricalAudit(){
   finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();}
 }
 
+
+// ============================================================
+// V1.26 · MÓDULO AISLADO DE PRUEBAS OCR
+// 10 configuraciones candidatas × Tesseract + PaddleOCR + TrOCR.
+// No modifica ni renombra archivos. La verdad del nombre solo puntúa.
+// ============================================================
+const TEST_V126_CONFIGS=[
+  {id:'P01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',origin:'CONTROL HISTÓRICO',note:'300 DPI · recorte legacy · RAW'},
+  {id:'P02',dpi:300,zone:'legacy',deskew:true, prep:'optimized',psm:'6',origin:'HISTÓRICA OPTIMIZADA',note:'300 DPI · legacy · enderezado + optimized'},
+  {id:'P03',dpi:400,zone:'legacy',deskew:true, prep:'raw',psm:'6',origin:'HISTÓRICA',note:'400 DPI · legacy · enderezado RAW'},
+  {id:'P04',dpi:450,zone:'legacy',deskew:true, prep:'optimized',psm:'6',origin:'HISTÓRICA',note:'450 DPI · legacy · optimized'},
+  {id:'P05',dpi:500,zone:'wide',deskew:true, prep:'hq',psm:'6',origin:'RECORTE AMPLIO',note:'500 DPI · wide · HQ conservador'},
+  {id:'P06',dpi:600,zone:'a4',deskew:true, prep:'raw',psm:'6',origin:'C08 TESSERACT ELEGIDA',note:'600 DPI · A4 · DESKEW RAW'},
+  {id:'P07',dpi:600,zone:'a4',deskew:true, prep:'hq',psm:'6',origin:'C06 PADDLE ELEGIDA',note:'600 DPI · A4 · HQ'},
+  {id:'P08',dpi:600,zone:'a4',deskew:true, prep:'optimized',psm:'6',origin:'C09 PADDLE RESPALDO',note:'600 DPI · A4 · optimized'},
+  {id:'P09',dpi:600,zone:'tight',deskew:true, prep:'hq',psm:'7',origin:'RECORTE FOCALIZADO',note:'600 DPI · tight · HQ · línea única'},
+  {id:'P10',dpi:600,zone:'line',deskew:true, prep:'optimizedContrast',psm:'7',origin:'RECORTE DE LÍNEA',note:'600 DPI · line · contraste moderado'}
+];
+
+let testFiles=[];
+let testRunning=false;
+let testCancelRequested=false;
+let testRows=[];
+let testPageSummaries=[];
+let testStats=null;
+let testTotalPages=0;
+let testPagesDone=0;
+let testRunsDone=0;
+
+function testFileLabel(f){return String(f?.webkitRelativePath||f?.name||'PDF');}
+function testAddFiles(files){
+  for(const f of files||[]){
+    if(String(f?.name||'').toLowerCase().endsWith('.pdf'))testFiles.push(f);
+  }
+  renderTestSelection();
+}
+function testFilesChosen(ev){testAddFiles([...ev.target.files]);ev.target.value='';}
+function testFolderChosen(ev){testAddFiles([...ev.target.files]);ev.target.value='';}
+function testClearSelection(){
+  if(testRunning)return;
+  testFiles=[];testRows=[];testPageSummaries=[];testStats=null;testTotalPages=0;testPagesDone=0;testRunsDone=0;
+  document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';
+  document.getElementById('testBar').style.width='0%';document.getElementById('testProgressText').textContent='Esperando';document.getElementById('testCurrent').textContent='Procesando: —';
+  document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
+  renderTestSelection();testLog('Selección de pruebas limpiada.','info');
+}
+function renderTestSelection(){
+  const box=document.getElementById('testSelected');if(!box)return;
+  document.getElementById('testFilesCount').textContent=testFiles.length;
+  if(!testFiles.length){box.textContent='Ningún PDF seleccionado.';return;}
+  box.innerHTML=testFiles.map((f,i)=>`${i+1}. ${esc(testFileLabel(f))}`).join('<br>');
+}
+function renderTestConfigTable(){
+  const body=document.getElementById('testConfigRows');if(!body)return;
+  body.innerHTML='';
+  for(const c of TEST_V126_CONFIGS){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${esc(c.zone.toUpperCase())}</td><td>${c.deskew?'AUTO':'NO'}</td><td>${esc(c.prep.toUpperCase())}</td><td>${c.psm}</td><td><b>${esc(c.origin)}</b><br>${esc(c.note)}</td>`;
+    body.appendChild(tr);
+  }
+}
+function testNow(){return new Date().toLocaleTimeString('es-PE',{hour12:false});}
+function testLog(msg,type='info'){
+  const box=document.getElementById('testConsoleBox');if(!box)return;
+  const line=document.createElement('div');line.className=type;line.textContent=`[${testNow()}] ${msg}`;box.appendChild(line);box.scrollTop=box.scrollHeight;
+}
+function testSection(msg){const box=document.getElementById('testConsoleBox');if(!box)return;const line=document.createElement('div');line.className='section';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
+function clearTestConsole(){const b=document.getElementById('testConsoleBox');if(b)b.innerHTML='';}
+async function copyTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'';await copyText(txt);alert('Consola de pruebas copiada.');}
+function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV126_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+
+function testFindTruth(name,page=1){
+  const base=String(name||'').replace(/\.pdf$/i,'');const lower=base.toLowerCase();
+  const vi=lower.indexOf('verdadero');
+  if(vi>=0){
+    const tail=base.slice(vi+'verdadero'.length);
+    const pageRe=new RegExp(`pag(?:ina)?\\s*${Number(page)}[^A-Z0-9]*(T[A-Z0-9]+-\\d+)`,'i');
+    const pm=tail.match(pageRe);if(pm)return pm[1].toUpperCase();
+    const c=findCandidates(tail);if(c.length)return c[0];
+  }
+  const ei=lower.indexOf('estabien');
+  if(ei>=0){const head=base.slice(0,ei),c=findCandidates(head);if(c.length)return c[0];}
+  return null;
+}
+function testClassify(read,truth){
+  if(!truth)return 'SIN_VERDAD';
+  if(read?.value===truth)return 'CORRECTO';
+  if(!read?.value&&(read?.candidates||[]).includes(truth))return 'AMBIGUO';
+  if(read?.value&&read.value!==truth)return 'ERROR';
+  return 'SIN_LECTURA';
+}
+function testStatusShort(s){return s==='CORRECTO'?'OK':s==='ERROR'?'ERROR':s==='AMBIGUO'?'AMBIGUO':s==='SIN_LECTURA'?'SIN LECTURA':'SIN VERDAD';}
+function testStatusType(s){return s==='CORRECTO'?'ok':s==='ERROR'?'err':'warn';}
+function testCleanRaw(v){return String(v??'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim();}
+function testEmptyBucket(){return {scored:0,correct:0,amb:0,wrong:0,none:0,noTruth:0,ms:0,conf:0,confN:0};}
+function makeTestStats(){const out={};for(const c of TEST_V126_CONFIGS)out[c.id]={cfg:c,t:testEmptyBucket(),p:testEmptyBucket(),r:testEmptyBucket(),all3Correct:0,atLeast2Correct:0,anyCorrect:0};return out;}
+function testBump(bucket,status,read){
+  if(status==='SIN_VERDAD')bucket.noTruth++;else{bucket.scored++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else bucket.none++;}
+  bucket.ms+=Number(read?.ms)||0;const conf=Number(read?.confidence);if(Number.isFinite(conf)){bucket.conf+=conf;bucket.confN++;}
+}
+async function testReadTesseract(image,cfg){const t0=performance.now();try{const r=await recognizeCrop(image,cfg.psm,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
+async function testReadPaddle(image){const t0=performance.now();try{const r=await recognizePaddleCrop(image,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
+async function testReadTrOCR(image){const t0=performance.now();try{const r=await auditV125TrOCR(image,null);return {...r,ms:performance.now()-t0};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)};}}
+
+function testLogReading(file,pn,cfg,engine,read,status){
+  const conf=Number.isFinite(Number(read?.confidence))?Number(read.confidence).toFixed(1):'N/D';
+  testLog(`${testFileLabel(file)} · pág ${pn} · ${cfg.id} ${cfg.dpi}DPI ${cfg.zone.toUpperCase()} ${cfg.prep.toUpperCase()} · ${engine}=${read?.value||'-'} [${testStatusShort(status)}] · conf=${conf} · ms=${Math.round(Number(read?.ms)||0)} · cand=${(read?.candidates||[]).join(',')||'-'}${read?.error?' · ERROR MOTOR='+read.error:''} · RAW="${testCleanRaw(read?.raw)}"`,testStatusType(status));
+}
+function testBestHits(pageReads,engine,truth){return pageReads.filter(x=>x.engine===engine&&truth&&x.value===truth);}
+function testBestConfigSummary(pageReads,truth){
+  let best=null;
+  for(const c of TEST_V126_CONFIGS){
+    const rs=pageReads.filter(x=>x.config===c.id);const correct=rs.filter(x=>truth&&x.value===truth).length;const totalMs=rs.reduce((n,x)=>n+(Number(x.ms)||0),0);
+    if(!best||correct>best.correct||(correct===best.correct&&totalMs<best.totalMs))best={id:c.id,correct,totalMs};
+  }
+  return best||{id:'-',correct:0,totalMs:0};
+}
+function testThreeOfThree(pageReads,truth){
+  if(!truth)return null;
+  for(const c of TEST_V126_CONFIGS){const rs=pageReads.filter(x=>x.config===c.id);if(rs.length===3&&rs.every(x=>x.value===truth))return {config:c.id,value:truth};}
+  return null;
+}
+function appendTestPageSummary(file,pn,truth,pageReads){
+  const tHits=testBestHits(pageReads,'TESSERACT',truth),pHits=testBestHits(pageReads,'PADDLEOCR',truth),rHits=testBestHits(pageReads,'TROCR',truth);
+  const best=testBestConfigSummary(pageReads,truth),all3=testThreeOfThree(pageReads,truth);
+  const maxCorrect=best.correct;const result=!truth?'SIN VERDAD':maxCorrect===3?'3/3 ENCONTRADO':maxCorrect===2?'2/3 MÁXIMO':maxCorrect===1?'1/3 MÁXIMO':'0/3';
+  const obs=!truth?'El archivo no contiene marcador “verdadero” ni “estabien”; se registran lecturas pero no puntúa.':`Tesseract ${tHits.length}/10 · PaddleOCR ${pHits.length}/10 · TrOCR ${rHits.length}/10 · mejor coincidencia simultánea ${best.id}: ${best.correct}/3.`;
+  const row={file:testFileLabel(file),page:pn,truth:truth||'',gr3:all3?.value||'',proposed:all3?`${all3.value}.pdf`:'',tHits:tHits.length,pHits:pHits.length,rHits:rHits.length,bestConfig:best.id,result,observation:obs};
+  testPageSummaries.push(row);
+  const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(row.file)}</td><td>${pn}</td><td>${esc(row.truth||'N/D')}</td><td>${esc(row.gr3||'-')}</td><td>${esc(row.proposed||'-')}</td><td>${row.tHits}/10</td><td>${row.pHits}/10</td><td>${row.rHits}/10</td><td><b>${esc(row.bestConfig)}</b></td><td>${esc(row.result)}</td><td>${esc(row.observation)}</td>`;document.getElementById('testReportRows').appendChild(tr);
+}
+function renderTestRanking(){
+  if(!testStats)return;
+  const ranked=Object.values(testStats).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct)||a.t.wrong+a.p.wrong+a.r.wrong-(b.t.wrong+b.p.wrong+b.r.wrong));
+  const body=document.getElementById('testRankingRows');body.innerHTML='';
+  ranked.forEach((x,i)=>{const tr=document.createElement('tr');if(i<3)tr.className='testRankGood';tr.innerHTML=`<td>${i+1}</td><td><b>${x.cfg.id}</b><br>${esc(x.cfg.zone)} / ${x.cfg.prep}</td><td>${x.t.correct}/${x.t.scored}</td><td>${x.p.correct}/${x.p.scored}</td><td>${x.r.correct}/${x.r.scored}</td><td>${x.all3Correct}</td><td>${x.atLeast2Correct}</td><td>${x.t.correct+x.p.correct+x.r.correct}</td>`;body.appendChild(tr);});
+  const eb=document.getElementById('testEngineRows');eb.innerHTML='';
+  for(const [key,label] of [['t','TESSERACT'],['p','PADDLEOCR'],['r','TROCR']]){
+    const arr=Object.values(testStats).slice().sort((a,b)=>b[key].correct-a[key].correct||a[key].wrong-b[key].wrong||a[key].none-b[key].none||a[key].ms-b[key].ms);const x=arr[0],b=x[key],avg=b.scored+b.noTruth?b.ms/(b.scored+b.noTruth):0;
+    const tr=document.createElement('tr');tr.innerHTML=`<td><b>${label}</b></td><td>${x.cfg.id} · ${esc(x.cfg.note)}</td><td>${b.correct}/${b.scored}</td><td>${b.wrong}</td><td>${b.none}</td><td>${Math.round(avg)} ms</td>`;eb.appendChild(tr);
+  }
+}
+function testUpdateProgress(totalUnits){
+  const pct=totalUnits?Math.round(testRunsDone/totalUnits*100):0;document.getElementById('testBar').style.width=`${Math.min(100,pct)}%`;document.getElementById('testRunsCount').textContent=testRunsDone;document.getElementById('testPagesCount').textContent=`${testPagesDone} / ${testTotalPages}`;
+}
+function cancelOcrTest(){if(!testRunning)return;testCancelRequested=true;document.getElementById('testProgressText').textContent='Cancelando al terminar la lectura actual…';testLog('Solicitud de cancelación recibida.','warn');}
+
+async function startOcrTest(){
+  if(testRunning)return;
+  if(!testFiles.length){alert('Selecciona uno o varios PDF para la prueba.');return;}
+  testRunning=true;testCancelRequested=false;testRows=[];testPageSummaries=[];testStats=makeTestStats();testTotalPages=0;testPagesDone=0;testRunsDone=0;
+  document.getElementById('testStartBtn').disabled=true;document.getElementById('testCancelBtn').disabled=false;document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
+  document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';clearTestConsole();
+  testSection('INICIO · PRUEBAS OCR V1.26 · 10 CONFIGURACIONES × 3 MOTORES');
+  testLog(`PDF seleccionados: ${testFiles.length}`,'info');
+  testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a Tesseract, PaddleOCR ni TrOCR.','warn');
+  testLog('Configuraciones P06/P07/P08 preservan las configuraciones operativas elegidas C08 Tesseract, C06 Paddle y C09 Paddle respaldo.','info');
+  try{
+    document.getElementById('testProgressText').textContent='Contando páginas…';
+    for(let i=0;i<testFiles.length;i++){
+      if(testCancelRequested)break;const f=testFiles[i];document.getElementById('testCurrent').textContent=`Contando páginas: ${testFileLabel(f)}`;
+      try{const bytes=new Uint8Array(await f.arrayBuffer()),pdf=await pdfjsLib.getDocument({data:bytes}).promise;testTotalPages+=pdf.numPages;await pdf.destroy();}catch(e){testLog(`ERROR ABRIENDO ${testFileLabel(f)} · ${e?.message||e}`,'err');}
+      await yieldUI();
+    }
+    const totalUnits=testTotalPages*TEST_V126_CONFIGS.length*3;testUpdateProgress(totalUnits);
+    testLog(`Páginas totales: ${testTotalPages} · configuraciones: 10 · motores: 3 · lecturas previstas: ${totalUnits}`,'info');
+    document.getElementById('testProgressText').textContent='Inicializando motores…';
+    testLog('Inicializando Tesseract…','info');await getOCRWorker();testLog('Tesseract listo.','ok');
+    testLog('Inicializando PaddleOCR…','info');await getPaddleOCR();testLog('PaddleOCR listo.','ok');
+    testLog('Inicializando TrOCR…','info');try{await auditV125GetTrOCR();testLog('TrOCR listo.','ok');}catch(e){testLog(`TrOCR no disponible: ${e?.message||e}. La prueba continuará registrando SIN LECTURA para ese motor.`,'err');}
+
+    for(let fi=0;fi<testFiles.length;fi++){
+      if(testCancelRequested)break;const f=testFiles[fi];let pdf=null;
+      testSection(`ARCHIVO ${testFileLabel(f)}`);
+      try{const bytes=new Uint8Array(await f.arrayBuffer());pdf=await pdfjsLib.getDocument({data:bytes}).promise;testLog(`Abierto · ${pdf.numPages} página(s).`,'info');
+        for(let pn=1;pn<=pdf.numPages;pn++){
+          if(testCancelRequested)break;const page=await pdf.getPage(pn),truth=testFindTruth(f.name,pn),cache={raw:new Map(),deskew:new Map()},pageReads=[];
+          document.getElementById('testCurrent').textContent=`${testFileLabel(f)} · página ${pn}/${pdf.numPages}`;document.getElementById('testProgressText').textContent=`PDF ${fi+1}/${testFiles.length} · página ${pn}/${pdf.numPages}`;
+          testSection(`${testFileLabel(f)} · PÁGINA ${pn}/${pdf.numPages} · VERDAD ${truth||'N/D'}`);
+          for(const cfg of TEST_V126_CONFIGS){
+            if(testCancelRequested)break;
+            const built=await auditV125BuildVariant(page,cfg,cache);
+            const [t,p]=await Promise.all([testReadTesseract(built.image,cfg),testReadPaddle(built.image)]);const r=await testReadTrOCR(built.image);
+            const ts=testClassify(t,truth),ps=testClassify(p,truth),rs=testClassify(r,truth);
+            testBump(testStats[cfg.id].t,ts,t);testBump(testStats[cfg.id].p,ps,p);testBump(testStats[cfg.id].r,rs,r);
+            const correctCount=[ts,ps,rs].filter(x=>x==='CORRECTO').length;if(correctCount===3)testStats[cfg.id].all3Correct++;if(correctCount>=2)testStats[cfg.id].atLeast2Correct++;if(correctCount>=1)testStats[cfg.id].anyCorrect++;
+            for(const [engine,read,status] of [['TESSERACT',t,ts],['PADDLEOCR',p,ps],['TROCR',r,rs]]){
+              const detail={file:testFileLabel(f),page:pn,truth:truth||'',config:cfg.id,dpi:cfg.dpi,zone:cfg.zone,deskew:cfg.deskew?'SI':'NO',prep:cfg.prep,psm:cfg.psm,engine,value:read.value||'',status,confidence:Number(read.confidence)||0,ms:Number(read.ms)||0,candidates:(read.candidates||[]).join('|'),raw:testCleanRaw(read.raw),error:read.error||''};testRows.push(detail);pageReads.push(detail);testLogReading(f,pn,cfg,engine,read,status);testRunsDone++;testUpdateProgress(totalUnits);
+            }
+            await yieldUI();
+          }
+          if(!testCancelRequested){testPagesDone++;appendTestPageSummary(f,pn,truth,pageReads);renderTestRanking();testUpdateProgress(totalUnits);}
+          cache.raw.clear();cache.deskew.clear();
+        }
+      }catch(e){testLog(`ERROR GENERAL EN ${testFileLabel(f)} · ${e?.stack||e?.message||e}`,'err');}
+      finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
+    }
+    testSection(testCancelRequested?'RESUMEN PARCIAL':'RESUMEN FINAL');renderTestRanking();
+    const ranked=Object.values(testStats).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct));
+    ranked.forEach((x,i)=>testLog(`${String(i+1).padStart(2,'0')}. ${x.cfg.id} · ${x.cfg.note} · T ${x.t.correct}/${x.t.scored} · P ${x.p.correct}/${x.p.scored} · R ${x.r.correct}/${x.r.scored} · 3/3 ${x.all3Correct} · ≥2/3 ${x.atLeast2Correct} · aciertos totales ${x.t.correct+x.p.correct+x.r.correct}`,i<3?'ok':'info'));
+    document.getElementById('testProgressText').textContent=testCancelRequested?'Prueba cancelada · resultados parciales conservados en pantalla.':'Prueba finalizada.';document.getElementById('testCurrent').textContent=testCancelRequested?'Procesando: cancelado':'Procesando: finalizado';
+    testLog(testCancelRequested?'Prueba cancelada por el usuario.':'Prueba finalizada. Revisa el ranking, el reporte y la consola completa.','ok');
+  }catch(e){console.error(e);testLog(`ERROR GENERAL DE PRUEBA · ${e?.stack||e?.message||e}`,'err');document.getElementById('testProgressText').textContent=`Error: ${e?.message||e}`;}
+  finally{
+    testRunning=false;document.getElementById('testStartBtn').disabled=false;document.getElementById('testCancelBtn').disabled=true;document.getElementById('testCopyReportBtn').disabled=testPageSummaries.length===0;document.getElementById('testExcelBtn').disabled=testPageSummaries.length===0;
+    try{await terminateOCR();}catch(e){}
+  }
+}
+
+function testReportAOA(){
+  return [['ARCHIVO','PÁG.','VERDAD','GR OCR 3/3','NOMBRE PROPUESTO','TESS ACIERTOS','PADDLE ACIERTOS','TROCR ACIERTOS','MEJOR CONFIG','RESULTADO','OBSERVACIÓN'],...testPageSummaries.map(r=>[r.file,r.page,r.truth,r.gr3,r.proposed,r.tHits,r.pHits,r.rHits,r.bestConfig,r.result,r.observation])];
+}
+async function copyTestReport(){
+  if(!testPageSummaries.length)return;const txt=testReportAOA().map(row=>row.join('\t')).join('\r\n');await copyText(txt);alert('Reporte de pruebas copiado.');
+}
+function downloadTestExcel(){
+  if(!testPageSummaries.length)return;if(typeof XLSX==='undefined'){alert('No se pudo cargar el módulo de Excel.');return;}
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.aoa_to_sheet(testReportAOA());ws1['!autofilter']={ref:ws1['!ref']};ws1['!cols']=[{wch:55},{wch:8},{wch:20},{wch:20},{wch:25},{wch:14},{wch:16},{wch:14},{wch:14},{wch:18},{wch:75}];XLSX.utils.book_append_sheet(wb,ws1,'Observaciones');
+  const rank=[['RANK','CONFIG','DPI','RECORTE','PREPROCESADO','TESS OK','PADDLE OK','TROCR OK','3/3','>=2/3','TOTAL ACIERTOS']];
+  Object.values(testStats||{}).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct)).forEach((x,i)=>rank.push([i+1,x.cfg.id,x.cfg.dpi,x.cfg.zone,x.cfg.prep,`${x.t.correct}/${x.t.scored}`,`${x.p.correct}/${x.p.scored}`,`${x.r.correct}/${x.r.scored}`,x.all3Correct,x.atLeast2Correct,x.t.correct+x.p.correct+x.r.correct]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rank),'Ranking');
+  const detailHeaders=['file','page','truth','config','dpi','zone','deskew','prep','psm','engine','value','status','confidence','ms','candidates','raw','error'];const detail=[detailHeaders,...testRows.map(r=>detailHeaders.map(k=>r[k]??''))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'DetalleLecturas');
+  const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V126_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
+  XLSX.writeFile(wb,'PRUEBASOCRV126_RESULTADOS.xlsx');
+}
+
+
 function buildAuditReport(){
   resetAuditReport();
   for(const item of historicalAuditItems)appendAuditReportItem(item);
@@ -4500,7 +4856,7 @@ function humanCorrectionKey(jobName,fileName,page){
 }
 
 function hasActiveSession(){
-  if(queueRunning||historicalAuditRunning)return true;
+  if(queueRunning||historicalAuditRunning||testRunning)return true;
   if(document.getElementById('jobReviewModal')?.classList.contains('open'))return true;
   for(const j of jobs.values()){
     if(j.files?.length||j.pages?.length||j.name||j.folder)return true;
@@ -4634,7 +4990,7 @@ function discardRecoveredSession(){
 }
 
 async function clearWorkingSession(){
-  if(queueRunning||historicalAuditRunning){logEvent('No se puede limpiar la sesión mientras hay un proceso en ejecución.','warn');return;}
+  if(queueRunning||historicalAuditRunning||testRunning){logEvent('No se puede limpiar la sesión mientras hay un proceso en ejecución.','warn');return;}
   if(hasActiveSession()&&!confirm('¿Iniciar una sesión nueva? Se eliminarán de la memoria del navegador los datos de trabajo y el autoguardado. Los archivos ya guardados en disco no se borran.'))return;
   jobs.clear();nextId=0;globalPages=0;stats={detected:0,verify:0,masters:0,errors:0};
   historicalAuditFolders=[];historicalAuditLooseFiles=[];historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditSkippedOver10=0;historicalAuditCheckpoint=null;
@@ -4775,7 +5131,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.25 · flujo V1.22 preservado · auditoría 20 variantes × 3 motores sin deduplicación","ok");
+logEvent("Sistema listo · V1.26 · V1.25 preservada · módulo de pruebas OCR 10 configuraciones × 3 motores","ok");
 addJob();
 </script>
 </body>
