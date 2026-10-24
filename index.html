@@ -459,10 +459,11 @@ th{background:#f1f3f4}
 /* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
 
-/* V1.29 · módulo aislado de pruebas OCR */
+/* V1.30 · módulo aislado de pruebas OCR */
 .testCard{padding:18px;margin-bottom:14px}
 .testTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
 .testActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.testEngineSelect{margin-top:12px;border:1px solid #d9dee4;border-radius:8px;background:#f8fafc;padding:10px 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.testEngineSelect>strong{font-size:12px}.testEngineCheck{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#202124}.testEngineCheck input{width:18px;height:18px}.testEngineHint{font-size:11px;color:#5f6368}
 .testSelected{margin-top:12px;border:1px solid #d9dee4;border-radius:8px;background:#fafafa;padding:10px;max-height:120px;overflow:auto;font-size:12px}
 .testStats{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin-top:12px}
 .testGrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
@@ -483,9 +484,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.29 · MÓDULO DE PRUEBAS OCR AISLADO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.30 · MÓDULO DE PRUEBAS OCR AISLADO</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.25 operativa preservada · módulo de pruebas independiente · 10 configuraciones × 3 motores
+    V1.25 operativa preservada · módulo de pruebas independiente · 10 configuraciones · motores seleccionables
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">DATOS DE SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -501,7 +502,7 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.29</strong>
+      <strong>NUEVA VERSIÓN V1.30</strong>
       <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -510,7 +511,7 @@ th{background:#f1f3f4}
     </button>
     <button class="modeBtn" onclick="chooseMode('test')">
       <strong>PRUEBAS OCR · 10 CONFIGURACIONES</strong>
-      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a Tesseract, PaddleOCR y PARSeq, mide aciertos verdaderos y no modifica los PDF.</span>
+      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a los motores seleccionados: Tesseract, PaddleOCR y OnnxTR (DBNet + PARSeq). Mide aciertos verdaderos y no modifica los PDF.</span>
       <span class="modeBadge">SOLO PRUEBAS</span>
     </button>
   </div>
@@ -656,7 +657,7 @@ th{background:#f1f3f4}
   <div class="card testCard">
     <div class="testTop">
       <div>
-        <h3 style="margin:0 0 4px">PRUEBAS OCR · 10 CONFIGURACIONES × 3 MOTORES</h3>
+        <h3 style="margin:0 0 4px">PRUEBAS OCR · 10 CONFIGURACIONES · MOTORES SELECCIONABLES</h3>
         <div class="muted">Módulo de calibración aislado. No renombra ni modifica archivos. La verdad del nombre se usa únicamente para puntuar después del OCR y nunca como pista para los motores.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
@@ -673,6 +674,14 @@ th{background:#f1f3f4}
       <button class="red" id="testCancelBtn" onclick="cancelOcrTest()" disabled>CANCELAR</button>
     </div>
 
+    <div class="testEngineSelect">
+      <strong>MOTORES QUE INTERVIENEN:</strong>
+      <label class="testEngineCheck"><input class="testEngineToggle" id="testEngineTess" type="checkbox" checked onchange="testEngineSelectionChanged()"> TESSERACT</label>
+      <label class="testEngineCheck"><input class="testEngineToggle" id="testEnginePaddle" type="checkbox" checked onchange="testEngineSelectionChanged()"> PADDLEOCR</label>
+      <label class="testEngineCheck"><input class="testEngineToggle" id="testEngineOnnxTR" type="checkbox" checked onchange="testEngineSelectionChanged()"> ONNXTR · DBNET + PARSEQ</label>
+      <span class="testEngineHint">Un motor desmarcado no se carga ni consume tiempo de prueba.</span>
+    </div>
+
     <div id="testSelected" class="testSelected">Ningún PDF seleccionado.</div>
 
     <div class="auditProgress">
@@ -684,7 +693,7 @@ th{background:#f1f3f4}
       <div class="auditMetric">PDF seleccionados<b id="testFilesCount">0</b></div>
       <div class="auditMetric">Páginas procesadas<b id="testPagesCount">0 / 0</b></div>
       <div class="auditMetric">Configuraciones<b>10</b></div>
-      <div class="auditMetric">Motores<b>3</b></div>
+      <div class="auditMetric">Motores activos<b id="testMotorCount">3</b></div>
       <div class="auditMetric">Lecturas OCR<b id="testRunsCount">0</b></div>
     </div>
 
@@ -692,7 +701,7 @@ th{background:#f1f3f4}
 
     <div class="auditReportHead">
       <label style="margin:0">10 CONFIGURACIONES DE PRUEBA</label>
-      <span class="small muted">Las mismas 10 imágenes se entregan a los tres motores.</span>
+      <span class="small muted">Cada configuración se entrega únicamente a los motores marcados. OnnxTR detecta texto con DBNet y reconoce los recortes con PARSeq.</span>
     </div>
     <div class="testTableWrap">
       <table class="testTable">
@@ -706,7 +715,7 @@ th{background:#f1f3f4}
         <div class="auditReportHead"><label style="margin:0">RANKING POR CONFIGURACIÓN</label></div>
         <div class="testTableWrap">
           <table class="testTable">
-            <thead><tr><th>#</th><th>CONFIG</th><th>TESS</th><th>PADDLE</th><th>PARSEQ</th><th>3/3</th><th>≥2/3</th><th>TOTAL ACIERTOS</th></tr></thead>
+            <thead><tr><th>#</th><th>CONFIG</th><th>TESS</th><th>PADDLE</th><th>ONNXTR</th><th id="testConsensusHead">3/3</th><th id="testAtLeast2Head">≥2/3</th><th>TOTAL ACIERTOS</th></tr></thead>
             <tbody id="testRankingRows"></tbody>
           </table>
         </div>
@@ -731,7 +740,7 @@ th{background:#f1f3f4}
     </div>
     <div class="testTableWrap">
       <table class="testTable" style="min-width:1500px">
-        <thead><tr><th>ARCHIVO</th><th>PÁG.</th><th>VERDAD</th><th>GR OCR 3/3</th><th>NOMBRE PROPUESTO</th><th>TESS ACIERTOS</th><th>PADDLE ACIERTOS</th><th>PARSEQ ACIERTOS</th><th>MEJOR CONFIG</th><th>RESULTADO</th><th>OBSERVACIÓN</th></tr></thead>
+        <thead><tr><th>ARCHIVO</th><th>PÁG.</th><th>VERDAD</th><th>GR OCR CONSENSO</th><th>NOMBRE PROPUESTO</th><th>TESS ACIERTOS</th><th>PADDLE ACIERTOS</th><th>ONNXTR ACIERTOS</th><th>MEJOR CONFIG</th><th>RESULTADO</th><th>OBSERVACIÓN</th></tr></thead>
         <tbody id="testReportRows"></tbody>
       </table>
     </div>
@@ -955,7 +964,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.29</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.30</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -2630,7 +2639,8 @@ function chooseMode(mode){
     document.getElementById('testArea').style.display='block';
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
-    testLog('Módulo de pruebas OCR V1.29 · 10 configuraciones × 3 motores · Tesseract + PaddleOCR + PARSeq · solo calibración','ok');
+    testEngineSelectionChanged();
+    testLog('Módulo de pruebas OCR V1.30 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR (DBNet + PARSeq) · motores seleccionables','ok');
     return;
   }
 
@@ -2642,7 +2652,7 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.29 · flujo operativo preservado · módulo de pruebas aislado','info');
+  logEvent('Modo NUEVA V1.30 · flujo operativo preservado · módulo de pruebas aislado','info');
 }
 
 function backToModes(){
@@ -4000,11 +4010,11 @@ async function startHistoricalAudit(){
 
 
 // ============================================================
-// V1.29 · MÓDULO AISLADO DE PRUEBAS OCR
+// V1.30 · MÓDULO AISLADO DE PRUEBAS OCR
 // 10 configuraciones candidatas × Tesseract + PaddleOCR + PARSeq.
 // No modifica ni renombra archivos. La verdad del nombre solo puntúa.
 // ============================================================
-const TEST_V129_CONFIGS=[
+const TEST_V130_CONFIGS=[
   {id:'P01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',origin:'CONTROL HISTÓRICO',note:'300 DPI · recorte legacy · RAW'},
   {id:'P02',dpi:300,zone:'legacy',deskew:true, prep:'optimized',psm:'6',origin:'HISTÓRICA OPTIMIZADA',note:'300 DPI · legacy · enderezado + optimized'},
   {id:'P03',dpi:400,zone:'legacy',deskew:true, prep:'raw',psm:'6',origin:'HISTÓRICA',note:'400 DPI · legacy · enderezado RAW'},
@@ -4026,6 +4036,26 @@ let testStats=null;
 let testTotalPages=0;
 let testPagesDone=0;
 let testRunsDone=0;
+let testActiveEngines=['TESSERACT','PADDLEOCR','ONNXTR'];
+const TEST_ENGINE_META={
+  TESSERACT:{key:'t',label:'TESSERACT',check:'testEngineTess'},
+  PADDLEOCR:{key:'p',label:'PADDLEOCR',check:'testEnginePaddle'},
+  ONNXTR:{key:'r',label:'ONNXTR',check:'testEngineOnnxTR'}
+};
+function testSelectedEngines(){
+  return Object.entries(TEST_ENGINE_META).filter(([engine,m])=>document.getElementById(m.check)?.checked).map(([engine])=>engine);
+}
+function testEngineSelectionChanged(){
+  if(testRunning)return;
+  const selected=testSelectedEngines();
+  document.getElementById('testMotorCount').textContent=selected.length;
+  document.getElementById('testConsensusHead').textContent=selected.length?`${selected.length}/${selected.length}`:'—';
+  document.getElementById('testAtLeast2Head').textContent=selected.length>=2?`≥2/${selected.length}`:selected.length===1?'1/1':'—';
+}
+function testSetEngineChecksDisabled(disabled){document.querySelectorAll('.testEngineToggle').forEach(x=>x.disabled=!!disabled);}
+function testEngineSelected(engine){return testActiveEngines.includes(engine);}
+function testEngineKey(engine){return TEST_ENGINE_META[engine]?.key||'';}
+function testEngineLabel(engine){return TEST_ENGINE_META[engine]?.label||engine;}
 
 function testFileLabel(f){return String(f?.webkitRelativePath||f?.name||'PDF');}
 function testAddFiles(files){
@@ -4053,7 +4083,7 @@ function renderTestSelection(){
 function renderTestConfigTable(){
   const body=document.getElementById('testConfigRows');if(!body)return;
   body.innerHTML='';
-  for(const c of TEST_V129_CONFIGS){
+  for(const c of TEST_V130_CONFIGS){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${esc(c.zone.toUpperCase())}</td><td>${c.deskew?'AUTO':'NO'}</td><td>${esc(c.prep.toUpperCase())}</td><td>${c.psm}</td><td><b>${esc(c.origin)}</b><br>${esc(c.note)}</td>`;
     body.appendChild(tr);
@@ -4067,7 +4097,7 @@ function testLog(msg,type='info'){
 function testSection(msg){const box=document.getElementById('testConsoleBox');if(!box)return;const line=document.createElement('div');line.className='section';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
 function clearTestConsole(){const b=document.getElementById('testConsoleBox');if(b)b.innerHTML='';}
 async function copyTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'';await copyText(txt);alert('Consola de pruebas copiada.');}
-function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV129_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV130_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
 function testFindTruth(name,page=1){
   const base=String(name||'').replace(/\.pdf$/i,'');const lower=base.toLowerCase();
@@ -4080,7 +4110,7 @@ function testFindTruth(name,page=1){
   }
   if(vi>=0){
     const tail=base.slice(vi+truthMarker.length);
-    const pageRe=new RegExp(`pag(?:ina)?\s*${Number(page)}[^A-Z0-9]*(T[A-Z0-9]+-\d+)`,'i');
+    const pageRe=new RegExp(`pag(?:ina)?\\s*${Number(page)}[^A-Z0-9]*(T[A-Z0-9]+-\\d+)`,'i');
     const pm=tail.match(pageRe);if(pm)return pm[1].toUpperCase();
     const c=findCandidates(tail);if(c.length)return c[0];
   }
@@ -4088,7 +4118,7 @@ function testFindTruth(name,page=1){
   if(ei>=0){const head=base.slice(0,ei),c=findCandidates(head);if(c.length)return c[0];}
   return null;
 }
-// V1.29 · normalización exclusiva del MÓDULO DE PRUEBAS (heredada de V1.28).
+// V1.30 · normalización exclusiva del MÓDULO DE PRUEBAS (heredada de V1.28).
 // Corrige V1.27: NO elimina todos los espacios de toda la cadena.
 // Solo admite espacios DENTRO de una GR candidata o alrededor del guion.
 // Así, "T596 - 00023081" => "T596-00023081", pero
@@ -4147,23 +4177,57 @@ function testStatusShort(s){return s==='CORRECTO'?'OK':s==='ERROR'?'ERROR':s==='
 function testStatusType(s){return s==='CORRECTO'?'ok':s==='ERROR'?'err':'warn';}
 function testCleanRaw(v){return String(v??'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim();}
 function testEmptyBucket(){return {scored:0,correct:0,amb:0,wrong:0,none:0,noTruth:0,ms:0,conf:0,confN:0};}
-function makeTestStats(){const out={};for(const c of TEST_V129_CONFIGS)out[c.id]={cfg:c,t:testEmptyBucket(),p:testEmptyBucket(),r:testEmptyBucket(),all3Correct:0,atLeast2Correct:0,anyCorrect:0};return out;}
+function makeTestStats(){const out={};for(const c of TEST_V130_CONFIGS)out[c.id]={cfg:c,t:testEmptyBucket(),p:testEmptyBucket(),r:testEmptyBucket(),allSelectedCorrect:0,atLeast2Correct:0,anyCorrect:0};return out;}
 function testBump(bucket,status,read){
   if(status==='SIN_VERDAD')bucket.noTruth++;else{bucket.scored++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else bucket.none++;}
   bucket.ms+=Number(read?.ms)||0;const conf=Number(read?.confidence);if(Number.isFinite(conf)){bucket.conf+=conf;bucket.confN++;}
 }
-// V1.29 · PARSeq ONNX (OnnxTR) · tercer motor experimental independiente.
-// Modelo completo: Felix92/onnxtr-parseq (Apache-2.0).
-// Entrada oficial: RGB 3×32×128. La misma imagen P01-P10 se entrega a los tres motores;
-// PARSeq solo aplica su resize/padding/normalización obligatorios, sin conocer la verdad del nombre.
+// V1.30 · ONNXTR COMPLETO EN NAVEGADOR · DBNet MobileNet V3 Large + PARSeq.
+// DBNet localiza texto de forma independiente; PARSeq reconoce los recortes detectados.
+// La verdad humana del nombre NO participa en detección ni reconocimiento: solo puntúa después.
 let testParseqOrt=null;
 let testParseqSession=null;
 let testParseqInitPromise=null;
 let testParseqLastError=null;
+let testOnnxTRDetectorSession=null;
+let testOnnxTRInitPromise=null;
+let testOnnxTRLastError=null;
+let testOpenCVPromise=null;
+let testCV=null;
 const TEST_PARSEQ_MODEL='https://huggingface.co/Felix92/onnxtr-parseq/resolve/main/model.onnx';
+const TEST_ONNXTR_DET_MODEL='https://huggingface.co/Felix92/onnxtr-db-mobilenet-v3-large/resolve/main/model.onnx';
 const TEST_PARSEQ_VOCAB=`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\\]^_\`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ`;
 const TEST_PARSEQ_MEAN=[0.694,0.695,0.693];
 const TEST_PARSEQ_STD=[0.299,0.296,0.301];
+const TEST_DB_MEAN=[0.798,0.785,0.772];
+const TEST_DB_STD=[0.264,0.2749,0.287];
+const TEST_DB_SIZE=1024;
+const TEST_DB_BIN_THRESH=0.30;
+const TEST_DB_BOX_THRESH=0.10;
+
+async function testGetOpenCV(){
+  if(window.cv?.Mat)return window.cv;
+  if(testOpenCVPromise)return testOpenCVPromise;
+  testOpenCVPromise=new Promise((resolve,reject)=>{
+    const finish=async()=>{
+      try{
+        let c=window.cv;
+        if(c&&typeof c.then==='function')c=await c;
+        const limit=Date.now()+30000;
+        while((!c||!c.Mat)&&Date.now()<limit){await new Promise(r=>setTimeout(r,100));c=window.cv;if(c&&typeof c.then==='function')c=await c;}
+        if(!c?.Mat)throw new Error('OpenCV.js no terminó de inicializar.');
+        testCV=c;resolve(c);
+      }catch(e){reject(e);}
+    };
+    let script=document.querySelector('script[data-test-opencv="1"]');
+    if(script){finish();return;}
+    script=document.createElement('script');script.dataset.testOpencv='1';script.async=true;
+    script.src='https://docs.opencv.org/4.10.0/opencv.js';
+    script.onload=finish;script.onerror=()=>reject(new Error('No se pudo cargar OpenCV.js para DBNet.'));
+    document.head.appendChild(script);
+  });
+  return testOpenCVPromise;
+}
 
 async function testGetPARSeq(){
   if(testParseqSession)return testParseqSession;
@@ -4172,24 +4236,32 @@ async function testGetPARSeq(){
   testParseqInitPromise=(async()=>{
     const ort=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.min.mjs');
     testParseqOrt=ort;
-    try{
-      ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/';
-      ort.env.wasm.numThreads=1;
-      ort.env.wasm.simd=true;
-    }catch(e){}
+    try{ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/';ort.env.wasm.numThreads=1;ort.env.wasm.simd=true;}catch(e){}
     testParseqSession=await ort.InferenceSession.create(TEST_PARSEQ_MODEL,{executionProviders:['wasm'],graphOptimizationLevel:'all'});
     testParseqLastError=null;
-    testLog(`PARSeq ONNX cargado · entrada=${testParseqSession.inputNames.join(',')} · salida=${testParseqSession.outputNames.join(',')}`,'ok');
+    testLog(`PARSeq cargado · entrada=${testParseqSession.inputNames.join(',')} · salida=${testParseqSession.outputNames.join(',')}`,'ok');
     return testParseqSession;
-  })().catch(err=>{
-    testParseqLastError=err?.message||String(err);
-    testLog(`PARSeq NO DISPONIBLE · ${testParseqLastError}`,'err');
-    throw err;
-  }).finally(()=>{testParseqInitPromise=null;});
+  })().catch(err=>{testParseqLastError=err?.message||String(err);testLog(`PARSeq NO DISPONIBLE · ${testParseqLastError}`,'err');throw err;}).finally(()=>{testParseqInitPromise=null;});
   return testParseqInitPromise;
 }
 
-function testPARSeqTensorFromCanvas(source){
+async function testGetOnnxTR(){
+  if(testOnnxTRDetectorSession&&testParseqSession)return {detector:testOnnxTRDetectorSession,recognizer:testParseqSession};
+  if(testOnnxTRLastError)throw new Error(testOnnxTRLastError);
+  if(testOnnxTRInitPromise)return testOnnxTRInitPromise;
+  testOnnxTRInitPromise=(async()=>{
+    await Promise.all([testGetPARSeq(),testGetOpenCV()]);
+    const ort=testParseqOrt;
+    testLog('Cargando DBNet MobileNet V3 Large de OnnxTR…','info');
+    testOnnxTRDetectorSession=await ort.InferenceSession.create(TEST_ONNXTR_DET_MODEL,{executionProviders:['wasm'],graphOptimizationLevel:'all'});
+    testOnnxTRLastError=null;
+    testLog(`OnnxTR DBNet cargado · entrada=${testOnnxTRDetectorSession.inputNames.join(',')} · salida=${testOnnxTRDetectorSession.outputNames.join(',')}`,'ok');
+    return {detector:testOnnxTRDetectorSession,recognizer:testParseqSession};
+  })().catch(err=>{testOnnxTRLastError=err?.message||String(err);testLog(`ONNXTR NO DISPONIBLE · ${testOnnxTRLastError}`,'err');throw err;}).finally(()=>{testOnnxTRInitPromise=null;});
+  return testOnnxTRInitPromise;
+}
+
+function testPARSeqArrayFromCanvas(source){
   const W=128,H=32,c=document.createElement('canvas');c.width=W;c.height=H;
   const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
   const sw=Math.max(1,source.width||1),sh=Math.max(1,source.height||1),scale=Math.min(W/sw,H/sh);
@@ -4202,37 +4274,146 @@ function testPARSeqTensorFromCanvas(source){
     out[plane+i]=((rgba[j+1]/255)-TEST_PARSEQ_MEAN[1])/TEST_PARSEQ_STD[1];
     out[2*plane+i]=((rgba[j+2]/255)-TEST_PARSEQ_MEAN[2])/TEST_PARSEQ_STD[2];
   }
-  return new testParseqOrt.Tensor('float32',out,[1,3,H,W]);
+  return out;
 }
-
-function testPARSeqDecode(tensor){
+function testPARSeqTensorFromCanvas(source){return new testParseqOrt.Tensor('float32',testPARSeqArrayFromCanvas(source),[1,3,32,128]);}
+function testPARSeqBatchTensor(canvases){
+  const sample=3*32*128,out=new Float32Array(canvases.length*sample);
+  canvases.forEach((c,i)=>out.set(testPARSeqArrayFromCanvas(c),i*sample));
+  return new testParseqOrt.Tensor('float32',out,[canvases.length,3,32,128]);
+}
+function testPARSeqDecodeBatch(tensor){
   const dims=tensor?.dims||[],data=tensor?.data||[],vocab=Array.from(TEST_PARSEQ_VOCAB),expected=vocab.length+3,eos=vocab.length;
   if(dims.length!==3)throw new Error(`Salida PARSeq inesperada: ${JSON.stringify(dims)}`);
-  let seqLen,classes,at;
-  if(dims[2]===expected){seqLen=dims[1];classes=dims[2];at=(t,c)=>data[t*classes+c];}
-  else if(dims[1]===expected){classes=dims[1];seqLen=dims[2];at=(t,c)=>data[c*seqLen+t];}
-  else{seqLen=dims[1];classes=dims[2];at=(t,c)=>data[t*classes+c];}
-  let word='',sum=0,n=0;
-  for(let t=0;t<seqLen;t++){
-    let best=0,max=-Infinity;
-    for(let c=0;c<classes;c++){const v=Number(at(t,c));if(v>max){max=v;best=c;}}
-    let denom=0;for(let c=0;c<classes;c++)denom+=Math.exp(Number(at(t,c))-max);
-    const prob=denom?1/denom:0;
-    if(best===eos)break;
-    if(best>=0&&best<vocab.length){word+=vocab[best];sum+=prob;n++;}
+  const batch=Number(dims[0])||1;let seqLen,classes,get;
+  if(dims[2]===expected){seqLen=dims[1];classes=dims[2];get=(b,t,c)=>data[(b*seqLen+t)*classes+c];}
+  else if(dims[1]===expected){classes=dims[1];seqLen=dims[2];get=(b,t,c)=>data[(b*classes+c)*seqLen+t];}
+  else{seqLen=dims[1];classes=dims[2];get=(b,t,c)=>data[(b*seqLen+t)*classes+c];}
+  const out=[];
+  for(let b=0;b<batch;b++){
+    let word='',sum=0,n=0;
+    for(let t=0;t<seqLen;t++){
+      let best=0,max=-Infinity;
+      for(let c=0;c<classes;c++){const v=Number(get(b,t,c));if(v>max){max=v;best=c;}}
+      let denom=0;for(let c=0;c<classes;c++)denom+=Math.exp(Number(get(b,t,c))-max);
+      const prob=denom?1/denom:0;
+      if(best===eos)break;
+      if(best>=0&&best<vocab.length){word+=vocab[best];sum+=prob;n++;}
+    }
+    out.push({text:word,confidence:n?(sum/n)*100:0,dims});
   }
-  return {text:word,confidence:n?(sum/n)*100:0,dims};
+  return out;
 }
-
+function testPARSeqDecode(tensor){return testPARSeqDecodeBatch(tensor)[0]||{text:'',confidence:0,dims:tensor?.dims||[]};}
+async function testPARSeqBatchRecognize(canvases){
+  if(!canvases.length)return [];
+  const session=await testGetPARSeq(),results=[],chunkSize=24;
+  for(let i=0;i<canvases.length;i+=chunkSize){
+    const chunk=canvases.slice(i,i+chunkSize);
+    try{
+      const tensor=testPARSeqBatchTensor(chunk),outputs=await session.run({[session.inputNames[0]]:tensor}),decoded=testPARSeqDecodeBatch(outputs[session.outputNames[0]]);
+      results.push(...decoded);
+    }catch(batchErr){
+      for(const c of chunk){
+        const tensor=testPARSeqTensorFromCanvas(c),outputs=await session.run({[session.inputNames[0]]:tensor});
+        results.push(testPARSeqDecode(outputs[session.outputNames[0]]));
+      }
+    }
+  }
+  return results;
+}
 async function testReadPARSeq(image){
   const t0=performance.now();
-  try{
-    const session=await testGetPARSeq(),tensor=testPARSeqTensorFromCanvas(image),inputName=session.inputNames[0];
-    const outputs=await session.run({[inputName]:tensor}),out=outputs[session.outputNames[0]],decoded=testPARSeqDecode(out);
-    return testNormalizeEngineRead({value:null,candidates:[],raw:String(decoded.text||''),confidence:decoded.confidence,ms:performance.now()-t0,error:null});
-  }catch(e){
-    return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});
+  try{const decoded=(await testPARSeqBatchRecognize([image]))[0]||{text:'',confidence:0};return testNormalizeEngineRead({value:null,candidates:[],raw:String(decoded.text||''),confidence:decoded.confidence,ms:performance.now()-t0,error:null});}
+  catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});}
+}
+
+function testOnnxTRDetectorTensorFromCanvas(source){
+  const S=TEST_DB_SIZE,c=document.createElement('canvas');c.width=S;c.height=S;
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#000';ctx.fillRect(0,0,S,S);
+  const sw=Math.max(1,source.width||1),sh=Math.max(1,source.height||1),scale=Math.min(S/sw,S/sh);
+  const dw=Math.max(1,Math.round(sw*scale)),dh=Math.max(1,Math.round(sh*scale));
+  const dx=Math.ceil((S-dw)/2),dy=Math.ceil((S-dh)/2);
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,0,0,sw,sh,dx,dy,dw,dh);
+  const rgba=ctx.getImageData(0,0,S,S).data,out=new Float32Array(3*S*S),plane=S*S;
+  for(let i=0;i<plane;i++){
+    const j=i*4;
+    out[i]=((rgba[j]/255)-TEST_DB_MEAN[0])/TEST_DB_STD[0];
+    out[plane+i]=((rgba[j+1]/255)-TEST_DB_MEAN[1])/TEST_DB_STD[1];
+    out[2*plane+i]=((rgba[j+2]/255)-TEST_DB_MEAN[2])/TEST_DB_STD[2];
   }
+  return {tensor:new testParseqOrt.Tensor('float32',out,[1,3,S,S]),meta:{sourceW:sw,sourceH:sh,scale,dx,dy,size:S}};
+}
+function testOnnxTRProbMap(tensor){
+  const dims=(tensor?.dims||[]).map(Number),data=tensor?.data||[];
+  if(dims.length!==4)throw new Error(`Salida DBNet inesperada: ${JSON.stringify(dims)}`);
+  let h,w,at;
+  if(dims[1]===1){h=dims[2];w=dims[3];at=(y,x)=>Number(data[y*w+x]);}
+  else if(dims[3]===1){h=dims[1];w=dims[2];at=(y,x)=>Number(data[(y*w+x)]);}
+  else throw new Error(`Canales DBNet inesperados: ${JSON.stringify(dims)}`);
+  const prob=new Float32Array(h*w);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const v=at(y,x);prob[y*w+x]=1/(1+Math.exp(-v));}
+  return {width:w,height:h,prob,dims};
+}
+function testOnnxTRRectMean(prob,w,h,r){
+  const x0=Math.max(0,Math.floor(r.x)),y0=Math.max(0,Math.floor(r.y)),x1=Math.min(w-1,Math.ceil(r.x+r.width)),y1=Math.min(h-1,Math.ceil(r.y+r.height));
+  let sum=0,n=0;for(let y=y0;y<=y1;y++){let off=y*w+x0;for(let x=x0;x<=x1;x++,off++){sum+=prob[off];n++;}}
+  return n?sum/n:0;
+}
+function testOnnxTRBoxIoU(a,b){
+  const x1=Math.max(a.x1,b.x1),y1=Math.max(a.y1,b.y1),x2=Math.min(a.x2,b.x2),y2=Math.min(a.y2,b.y2),iw=Math.max(0,x2-x1),ih=Math.max(0,y2-y1),inter=iw*ih;
+  const aa=Math.max(0,a.x2-a.x1)*Math.max(0,a.y2-a.y1),bb=Math.max(0,b.x2-b.x1)*Math.max(0,b.y2-b.y1);return inter/Math.max(1,aa+bb-inter);
+}
+function testOnnxTRPostprocess(probInfo,meta){
+  const cv=testCV||window.cv, {width:w,height:h,prob}=probInfo;
+  const binary=new cv.Mat(h,w,cv.CV_8UC1);for(let i=0;i<prob.length;i++)binary.data[i]=prob[i]>=TEST_DB_BIN_THRESH?255:0;
+  const opened=new cv.Mat(),kernel=cv.Mat.ones(3,3,cv.CV_8U),contours=new cv.MatVector(),hierarchy=new cv.Mat();
+  const boxes=[];
+  try{
+    cv.morphologyEx(binary,opened,cv.MORPH_OPEN,kernel);cv.findContours(opened,contours,hierarchy,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
+    for(let i=0;i<contours.size();i++){
+      const cnt=contours.get(i);try{
+        const rect=cv.boundingRect(cnt);if(rect.width<2||rect.height<2)continue;
+        const score=testOnnxTRRectMean(prob,w,h,rect);if(score<TEST_DB_BOX_THRESH)continue;
+        const area=Math.max(1,Math.abs(cv.contourArea(cnt,false))),per=Math.max(1,cv.arcLength(cnt,true)),dist=area*1.5/per;
+        let mx1=Math.max(0,rect.x-dist),my1=Math.max(0,rect.y-dist),mx2=Math.min(w,rect.x+rect.width+dist),my2=Math.min(h,rect.y+rect.height+dist);
+        const px1=mx1*meta.size/w,py1=my1*meta.size/h,px2=mx2*meta.size/w,py2=my2*meta.size/h;
+        let x1=(px1-meta.dx)/meta.scale,y1=(py1-meta.dy)/meta.scale,x2=(px2-meta.dx)/meta.scale,y2=(py2-meta.dy)/meta.scale;
+        x1=Math.max(0,Math.min(meta.sourceW,x1));x2=Math.max(0,Math.min(meta.sourceW,x2));y1=Math.max(0,Math.min(meta.sourceH,y1));y2=Math.max(0,Math.min(meta.sourceH,y2));
+        if(x2-x1<4||y2-y1<4)continue;boxes.push({x1,y1,x2,y2,score});
+      }finally{cnt.delete();}
+    }
+  }finally{binary.delete();opened.delete();kernel.delete();contours.delete();hierarchy.delete();}
+  boxes.sort((a,b)=>b.score-a.score);const kept=[];for(const b of boxes){if(!kept.some(k=>testOnnxTRBoxIoU(k,b)>0.88))kept.push(b);if(kept.length>=60)break;}
+  kept.sort((a,b)=>Math.abs(a.y1-b.y1)>6?a.y1-b.y1:a.x1-b.x1);return kept;
+}
+function testOnnxTRCropCanvas(source,b,pad=2){
+  const x1=Math.max(0,Math.floor(b.x1-pad)),y1=Math.max(0,Math.floor(b.y1-pad)),x2=Math.min(source.width,Math.ceil(b.x2+pad)),y2=Math.min(source.height,Math.ceil(b.y2+pad));
+  const w=Math.max(1,x2-x1),h=Math.max(1,y2-y1),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(source,x1,y1,w,h,0,0,w,h);return c;
+}
+function testOnnxTRCandidateCrops(source,boxes){
+  const specs=[],seen=new Set();
+  const add=b=>{const x1=Math.max(0,b.x1),y1=Math.max(0,b.y1),x2=Math.min(source.width,b.x2),y2=Math.min(source.height,b.y2);if(x2-x1<4||y2-y1<4)return;const key=[Math.round(x1/2),Math.round(y1/2),Math.round(x2/2),Math.round(y2/2)].join(':');if(seen.has(key))return;seen.add(key);specs.push({x1,y1,x2,y2});};
+  boxes.forEach(add);
+  for(let i=0;i<boxes.length;i++){
+    const a=boxes[i],ah=a.y2-a.y1,acy=(a.y1+a.y2)/2;
+    for(let j=i+1;j<Math.min(boxes.length,i+5);j++){
+      const b=boxes[j],bh=b.y2-b.y1,bcy=(b.y1+b.y2)/2,maxh=Math.max(ah,bh),gap=Math.max(0,b.x1-a.x2);
+      if(Math.abs(acy-bcy)>maxh*0.55||gap>maxh*2.6)continue;
+      add({x1:Math.min(a.x1,b.x1),y1:Math.min(a.y1,b.y1),x2:Math.max(a.x2,b.x2),y2:Math.max(a.y2,b.y2)});
+    }
+  }
+  return specs.slice(0,90).map(b=>testOnnxTRCropCanvas(source,b,2));
+}
+async function testReadOnnxTR(image){
+  const t0=performance.now();
+  try{
+    const {detector}=await testGetOnnxTR(),detInput=testOnnxTRDetectorTensorFromCanvas(image),outputs=await detector.run({[detector.inputNames[0]]:detInput.tensor});
+    const probInfo=testOnnxTRProbMap(outputs[detector.outputNames[0]]),boxes=testOnnxTRPostprocess(probInfo,detInput.meta),crops=testOnnxTRCandidateCrops(image,boxes);
+    if(!crops.length)return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:null,detectedBoxes:boxes.length,recognizedCrops:0});
+    const rec=await testPARSeqBatchRecognize(crops),raws=rec.map(x=>String(x.text||'').trim()).filter(Boolean),raw=raws.join(' | '),confidence=rec.reduce((m,x)=>Math.max(m,Number(x.confidence)||0),0);
+    return testNormalizeEngineRead({value:null,candidates:[],raw,confidence,ms:performance.now()-t0,error:null,detectedBoxes:boxes.length,recognizedCrops:crops.length});
+  }catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e),detectedBoxes:0,recognizedCrops:0});}
 }
 
 async function testReadTesseract(image,cfg){const t0=performance.now();try{const r=await recognizeCrop(image,cfg.psm,null);return testNormalizeEngineRead({...r,ms:performance.now()-t0});}catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e)});}}
@@ -4240,40 +4421,48 @@ async function testReadPaddle(image){const t0=performance.now();try{const r=awai
 
 function testLogReading(file,pn,cfg,engine,read,status){
   const conf=Number.isFinite(Number(read?.confidence))?Number(read.confidence).toFixed(1):'N/D';
-  testLog(`${testFileLabel(file)} · pág ${pn} · ${cfg.id} ${cfg.dpi}DPI ${cfg.zone.toUpperCase()} ${cfg.prep.toUpperCase()} · ${engine}=${read?.value||'-'} [${testStatusShort(status)}] · conf=${conf} · ms=${Math.round(Number(read?.ms)||0)} · cand=${(read?.candidates||[]).join(',')||'-'}${read?.error?' · ERROR MOTOR='+read.error:''} · RAW="${testCleanRaw(read?.raw)}"`,testStatusType(status));
+  const det=engine==='ONNXTR'?` · cajas=${Number(read?.detectedBoxes)||0} · recortes=${Number(read?.recognizedCrops)||0}`:'';
+  testLog(`${testFileLabel(file)} · pág ${pn} · ${cfg.id} ${cfg.dpi}DPI ${cfg.zone.toUpperCase()} ${cfg.prep.toUpperCase()} · ${engine}=${read?.value||'-'} [${testStatusShort(status)}] · conf=${conf} · ms=${Math.round(Number(read?.ms)||0)} · cand=${(read?.candidates||[]).join(',')||'-'}${det}${read?.error?' · ERROR MOTOR='+read.error:''} · RAW="${testCleanRaw(read?.raw)}"`,testStatusType(status));
 }
 function testBestHits(pageReads,engine,truth){return pageReads.filter(x=>x.engine===engine&&truth&&x.value===truth);}
+function testStatTotal(x){return testActiveEngines.reduce((n,e)=>n+x[testEngineKey(e)].correct,0);}
+function testStatWrong(x){return testActiveEngines.reduce((n,e)=>n+x[testEngineKey(e)].wrong,0);}
 function testBestConfigSummary(pageReads,truth){
   let best=null;
-  for(const c of TEST_V129_CONFIGS){
+  for(const c of TEST_V130_CONFIGS){
     const rs=pageReads.filter(x=>x.config===c.id);const correct=rs.filter(x=>truth&&x.value===truth).length;const totalMs=rs.reduce((n,x)=>n+(Number(x.ms)||0),0);
     if(!best||correct>best.correct||(correct===best.correct&&totalMs<best.totalMs))best={id:c.id,correct,totalMs};
   }
   return best||{id:'-',correct:0,totalMs:0};
 }
-function testThreeOfThree(pageReads,truth){
-  if(!truth)return null;
-  for(const c of TEST_V129_CONFIGS){const rs=pageReads.filter(x=>x.config===c.id);if(rs.length===3&&rs.every(x=>x.value===truth))return {config:c.id,value:truth};}
+function testAllSelectedConsensus(pageReads,truth){
+  if(!truth||!testActiveEngines.length)return null;
+  for(const c of TEST_V130_CONFIGS){
+    const rs=pageReads.filter(x=>x.config===c.id&&testActiveEngines.includes(x.engine));
+    if(rs.length===testActiveEngines.length&&rs.every(x=>x.value===truth))return {config:c.id,value:truth};
+  }
   return null;
 }
 function appendTestPageSummary(file,pn,truth,pageReads){
-  const tHits=testBestHits(pageReads,'TESSERACT',truth),pHits=testBestHits(pageReads,'PADDLEOCR',truth),rHits=testBestHits(pageReads,'PARSEQ',truth);
-  const best=testBestConfigSummary(pageReads,truth),all3=testThreeOfThree(pageReads,truth);
-  const maxCorrect=best.correct;const result=!truth?'SIN VERDAD':maxCorrect===3?'3/3 ENCONTRADO':maxCorrect===2?'2/3 MÁXIMO':maxCorrect===1?'1/3 MÁXIMO':'0/3';
-  const obs=!truth?'El archivo no contiene marcador “verdadero”, “verdero” ni “estabien”; se registran lecturas pero no puntúa.':`Tesseract ${tHits.length}/10 · PaddleOCR ${pHits.length}/10 · PARSeq ${rHits.length}/10 · mejor coincidencia simultánea ${best.id}: ${best.correct}/3.`;
-  const row={file:testFileLabel(file),page:pn,truth:truth||'',gr3:all3?.value||'',proposed:all3?`${all3.value}.pdf`:'',tHits:tHits.length,pHits:pHits.length,rHits:rHits.length,bestConfig:best.id,result,observation:obs};
+  const hitMap={};for(const e of ['TESSERACT','PADDLEOCR','ONNXTR'])hitMap[e]=testEngineSelected(e)?testBestHits(pageReads,e,truth):null;
+  const best=testBestConfigSummary(pageReads,truth),consensus=testAllSelectedConsensus(pageReads,truth),den=testActiveEngines.length;
+  const maxCorrect=best.correct;const result=!truth?'SIN VERDAD':maxCorrect===den?`${den}/${den} ENCONTRADO`:`${maxCorrect}/${den} MÁXIMO`;
+  const obs=!truth?'El archivo no contiene marcador “verdadero”, “verdero” ni “estabien”; se registran lecturas pero no puntúa.':`${testActiveEngines.map(e=>`${testEngineLabel(e)} ${hitMap[e].length}/10`).join(' · ')} · mejor coincidencia simultánea ${best.id}: ${best.correct}/${den}.`;
+  const row={file:testFileLabel(file),page:pn,truth:truth||'',gr3:consensus?.value||'',proposed:consensus?`${consensus.value}.pdf`:'',tHits:hitMap.TESSERACT?.length??null,pHits:hitMap.PADDLEOCR?.length??null,rHits:hitMap.ONNXTR?.length??null,bestConfig:best.id,result,observation:obs};
   testPageSummaries.push(row);
-  const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(row.file)}</td><td>${pn}</td><td>${esc(row.truth||'N/D')}</td><td>${esc(row.gr3||'-')}</td><td>${esc(row.proposed||'-')}</td><td>${row.tHits}/10</td><td>${row.pHits}/10</td><td>${row.rHits}/10</td><td><b>${esc(row.bestConfig)}</b></td><td>${esc(row.result)}</td><td>${esc(row.observation)}</td>`;document.getElementById('testReportRows').appendChild(tr);
+  const show=v=>v===null?'—':`${v}/10`;
+  const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(row.file)}</td><td>${pn}</td><td>${esc(row.truth||'N/D')}</td><td>${esc(row.gr3||'-')}</td><td>${esc(row.proposed||'-')}</td><td>${show(row.tHits)}</td><td>${show(row.pHits)}</td><td>${show(row.rHits)}</td><td><b>${esc(row.bestConfig)}</b></td><td>${esc(row.result)}</td><td>${esc(row.observation)}</td>`;document.getElementById('testReportRows').appendChild(tr);
 }
 function renderTestRanking(){
   if(!testStats)return;
-  const ranked=Object.values(testStats).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct)||a.t.wrong+a.p.wrong+a.r.wrong-(b.t.wrong+b.p.wrong+b.r.wrong));
+  const ranked=Object.values(testStats).sort((a,b)=>b.allSelectedCorrect-a.allSelectedCorrect||b.atLeast2Correct-a.atLeast2Correct||testStatTotal(b)-testStatTotal(a)||testStatWrong(a)-testStatWrong(b));
   const body=document.getElementById('testRankingRows');body.innerHTML='';
-  ranked.forEach((x,i)=>{const tr=document.createElement('tr');if(i<3)tr.className='testRankGood';tr.innerHTML=`<td>${i+1}</td><td><b>${x.cfg.id}</b><br>${esc(x.cfg.zone)} / ${x.cfg.prep}</td><td>${x.t.correct}/${x.t.scored}</td><td>${x.p.correct}/${x.p.scored}</td><td>${x.r.correct}/${x.r.scored}</td><td>${x.all3Correct}</td><td>${x.atLeast2Correct}</td><td>${x.t.correct+x.p.correct+x.r.correct}</td>`;body.appendChild(tr);});
+  const disp=(x,e)=>{if(!testEngineSelected(e))return '—';const b=x[testEngineKey(e)];return `${b.correct}/${b.scored}`;};
+  ranked.forEach((x,i)=>{const tr=document.createElement('tr');if(i<3)tr.className='testRankGood';tr.innerHTML=`<td>${i+1}</td><td><b>${x.cfg.id}</b><br>${esc(x.cfg.zone)} / ${x.cfg.prep}</td><td>${disp(x,'TESSERACT')}</td><td>${disp(x,'PADDLEOCR')}</td><td>${disp(x,'ONNXTR')}</td><td>${x.allSelectedCorrect}</td><td>${x.atLeast2Correct}</td><td>${testStatTotal(x)}</td>`;body.appendChild(tr);});
   const eb=document.getElementById('testEngineRows');eb.innerHTML='';
-  for(const [key,label] of [['t','TESSERACT'],['p','PADDLEOCR'],['r','PARSEQ']]){
-    const arr=Object.values(testStats).slice().sort((a,b)=>b[key].correct-a[key].correct||a[key].wrong-b[key].wrong||a[key].none-b[key].none||a[key].ms-b[key].ms);const x=arr[0],b=x[key],avg=b.scored+b.noTruth?b.ms/(b.scored+b.noTruth):0;
-    const tr=document.createElement('tr');tr.innerHTML=`<td><b>${label}</b></td><td>${x.cfg.id} · ${esc(x.cfg.note)}</td><td>${b.correct}/${b.scored}</td><td>${b.wrong}</td><td>${b.none}</td><td>${Math.round(avg)} ms</td>`;eb.appendChild(tr);
+  for(const engine of testActiveEngines){
+    const key=testEngineKey(engine),arr=Object.values(testStats).slice().sort((a,b)=>b[key].correct-a[key].correct||a[key].wrong-b[key].wrong||a[key].none-b[key].none||a[key].ms-b[key].ms),x=arr[0],bucket=x[key],avg=bucket.scored+bucket.noTruth?bucket.ms/(bucket.scored+bucket.noTruth):0;
+    const tr=document.createElement('tr');tr.innerHTML=`<td><b>${testEngineLabel(engine)}</b></td><td>${x.cfg.id} · ${esc(x.cfg.note)}</td><td>${bucket.correct}/${bucket.scored}</td><td>${bucket.wrong}</td><td>${bucket.none}</td><td>${Math.round(avg)} ms</td>`;eb.appendChild(tr);
   }
 }
 function testUpdateProgress(totalUnits){
@@ -4284,13 +4473,16 @@ function cancelOcrTest(){if(!testRunning)return;testCancelRequested=true;documen
 async function startOcrTest(){
   if(testRunning)return;
   if(!testFiles.length){alert('Selecciona uno o varios PDF para la prueba.');return;}
+  const selected=testSelectedEngines();if(!selected.length){alert('Marca por lo menos un motor OCR para iniciar la prueba.');return;}
+  testActiveEngines=selected;testEngineSelectionChanged();testSetEngineChecksDisabled(true);
   testRunning=true;testCancelRequested=false;testRows=[];testPageSummaries=[];testStats=makeTestStats();testTotalPages=0;testPagesDone=0;testRunsDone=0;
   document.getElementById('testStartBtn').disabled=true;document.getElementById('testCancelBtn').disabled=false;document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
   document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';clearTestConsole();
-  testSection('INICIO · PRUEBAS OCR V1.29 · 10 CONFIGURACIONES × 3 MOTORES');
+  testSection(`INICIO · PRUEBAS OCR V1.30 · 10 CONFIGURACIONES × ${testActiveEngines.length} MOTOR(ES)`);
   testLog(`PDF seleccionados: ${testFiles.length}`,'info');
-  testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a Tesseract, PaddleOCR ni PARSeq.','warn');
-  testLog('V1.29: conserva la normalización segura de espacios de V1.28 y sustituye TrOCR por PARSeq. El RAW original se conserva intacto.','info');
+  testLog(`Motores activos: ${testActiveEngines.map(testEngineLabel).join(' + ')}`,'info');
+  testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a ningún motor. Se aceptan “verdadero”, “verdero” y “estabien”.','warn');
+  testLog('V1.30: OnnxTR usa DBNet MobileNet V3 Large para detectar texto y PARSeq para reconocer cada recorte. Un motor desmarcado no se carga ni se ejecuta.','info');
   testLog('Configuraciones P06/P07/P08 preservan las configuraciones operativas elegidas C08 Tesseract, C06 Paddle y C09 Paddle respaldo.','info');
   try{
     document.getElementById('testProgressText').textContent='Contando páginas…';
@@ -4299,12 +4491,12 @@ async function startOcrTest(){
       try{const bytes=new Uint8Array(await f.arrayBuffer()),pdf=await pdfjsLib.getDocument({data:bytes}).promise;testTotalPages+=pdf.numPages;await pdf.destroy();}catch(e){testLog(`ERROR ABRIENDO ${testFileLabel(f)} · ${e?.message||e}`,'err');}
       await yieldUI();
     }
-    const totalUnits=testTotalPages*TEST_V129_CONFIGS.length*3;testUpdateProgress(totalUnits);
-    testLog(`Páginas totales: ${testTotalPages} · configuraciones: 10 · motores: 3 · lecturas previstas: ${totalUnits}`,'info');
+    const totalUnits=testTotalPages*TEST_V130_CONFIGS.length*testActiveEngines.length;testUpdateProgress(totalUnits);
+    testLog(`Páginas totales: ${testTotalPages} · configuraciones: 10 · motores activos: ${testActiveEngines.length} · lecturas previstas: ${totalUnits}`,'info');
     document.getElementById('testProgressText').textContent='Inicializando motores…';
-    testLog('Inicializando Tesseract…','info');await getOCRWorker();testLog('Tesseract listo.','ok');
-    testLog('Inicializando PaddleOCR…','info');await getPaddleOCR();testLog('PaddleOCR listo.','ok');
-    testLog('Inicializando PARSeq…','info');try{await testGetPARSeq();testLog('PARSeq listo.','ok');}catch(e){testLog(`PARSeq no disponible: ${e?.message||e}. La prueba continuará registrando SIN LECTURA para ese motor.`,'err');}
+    if(testEngineSelected('TESSERACT')){testLog('Inicializando Tesseract…','info');await getOCRWorker();testLog('Tesseract listo.','ok');}
+    if(testEngineSelected('PADDLEOCR')){testLog('Inicializando PaddleOCR…','info');await getPaddleOCR();testLog('PaddleOCR listo.','ok');}
+    if(testEngineSelected('ONNXTR')){testLog('Inicializando OnnxTR completo (DBNet + PARSeq)…','info');try{await testGetOnnxTR();testLog('OnnxTR listo.','ok');}catch(e){testLog(`OnnxTR no disponible: ${e?.message||e}. Sus lecturas se registrarán como SIN LECTURA.`,'err');}}
 
     for(let fi=0;fi<testFiles.length;fi++){
       if(testCancelRequested)break;const f=testFiles[fi];let pdf=null;
@@ -4314,16 +4506,24 @@ async function startOcrTest(){
           if(testCancelRequested)break;const page=await pdf.getPage(pn),truth=testFindTruth(f.name,pn),cache={raw:new Map(),deskew:new Map()},pageReads=[];
           document.getElementById('testCurrent').textContent=`${testFileLabel(f)} · página ${pn}/${pdf.numPages}`;document.getElementById('testProgressText').textContent=`PDF ${fi+1}/${testFiles.length} · página ${pn}/${pdf.numPages}`;
           testSection(`${testFileLabel(f)} · PÁGINA ${pn}/${pdf.numPages} · VERDAD ${truth||'N/D'}`);
-          for(const cfg of TEST_V129_CONFIGS){
+          for(const cfg of TEST_V130_CONFIGS){
             if(testCancelRequested)break;
-            const built=await auditV125BuildVariant(page,cfg,cache);
-            const [t,p]=await Promise.all([testReadTesseract(built.image,cfg),testReadPaddle(built.image)]);const r=await testReadPARSeq(built.image);
-            const ts=testClassify(t,truth),ps=testClassify(p,truth),rs=testClassify(r,truth);
-            testBump(testStats[cfg.id].t,ts,t);testBump(testStats[cfg.id].p,ps,p);testBump(testStats[cfg.id].r,rs,r);
-            const correctCount=[ts,ps,rs].filter(x=>x==='CORRECTO').length;if(correctCount===3)testStats[cfg.id].all3Correct++;if(correctCount>=2)testStats[cfg.id].atLeast2Correct++;if(correctCount>=1)testStats[cfg.id].anyCorrect++;
-            for(const [engine,read,status] of [['TESSERACT',t,ts],['PADDLEOCR',p,ps],['PARSEQ',r,rs]]){
-              const detail={file:testFileLabel(f),page:pn,truth:truth||'',config:cfg.id,dpi:cfg.dpi,zone:cfg.zone,deskew:cfg.deskew?'SI':'NO',prep:cfg.prep,psm:cfg.psm,engine,value:read.value||'',status,confidence:Number(read.confidence)||0,ms:Number(read.ms)||0,candidates:(read.candidates||[]).join('|'),raw:testCleanRaw(read.raw),error:read.error||''};testRows.push(detail);pageReads.push(detail);testLogReading(f,pn,cfg,engine,read,status);testRunsDone++;testUpdateProgress(totalUnits);
+            const built=await auditV125BuildVariant(page,cfg,cache),reads={};
+            const jobs=[];
+            if(testEngineSelected('TESSERACT'))jobs.push(testReadTesseract(built.image,cfg).then(v=>reads.TESSERACT=v));
+            if(testEngineSelected('PADDLEOCR'))jobs.push(testReadPaddle(built.image).then(v=>reads.PADDLEOCR=v));
+            if(jobs.length)await Promise.all(jobs);
+            if(testEngineSelected('ONNXTR'))reads.ONNXTR=await testReadOnnxTR(built.image);
+            let correctCount=0;
+            for(const engine of testActiveEngines){
+              const read=reads[engine]||testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:0,error:'Motor no disponible'}),status=testClassify(read,truth),key=testEngineKey(engine);
+              testBump(testStats[cfg.id][key],status,read);if(status==='CORRECTO')correctCount++;
+              const detail={file:testFileLabel(f),page:pn,truth:truth||'',config:cfg.id,dpi:cfg.dpi,zone:cfg.zone,deskew:cfg.deskew?'SI':'NO',prep:cfg.prep,psm:cfg.psm,engine,value:read.value||'',status,confidence:Number(read.confidence)||0,ms:Number(read.ms)||0,candidates:(read.candidates||[]).join('|'),raw:testCleanRaw(read.raw),error:read.error||'',detectedBoxes:Number(read.detectedBoxes)||0,recognizedCrops:Number(read.recognizedCrops)||0};
+              testRows.push(detail);pageReads.push(detail);testLogReading(f,pn,cfg,engine,read,status);testRunsDone++;testUpdateProgress(totalUnits);
             }
+            if(correctCount===testActiveEngines.length)testStats[cfg.id].allSelectedCorrect++;
+            if(correctCount>=Math.min(2,testActiveEngines.length))testStats[cfg.id].atLeast2Correct++;
+            if(correctCount>=1)testStats[cfg.id].anyCorrect++;
             await yieldUI();
           }
           if(!testCancelRequested){testPagesDone++;appendTestPageSummary(f,pn,truth,pageReads);renderTestRanking();testUpdateProgress(totalUnits);}
@@ -4333,19 +4533,23 @@ async function startOcrTest(){
       finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
     }
     testSection(testCancelRequested?'RESUMEN PARCIAL':'RESUMEN FINAL');renderTestRanking();
-    const ranked=Object.values(testStats).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct));
-    ranked.forEach((x,i)=>testLog(`${String(i+1).padStart(2,'0')}. ${x.cfg.id} · ${x.cfg.note} · T ${x.t.correct}/${x.t.scored} · P ${x.p.correct}/${x.p.scored} · R ${x.r.correct}/${x.r.scored} · 3/3 ${x.all3Correct} · ≥2/3 ${x.atLeast2Correct} · aciertos totales ${x.t.correct+x.p.correct+x.r.correct}`,i<3?'ok':'info'));
+    const ranked=Object.values(testStats).sort((a,b)=>b.allSelectedCorrect-a.allSelectedCorrect||b.atLeast2Correct-a.atLeast2Correct||testStatTotal(b)-testStatTotal(a));
+    const engineShort=e=>e==='TESSERACT'?'T':e==='PADDLEOCR'?'P':'O';
+    ranked.forEach((x,i)=>{
+      const per=testActiveEngines.map(e=>{const b=x[testEngineKey(e)];return `${engineShort(e)} ${b.correct}/${b.scored}`;}).join(' · ');
+      testLog(`${String(i+1).padStart(2,'0')}. ${x.cfg.id} · ${x.cfg.note} · ${per} · consenso total ${x.allSelectedCorrect} · mínimo 2 ${x.atLeast2Correct} · aciertos totales ${testStatTotal(x)}`,i<3?'ok':'info');
+    });
     document.getElementById('testProgressText').textContent=testCancelRequested?'Prueba cancelada · resultados parciales conservados en pantalla.':'Prueba finalizada.';document.getElementById('testCurrent').textContent=testCancelRequested?'Procesando: cancelado':'Procesando: finalizado';
     testLog(testCancelRequested?'Prueba cancelada por el usuario.':'Prueba finalizada. Revisa el ranking, el reporte y la consola completa.','ok');
   }catch(e){console.error(e);testLog(`ERROR GENERAL DE PRUEBA · ${e?.stack||e?.message||e}`,'err');document.getElementById('testProgressText').textContent=`Error: ${e?.message||e}`;}
   finally{
-    testRunning=false;document.getElementById('testStartBtn').disabled=false;document.getElementById('testCancelBtn').disabled=true;document.getElementById('testCopyReportBtn').disabled=testPageSummaries.length===0;document.getElementById('testExcelBtn').disabled=testPageSummaries.length===0;
+    testRunning=false;testSetEngineChecksDisabled(false);document.getElementById('testStartBtn').disabled=false;document.getElementById('testCancelBtn').disabled=true;document.getElementById('testCopyReportBtn').disabled=testPageSummaries.length===0;document.getElementById('testExcelBtn').disabled=testPageSummaries.length===0;
     try{await terminateOCR();}catch(e){}
   }
 }
 
 function testReportAOA(){
-  return [['ARCHIVO','PÁG.','VERDAD','GR OCR 3/3','NOMBRE PROPUESTO','TESS ACIERTOS','PADDLE ACIERTOS','PARSEQ ACIERTOS','MEJOR CONFIG','RESULTADO','OBSERVACIÓN'],...testPageSummaries.map(r=>[r.file,r.page,r.truth,r.gr3,r.proposed,r.tHits,r.pHits,r.rHits,r.bestConfig,r.result,r.observation])];
+  return [['ARCHIVO','PÁG.','VERDAD','GR OCR CONSENSO','NOMBRE PROPUESTO','TESS ACIERTOS','PADDLE ACIERTOS','ONNXTR ACIERTOS','MEJOR CONFIG','RESULTADO','OBSERVACIÓN'],...testPageSummaries.map(r=>[r.file,r.page,r.truth,r.gr3,r.proposed,r.tHits??'',r.pHits??'',r.rHits??'',r.bestConfig,r.result,r.observation])];
 }
 async function copyTestReport(){
   if(!testPageSummaries.length)return;const txt=testReportAOA().map(row=>row.join('\t')).join('\r\n');await copyText(txt);alert('Reporte de pruebas copiado.');
@@ -4353,15 +4557,15 @@ async function copyTestReport(){
 function downloadTestExcel(){
   if(!testPageSummaries.length)return;if(typeof XLSX==='undefined'){alert('No se pudo cargar el módulo de Excel.');return;}
   const wb=XLSX.utils.book_new();
-  const ws1=XLSX.utils.aoa_to_sheet(testReportAOA());ws1['!autofilter']={ref:ws1['!ref']};ws1['!cols']=[{wch:55},{wch:8},{wch:20},{wch:20},{wch:25},{wch:14},{wch:16},{wch:14},{wch:14},{wch:18},{wch:75}];XLSX.utils.book_append_sheet(wb,ws1,'Observaciones');
-  const rank=[['RANK','CONFIG','DPI','RECORTE','PREPROCESADO','TESS OK','PADDLE OK','PARSEQ OK','3/3','>=2/3','TOTAL ACIERTOS']];
-  Object.values(testStats||{}).sort((a,b)=>b.all3Correct-a.all3Correct||b.atLeast2Correct-a.atLeast2Correct||(b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct)).forEach((x,i)=>rank.push([i+1,x.cfg.id,x.cfg.dpi,x.cfg.zone,x.cfg.prep,`${x.t.correct}/${x.t.scored}`,`${x.p.correct}/${x.p.scored}`,`${x.r.correct}/${x.r.scored}`,x.all3Correct,x.atLeast2Correct,x.t.correct+x.p.correct+x.r.correct]));
+  const ws1=XLSX.utils.aoa_to_sheet(testReportAOA());ws1['!autofilter']={ref:ws1['!ref']};ws1['!cols']=[{wch:55},{wch:8},{wch:20},{wch:20},{wch:25},{wch:14},{wch:16},{wch:16},{wch:14},{wch:18},{wch:85}];XLSX.utils.book_append_sheet(wb,ws1,'Observaciones');
+  const den=testActiveEngines.length,rank=[['RANK','CONFIG','DPI','RECORTE','PREPROCESADO','TESS OK','PADDLE OK','ONNXTR OK',`CONSENSO ${den}/${den}`,den>=2?`>=2/${den}`:'1/1','TOTAL ACIERTOS']];
+  Object.values(testStats||{}).sort((a,b)=>b.allSelectedCorrect-a.allSelectedCorrect||b.atLeast2Correct-a.atLeast2Correct||testStatTotal(b)-testStatTotal(a)).forEach((x,i)=>rank.push([i+1,x.cfg.id,x.cfg.dpi,x.cfg.zone,x.cfg.prep,testEngineSelected('TESSERACT')?`${x.t.correct}/${x.t.scored}`:'—',testEngineSelected('PADDLEOCR')?`${x.p.correct}/${x.p.scored}`:'—',testEngineSelected('ONNXTR')?`${x.r.correct}/${x.r.scored}`:'—',x.allSelectedCorrect,x.atLeast2Correct,testStatTotal(x)]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rank),'Ranking');
-  const detailHeaders=['file','page','truth','config','dpi','zone','deskew','prep','psm','engine','value','status','confidence','ms','candidates','raw','error'];const detail=[detailHeaders,...testRows.map(r=>detailHeaders.map(k=>r[k]??''))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'DetalleLecturas');
-  const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V129_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
-  XLSX.writeFile(wb,'PRUEBASOCRV129_RESULTADOS.xlsx');
+  const detailHeaders=['file','page','truth','config','dpi','zone','deskew','prep','psm','engine','value','status','confidence','ms','candidates','detectedBoxes','recognizedCrops','raw','error'];const detail=[detailHeaders,...testRows.map(r=>detailHeaders.map(k=>r[k]??''))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'DetalleLecturas');
+  const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V130_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
+  const engines=[['MOTOR','ACTIVO','ARQUITECTURA'],['Tesseract',testEngineSelected('TESSERACT')?'SI':'NO','Tesseract.js / LSTM'],['PaddleOCR',testEngineSelected('PADDLEOCR')?'SI':'NO','PaddleOCR detector + recognizer'],['OnnxTR',testEngineSelected('ONNXTR')?'SI':'NO','DBNet MobileNet V3 Large + PARSeq']];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(engines),'Motores');
+  XLSX.writeFile(wb,'PRUEBASOCRV130_RESULTADOS.xlsx');
 }
-
 
 function buildAuditReport(){
   resetAuditReport();
@@ -5268,8 +5472,9 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.29 · V1.25 preservada · módulo de pruebas OCR Tesseract + PaddleOCR + PARSeq","ok");
+logEvent("Sistema listo · V1.30 · V1.25 preservada · módulo de pruebas OCR Tesseract + PaddleOCR + OnnxTR (DBNet + PARSeq)","ok");
 addJob();
+testEngineSelectionChanged();
 </script>
 </body>
 </html>
