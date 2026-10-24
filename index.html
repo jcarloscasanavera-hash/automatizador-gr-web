@@ -441,7 +441,7 @@ th{background:#f1f3f4}
 }
 
 
-/* V1.20 · auditoría masiva sin preconteo */
+/* V1.21 · auditoría total sin deduplicación */
 .header{position:sticky;top:0;z-index:850;margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .app{padding-top:0;padding-bottom:74px}
 .appFooter{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;border-top:1px solid #d9dee4;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:8px max(18px,calc((100vw - 1360px)/2 + 22px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
@@ -463,7 +463,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.20 · AUDITORÍA MASIVA SIN PRECONTEO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.21 · AUDITORÍA TOTAL SIN DEDUPLICACIÓN</strong></div>
   <div class="muted" style="margin-top:3px">
     V1.3 estable separada · OCR V1.18 preservado · auditoría masiva en una sola pasada · sin preconteo
   </div>
@@ -477,11 +477,11 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.20.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.21.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.20</strong>
+      <strong>NUEVA VERSIÓN V1.21</strong>
       <span>PaddleOCR usa C06 y solo si no logra leer prueba C09. Tesseract usa únicamente C08. Al final ambos motores se comparan de forma estricta.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -632,7 +632,7 @@ th{background:#f1f3f4}
     <div class="folderManagerHead">
       <div>
         <strong>ENTRADAS A AUDITAR</strong>
-        <div class="small muted">Una carpeta seleccionada se analiza de forma recursiva: carpeta + todas sus subcarpetas. También puedes agregar uno o varios PDF individuales. Los duplicados se eliminan antes de iniciar.</div>
+        <div class="small muted">Una carpeta seleccionada se analiza de forma recursiva: carpeta + todas sus subcarpetas. También puedes agregar uno o varios PDF individuales. <b>Todos los PDF encontrados se auditan aunque estén repetidos en otras carpetas; no se eliminan duplicados.</b></div>
       </div>
       <button class="light" onclick="closeAuditFolderManager()">CERRAR</button>
     </div>
@@ -829,7 +829,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.20</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.21</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -903,9 +903,9 @@ let historicalAuditTotalFiles=0;
 let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
 
-// V1.20 · auditoría masiva sin preconteo + Paddle adaptativo + Tesseract C08 + protección de sesión
-const SESSION_KEY='AUTOMATIZADOR_GR_V120_SESSION';
-const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
+// V1.21 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
+const SESSION_KEY='AUTOMATIZADOR_GR_V121_SESSION';
+const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
 let guardExitRequested=false;
@@ -1260,7 +1260,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.20 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.21 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1296,7 +1296,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.20 · ${source.file.name} pág. ${pn} · `+
+        `V1.21 · ${source.file.name} pág. ${pn} · `+
         `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
@@ -1384,12 +1384,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.20 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.21 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.20 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
+    logEvent('V1.21 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2501,7 +2501,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.20 · Paddle C06→C09 si falla + Tesseract C08 único','info');
+  logEvent('Modo NUEVA V1.21 · Paddle C06→C09 si falla + Tesseract C08 único','info');
 }
 
 function backToModes(){
@@ -2599,14 +2599,13 @@ function openAuditLooseFilePicker(){
 
 function addAuditLooseFile(file,source='picker'){
   if(!file||!String(file.name||'').toLowerCase().endsWith('.pdf'))return false;
-  const signature=`${file.name}|${file.size||0}|${file.lastModified||0}`;
-  if(historicalAuditLooseFiles.some(x=>x.signature===signature))return false;
+  // V1.21: NO deduplicar. Cada selección representa un archivo a auditar,
+  // incluso si coincide en nombre, tamaño, fecha o contenido con otro.
   historicalAuditLooseFiles.push({
     id:++historicalAuditLooseSeq,
     name:file.name,
     handle:makeAuditFileHandle(file),
-    source,
-    signature
+    source
   });
   return true;
 }
@@ -2830,28 +2829,6 @@ function collectAuditLooseFiles(){
   }));
 }
 
-async function dedupeAuditEntries(entries){
-  const out=[];
-  const signatures=new Set();
-  for(const entry of entries){
-    let duplicate=false;
-    if(entry.handle?.isSameEntry){
-      for(const prev of out){
-        try{if(prev.handle?.isSameEntry && await entry.handle.isSameEntry(prev.handle)){duplicate=true;break;}}catch(e){}
-      }
-    }
-    if(!duplicate){
-      try{
-        const file=await entry.handle.getFile();
-        const sig=`${file.name}|${file.size||0}|${file.lastModified||0}`;
-        if(signatures.has(sig))duplicate=true; else signatures.add(sig);
-      }catch(e){}
-    }
-    if(!duplicate)out.push(entry);
-  }
-  return out;
-}
-
 async function addAuditFolder(){
   if(historicalAuditRunning)return;
 
@@ -3047,7 +3024,7 @@ function updateAuditTiming(){
   document.getElementById('auditElapsedTime').textContent=start?formatAuditDuration(now-start):'00:00:00';
   document.getElementById('auditPagesCount').textContent=`${historicalAuditProcessedPages} / ${historicalAuditTotalPages}`;
 
-  // V1.20: para auditorías masivas el total de páginas se descubre sobre la marcha.
+  // V1.21: para auditorías masivas el total de páginas se descubre sobre la marcha.
   // La ETA se calcula por PDF terminados, evitando abrir miles de PDFs solo para contarlos antes del OCR.
   let eta=null;
   if(
@@ -3656,12 +3633,18 @@ async function startHistoricalAudit(){
       logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
     }
     files.push(...collectAuditLooseFiles());
-    files=await dedupeAuditEntries(files);
-    logEvent(`Auditoría histórica: ${files.length} PDF únicos encontrados`,'info');
+    // V1.21: política explícita de auditoría total.
+    // NO se eliminan duplicados: si el mismo PDF existe en dos o más rutas,
+    // cada ocurrencia se procesa y se reporta de forma independiente.
+    logEvent(`Auditoría histórica: ${files.length} PDF encontrados · TODOS se revisarán según los criterios seleccionados · sin deduplicación`,'info');
 
     if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
 
-    // V1.20: NO existe preconteo masivo. Cada PDF se abre una sola vez.
+    document.getElementById('auditProgressText').textContent=`Preparación completada · ${files.length} PDF encontrados · sin deduplicación`;
+    document.getElementById('auditCurrentFile').textContent='Preparación completada · iniciando auditoría…';
+    await yieldUI();
+
+    // V1.21: NO existe preconteo ni deduplicación. Cada PDF encontrado se abre una sola vez.
     // Al abrirlo se conoce numPages: si supera 10 y el check está desmarcado, se omite inmediatamente;
     // de lo contrario el OCR empieza en ese mismo archivo. Esto permite progreso visible desde el PDF 1.
     const includeOver10=!!document.getElementById('auditIncludeOver10')?.checked;
@@ -4397,7 +4380,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.20 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.21 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4445,7 +4428,7 @@ function buildSessionSnapshot(){
     reviewPages:(item.reviewPages||[]).map(r=>r.page)
   }));
 
-  return {version:'1.20',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
+  return {version:'1.21',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
     auditSettings:{includeOver10:!!document.getElementById('auditIncludeOver10')?.checked,folderNames:historicalAuditFolders.map(f=>f.name),looseFileNames:historicalAuditLooseFiles.map(f=>f.name),skippedOver10:historicalAuditSkippedOver10},
     historicalAuditItems:auditItems,
     historicalReviewQueue:(historicalAuditReviewQueue||[]).map(q=>({parentId:q.parentItem?._id||'',page:q.pageResult?.page||0,manualGR:q.manualGR||'',isOtherDocument:!!q.isOtherDocument,reviewed:!!q.reviewed})),
@@ -4475,7 +4458,7 @@ function readSavedSession(){
     if(!raw){for(const key of LEGACY_SESSION_KEYS){raw=localStorage.getItem(key);if(raw)break;}}
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
@@ -4669,7 +4652,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.20 auditoría masiva sin preconteo","ok");
+logEvent("Sistema listo · V1.21 auditoría total sin deduplicación","ok");
 addJob();
 </script>
 </body>
