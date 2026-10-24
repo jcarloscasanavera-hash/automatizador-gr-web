@@ -440,6 +440,21 @@ th{background:#f1f3f4}
   .reviewFooter button{min-width:0}
 }
 
+
+/* V1.19 · interfaz integral */
+.header{position:sticky;top:0;z-index:850;margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.app{padding-top:0;padding-bottom:74px}
+.appFooter{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;border-top:1px solid #d9dee4;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:8px max(18px,calc((100vw - 1360px)/2 + 22px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
+.footerActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.footerBtn{padding:7px 10px}
+.jobgrid{align-items:start !important}.jobgrid>div{align-self:start !important;display:grid;grid-template-rows:18px 40px auto;align-content:start}.jobgrid label{margin:0 0 5px !important}.jobgrid .fileHint{grid-row:3;margin-top:4px}.jobgrid .filebox{grid-row:2}.jobgrid input[type=text],.jobgrid select,.jobgrid .status{grid-row:2}
+.auditGridV119{grid-template-columns:minmax(430px,2fr) minmax(250px,1fr) 170px !important;align-items:start !important}
+.auditGridV119>div{align-self:start !important}.auditOptionBox{border:1px solid #d9dee4;border-radius:8px;background:#fafafa;padding:8px 10px;min-height:68px}
+.checkLine{display:flex !important;align-items:center !important;gap:8px;height:auto !important;min-height:28px !important;margin:4px 0 !important;color:#202124 !important;font-size:12px !important;font-weight:800 !important}.checkLine input{width:18px;height:18px;flex:0 0 auto}.otherDocCheck{margin-top:9px !important}
+.auditStats{grid-template-columns:repeat(6,minmax(115px,1fr)) !important}
+.auditDialog.reviewDialog,.historicalReviewDialog{width:min(1120px,98vw) !important;height:min(94vh,900px) !important;max-height:94vh !important;overflow:hidden !important;padding:0 !important}.reviewPreviewWrap{height:330px;min-height:330px;max-height:330px}.reviewPreview{max-height:300px}.fileNameValue{font-size:14px !important;line-height:1.3}.inlineError{min-height:18px;margin-top:5px;color:#b3261e;font-size:12px;font-weight:800}.folderRow{grid-template-columns:minmax(0,1fr) 110px !important}.folderName{padding:8px 0}.auditTable{min-width:1600px}.auditTable th:nth-child(2){min-width:360px}.auditTable th:nth-child(6){min-width:190px}
+@media(max-width:1150px){.auditGridV119{grid-template-columns:1fr 1fr !important}.auditStats{grid-template-columns:repeat(3,1fr) !important}}
+@media(max-width:760px){.appFooter{position:static;padding:10px;flex-direction:column;align-items:stretch}.app{padding-bottom:22px}.auditGridV119{grid-template-columns:1fr !important}.auditStats{grid-template-columns:1fr 1fr !important}.reviewPreviewWrap{height:260px;min-height:260px;max-height:260px}}
+
 </style>
 </head>
 
@@ -448,11 +463,11 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.18 · PADDLE ADAPTATIVO + TESSERACT ÚNICO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.19 · AUDITORÍA INTEGRAL + INTERFAZ MEJORADA</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · Paddle C06 con respaldo C09 · Tesseract solo C08 · comparación estricta entre motores
+    V1.3 estable separada · OCR V1.18 preservado · auditoría recursiva e interfaz unificada
   </div>
-  <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">SESIÓN SIN CAMBIOS</span></div>
+  <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">DATOS DE SESIÓN SIN CAMBIOS</span></div>
 </div>
 
 
@@ -462,11 +477,11 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.18.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.19.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.18</strong>
+      <strong>NUEVA VERSIÓN V1.19</strong>
       <span>PaddleOCR usa C06 y solo si no logra leer prueba C09. Tesseract usa únicamente C08. Al final ambos motores se comparan de forma estricta.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -482,6 +497,7 @@ th{background:#f1f3f4}
   <button class="green" id="btnStart" onclick="startQueue()">INICIAR COLA</button>
   <button class="amber" id="btnPause" onclick="togglePause()" disabled>PAUSAR</button>
   <button class="red" id="btnCancel" onclick="cancelQueue()" disabled>CANCELAR TODO</button>
+  <button class="amber" id="btnAuditAll" onclick="openAllJobAudits()" disabled>AUDITAR / REVISAR TODO (0)</button>
   <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
 </div>
 
@@ -528,19 +544,24 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Compara el nombre con una lectura independiente Tesseract + PaddleOCR. El nombre no cuenta como voto y cualquier discrepancia pasa a REVISAR.</div>
+        <div class="muted">Audita nombres completos y contenido OCR. Puedes seleccionar una carpeta madre (incluye todas sus subcarpetas) y/o PDF individuales. El nombre nunca cuenta como voto OCR.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
 
-    <div class="auditGrid" style="margin-top:16px">
+    <div class="auditGrid auditGridV119" style="margin-top:16px">
       <div>
-        <label>CARPETAS A AUDITAR</label>
+        <label>CARPETAS / ARCHIVOS A AUDITAR</label>
         <div class="filebox">
-          <div id="auditFolderName" class="filelist" title="">Ninguna carpeta seleccionada</div>
-          <button class="light" onclick="openAuditFolderManager()">GESTIONAR CARPETAS</button>
+          <div id="auditFolderName" class="filelist" title="">Ninguna entrada seleccionada</div>
+          <button class="light" onclick="openAuditFolderManager()">GESTIONAR ENTRADAS</button>
         </div>
-        <div class="small muted" style="margin-top:4px">Puedes agregar una o varias carpetas, incluso de ubicaciones distintas. La ruta completa de Windows es opcional y solo mejora el reporte.</div>
+        <div class="small muted" style="margin-top:4px">Selecciona una carpeta madre para incluir automáticamente todos los PDF de esa carpeta y de todas sus subcarpetas. También puedes agregar PDF individuales.</div>
+      </div>
+      <div class="auditOptionBox">
+        <label>PDF DE MÁS DE 10 PÁGINAS</label>
+        <label class="checkLine"><input id="auditIncludeOver10" type="checkbox" onchange="auditOptionChanged()"> INCLUIR EN LA AUDITORÍA</label>
+        <div class="small muted">Desmarcado: se omiten del OCR, pero quedan registrados en el reporte.</div>
       </div>
       <div>
         <label>ESTADO</label>
@@ -551,7 +572,7 @@ th{background:#f1f3f4}
     <div class="auditActions">
       <button class="primary" id="auditStartBtn" onclick="startHistoricalAudit()">INICIAR AUDITORÍA</button>
       <button class="red" id="auditCancelBtn" onclick="cancelHistoricalAudit()" disabled>CANCELAR</button>
-      <button class="amber" id="auditReviewBtn" onclick="openHistoricalAuditQueue()" disabled>AUDITAR OBSERVACIONES (0)</button>
+      <button class="amber" id="auditReviewBtn" onclick="openHistoricalAuditQueue()" disabled>AUDITAR / REVISAR TODO (0)</button>
       <button class="light" id="auditCopyBtn" onclick="copyAuditReport()" disabled>COPIAR REPORTE</button>
       <button class="green" id="auditExcelBtn" onclick="downloadAuditExcel()" disabled>DESCARGAR EXCEL</button>
     </div>
@@ -567,6 +588,7 @@ th{background:#f1f3f4}
       <div class="auditMetric">Correctos<b id="auditOkCount">0</b></div>
       <div class="auditMetric">Con observación<b id="auditIssueCount">0</b></div>
       <div class="auditMetric">Revisados manualmente<b id="auditFixedCount">0</b></div>
+      <div class="auditMetric">Omitidos &gt;10 páginas<b id="auditSkippedCount">0</b></div>
     </div>
 
     <div class="auditTiming">
@@ -589,11 +611,11 @@ th{background:#f1f3f4}
         <thead>
           <tr>
             <th>RUTA</th>
-            <th>ARCHIVO</th>
-            <th>GR DEL NOMBRE</th>
-            <th>GR DETECTADA</th>
-            <th>GR REVISADA</th>
-            <th>CONSENSO</th>
+            <th>ARCHIVO ACTUAL</th>
+            <th>GR OCR CONFIRMADA</th>
+            <th>NOMBRE ESPERADO</th>
+            <th>GR FINAL</th>
+            <th>RESULTADO</th>
             <th>PÁGINA</th>
             <th>OBSERVACIÓN</th>
           </tr>
@@ -609,30 +631,32 @@ th{background:#f1f3f4}
   <div class="auditDialog folderDialog">
     <div class="folderManagerHead">
       <div>
-        <strong>CARPETAS A AUDITAR</strong>
-        <div class="small muted">El selector de Windows agrega una carpeta por vez. Para agregar varias carpetas de una sola vez, selecciónalas juntas en el Explorador de Windows y arrástralas al recuadro inferior. La ruta completa es opcional.</div>
+        <strong>ENTRADAS A AUDITAR</strong>
+        <div class="small muted">Una carpeta seleccionada se analiza de forma recursiva: carpeta + todas sus subcarpetas. También puedes agregar uno o varios PDF individuales. Los duplicados se eliminan antes de iniciar.</div>
       </div>
       <button class="light" onclick="closeAuditFolderManager()">CERRAR</button>
     </div>
 
     <div id="auditFolderRows" class="folderRows">
-      <div class="folderEmpty">Todavía no hay carpetas seleccionadas.</div>
+      <div class="folderEmpty">Todavía no hay carpetas ni archivos seleccionados.</div>
     </div>
 
     <input id="auditMultiFolderPicker" type="file" webkitdirectory directory multiple
            style="display:none" onchange="addAuditFoldersFromPicker(event)">
+    <input id="auditLooseFilePicker" type="file" accept=".pdf,application/pdf" multiple
+           style="display:none" onchange="addAuditFilesFromPicker(event)">
     <div id="auditFolderDropZone" class="folderDropZone"
          ondragover="auditFolderDragOver(event)"
          ondragleave="auditFolderDragLeave(event)"
          ondrop="auditFolderDrop(event)">
-      <strong>ARRASTRA UNA O VARIAS CARPETAS AQUÍ</strong>
-      <span>Selecciona varias carpetas juntas en el Explorador de Windows y arrástralas aquí</span>
+      <strong>ARRASTRA CARPETAS O PDF AQUÍ</strong>
+      <span>Las carpetas se recorren completas, incluyendo todos los niveles de subcarpetas</span>
     </div>
 
     <div class="folderManagerFoot">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="primary" onclick="addAuditFolder()">+ AGREGAR CARPETA</button>
-        <span class="small muted">El botón agrega una por vez · para varias simultáneas usa arrastrar y soltar.</span>
+        <button class="primary" onclick="addAuditFolder()">+ SELECCIONAR CARPETA MADRE</button>
+        <button class="light" onclick="openAuditLooseFilePicker()">+ AGREGAR PDF</button>
         <span id="auditFolderValidation" class="small muted"></span>
       </div>
       <button class="green" onclick="closeAuditFolderManager()">LISTO</button>
@@ -641,33 +665,57 @@ th{background:#f1f3f4}
 </div>
 
 <div id="auditModal" class="auditModal">
-  <div class="auditDialog">
-    <div class="auditTop">
-      <div>
-        <strong id="auditModalCounter">1 de 1</strong>
-        <div id="auditModalPath" class="small muted"></div>
+  <div class="auditDialog reviewDialog historicalReviewDialog">
+    <div class="reviewPane">
+      <div class="reviewScrollArea">
+        <div class="auditTop">
+          <div>
+            <strong>AUDITORÍA HISTÓRICA · <span id="auditModalCounter">1 / 1</span></strong>
+            <div id="auditModalPath" class="small muted"></div>
+          </div>
+          <button class="light" onclick="closeAuditModal()">CERRAR</button>
+        </div>
+
+        <div class="reviewPreviewWrap">
+          <img id="auditPreview" class="reviewPreview" alt="Recorte GR">
+        </div>
+
+        <div class="reviewInfoGrid">
+          <div class="reviewInfoBox">
+            ARCHIVO ACTUAL
+            <b id="auditCurrentName" class="fileNameValue"></b>
+            <div id="auditObservation" class="small obs" style="margin-top:6px"></div>
+          </div>
+          <div class="reviewInfoBox">
+            LECTURAS OCR DE ESTA PÁGINA
+            <div class="reviewEngineChoices">
+              <button id="auditTessChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('TESSERACT')">
+                <span class="engineName">TESSERACT C08</span>
+                <span id="auditTessValue" class="engineValue">SIN LECTURA</span>
+              </button>
+              <button id="auditPaddleChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('PADDLEOCR')">
+                <span class="engineName">PADDLEOCR</span>
+                <span id="auditPaddleValue" class="engineValue">SIN LECTURA</span>
+              </button>
+            </div>
+            <div class="reviewEngines">Lectura OCR confirmada: <code id="auditSystemReading">SIN LECTURA</code></div>
+          </div>
+        </div>
+
+        <div class="reviewHuman">
+          <label>GR FINAL</label>
+          <input id="auditManualGR" type="text" autocomplete="off" spellcheck="false" onkeydown="historicalReviewKeyDown(event)">
+          <label class="checkLine otherDocCheck"><input id="auditNotGuide" type="checkbox" onchange="historicalNotGuideChanged()"> ESTE DOCUMENTO ESCANEADO NO ES UNA GUÍA DE REMISIÓN</label>
+          <div id="auditInlineError" class="inlineError"></div>
+        </div>
       </div>
-      <button class="light" onclick="closeAuditModal()">CERRAR</button>
-    </div>
 
-    <div class="auditPreviewWrap">
-      <img id="auditPreview" class="auditPreview" alt="Recorte GR">
-    </div>
-
-    <div class="auditMeta">
-      <div>Nombre actual: <b id="auditCurrentName"></b></div>
-      <div>Lectura del sistema: <b id="auditSystemReading"></b></div>
-      <div>Observación: <span id="auditObservation" class="obs"></span></div>
-    </div>
-
-    <div class="auditForm">
-      <div>
-        <label>GR CORRECTA</label>
-        <input id="auditManualGR" type="text" autocomplete="off" spellcheck="false">
+      <div class="reviewFooter">
+        <div class="left"><button id="auditPrevBtn" class="light" onclick="historicalReviewPrevious()">← REGRESAR</button></div>
+        <div id="auditFooterCounter" class="center">1 / 1</div>
+        <div class="right"><button id="auditAcceptBtn" class="green" onclick="historicalReviewNext()">SIGUIENTE →</button></div>
       </div>
-      <button id="auditAcceptBtn" class="green" onclick="acceptAuditItem()">ACEPTAR</button>
     </div>
-    <div class="small muted" style="margin-top:8px">Flujo rápido: mirar recorte → corregir si hace falta → Tab → Enter.</div>
   </div>
 </div>
 
@@ -717,7 +765,9 @@ th{background:#f1f3f4}
           <label>LECTURA HUMANA / FINAL</label>
           <input id="jobReviewHumanGR" type="text" autocomplete="off" spellcheck="false"
                  oninput="jobReviewHumanInput()" onkeydown="jobReviewKeyDown(event)">
-          <div class="small muted" style="margin-top:5px">Enter = SIGUIENTE. Tab recorre Tesseract, PaddleOCR, campo y botones. El campo siempre puede editarse manualmente.</div>
+          <label class="checkLine otherDocCheck"><input id="jobReviewNotGuide" type="checkbox" onchange="jobReviewNotGuideChanged()"> ESTE DOCUMENTO ESCANEADO NO ES UNA GUÍA DE REMISIÓN</label>
+          <div id="jobReviewInlineError" class="inlineError"></div>
+          <div class="small muted" style="margin-top:5px">Enter = SIGUIENTE. El campo siempre puede editarse manualmente.</div>
         </div>
       </div>
 
@@ -778,6 +828,14 @@ th{background:#f1f3f4}
   </div>
 </div>
 
+<div id="appFooter" class="appFooter">
+  <div><strong>AUTOMATIZADOR GR WEB · V1.19</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div class="footerActions">
+    <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
+    <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
+  </div>
+</div>
+
 <div class="card consoleCard" style="display:none">
   <div class="consoleHead">
     <div>
@@ -797,8 +855,9 @@ th{background:#f1f3f4}
   El navegador no puede quitar directamente esa protección. Abre la carpeta de resultados en el Explorador,
   escribe <strong>cmd</strong> en la barra de direcciones, pulsa Enter y ejecuta:
   <div class="cmd" id="unlockCmd">powershell -NoProfile -Command "Get-ChildItem -LiteralPath . -Filter '*.pdf' -File -Recurse | Unblock-File"</div>
+  <div class="small muted" style="margin-top:5px">El comando se aplica a todos los PDF de la carpeta actual y de todas sus subcarpetas gracias a <b>-Recurse</b>.</div>
   <div class="unlockBox">
-    <button class="light" onclick="copyUnlockCommand()">COPIAR COMANDO DE DESBLOQUEO</button>
+    <button class="light" onclick="copyUnlockCommand()">COPIAR COMANDO DE DESBLOQUEO RECURSIVO</button>
     <span class="small">No requiere que el sistema conozca la ruta completa: el CMD se abre directamente dentro de la carpeta.</span>
   </div>
 </div>
@@ -826,8 +885,12 @@ let paddleOCRLastError=null;
 let appMode=null;
 
 let historicalAuditFolders=[];
+let historicalAuditLooseFiles=[];
 let historicalAuditFolderSeq=0;
+let historicalAuditLooseSeq=0;
 let historicalAuditItems=[];
+let historicalAuditReviewQueue=[];
+let historicalAuditSkippedOver10=0;
 let historicalAuditIndex=0;
 let historicalAuditRunning=false;
 let historicalAuditCancelRequested=false;
@@ -838,8 +901,9 @@ let historicalAuditTotalPages=0;
 let historicalAuditProcessedPages=0;
 let historicalAuditTimer=null;
 
-// V1.18 · Paddle adaptativo + Tesseract único + auditoría manual + protección de sesión
-const SESSION_KEY='AUTOMATIZADOR_GR_V117_SESSION';
+// V1.19 · auditoría integral + Paddle adaptativo + Tesseract C08 + protección de sesión
+const SESSION_KEY='AUTOMATIZADOR_GR_V119_SESSION';
+const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
 let guardExitRequested=false;
@@ -1071,6 +1135,21 @@ function updateSummary(){
   document.getElementById('mJobs').textContent=jobs.size;
   document.getElementById('mReady').textContent=[...jobs.values()].filter(j=>j.status==='Listo').length;
   document.getElementById('mPages').textContent=globalPages;
+  updateGlobalReviewButton();
+}
+
+function countAllPendingReviews(){
+  let n=0;
+  for(const job of jobs.values())n+=(job.pages||[]).filter(p=>!p.isOtherDocument&&(p.needsAudit||!p.baseGR)).length;
+  return n;
+}
+
+function updateGlobalReviewButton(){
+  const btn=document.getElementById('btnAuditAll');
+  if(!btn)return;
+  const n=countAllPendingReviews();
+  btn.textContent=`AUDITAR / REVISAR TODO (${n})`;
+  btn.disabled=n===0||queueRunning;
 }
 
 async function startQueue(){
@@ -1124,6 +1203,7 @@ async function startQueue(){
     paused=false;
     setQueueUI(false);
     updateResultStats();
+    updateGlobalReviewButton();
   }
 }
 
@@ -1178,7 +1258,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.18 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.19 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1204,14 +1284,17 @@ async function processJob(job){
       // se reaplica después de volver a seleccionar los archivos. La decisión humana prevalece.
       const recoveryKey=humanCorrectionKey(job.name,source.file.name,pn);
       const recovered=restoredHumanCorrections[recoveryKey];
-      if(recovered && /^T[A-Z0-9]+-\d+$/.test(recovered)){
-        baseGR=recovered;
-        detection='RECUPERADA MANUALMENTE';
+      const recoveredOther=recovered==='__OTRO_DOCUMENTO__';
+      if(recoveredOther){
+        baseGR=null;detection='RECUPERADA · OTRO DOCUMENTO';
+        logEvent(`RECUPERACIÓN · ${source.file.name} pág. ${pn} · OTRO DOCUMENTO`,'ok');
+      }else if(recovered && /^T[A-Z0-9]+-\d+$/.test(recovered)){
+        baseGR=recovered;detection='RECUPERADA MANUALMENTE';
         logEvent(`RECUPERACIÓN · ${source.file.name} pág. ${pn} · lectura humana ${recovered}`,'ok');
       }
 
       logEvent(
-        `V1.18 · ${source.file.name} pág. ${pn} · `+
+        `V1.19 · ${source.file.name} pág. ${pn} · `+
         `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
@@ -1231,7 +1314,10 @@ async function processJob(job){
 
       let marker;
 
-      if(baseGR){
+      if(recoveredOther){
+        marker='OTRO_DOCUMENTO_RECUPERADO';
+        logEvent(`Pág. ${pn}/${source.pdf.numPages} · ${source.file.name} · OTRO DOCUMENTO · RECUPERADO`,'ok');
+      }else if(baseGR){
         const count=(seenGR.get(baseGR)||0)+1;
         seenGR.set(baseGR,count);
         marker=count===1 ? baseGR : `${baseGR}_${count}`;
@@ -1257,14 +1343,15 @@ async function processJob(job){
         marker,
         detection,
         pageIndex:null,
-        needsAudit:!baseGR,
-        auditReason:baseGR?'':dual.reason,
+        needsAudit:!baseGR&&!recoveredOther,
+        auditReason:(baseGR||recoveredOther)?'':dual.reason,
         previewDataUrl:dual.previewDataUrl||'',
         engineReadings:dual.readings||[],
         autoSuggested:dual.suggestedValue||deriveSuggestedFromReadings(dual.readings||[])||null,
-        humanAudit:detection==='RECUPERADA MANUALMENTE' ? {
+        isOtherDocument:recoveredOther,
+        humanAudit:(detection==='RECUPERADA MANUALMENTE'||recoveredOther) ? {
           previousReading:dual.suggestedValue||deriveSuggestedFromReadings(dual.readings||[])||'',
-          humanReading:baseGR,finalReading:baseGR,result:'RECUPERADA DE SESIÓN'
+          humanReading:recoveredOther?'':baseGR,finalReading:recoveredOther?'':baseGR,isOtherDocument:recoveredOther,result:recoveredOther?'OTRO DOCUMENTO':'RECUPERADA DE SESIÓN'
         } : null
       });
       scheduleSessionSave();
@@ -1283,30 +1370,30 @@ async function processJob(job){
   }
 
   logEvent(
-    `PASADA 1 terminada · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    `PASADA 1 terminada · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR&&!p.isOtherDocument).length}`,
     'info'
   );
 
   // ==========================================================
   // V1.18: NO EXISTE RESOLUCIÓN POR MAYORÍA
   // ==========================================================
-  const pending=job.pages.filter(p=>!p.baseGR);
+  const pending=job.pages.filter(p=>!p.baseGR&&!p.isOtherDocument);
 
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.18 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.19 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.18 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
+    logEvent('V1.19 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
   if(appMode==='new'){
     for(const p of job.pages){
-      if(!p.baseGR){
+      if(!p.baseGR&&!p.isOtherDocument){
         p.needsAudit=true;
         p.auditReason=p.auditReason||'No se obtuvo coincidencia estable entre Tesseract y PaddleOCR tras los reintentos permitidos';
       }
@@ -1314,7 +1401,7 @@ async function processJob(job){
   }
 
   // Marcadores definitivos ANTES de la conversión.
-  rebuildMarkers(job.pages);
+  rebuildMarkers(job.pages,job.name);
 
   // ==========================================================
   // CONVERSIÓN ÚNICA AL DPI FINAL
@@ -1406,13 +1493,13 @@ async function processJob(job){
   setTimeValue(job.id,'tEstimatedEnd',formatClock(job.endedAt));
 
   setProgress(job.id,100,
-    `${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} confirmadas · ${job.pages.filter(p=>!p.baseGR).length} REVISAR`
+    `${job.pages.length} páginas · ${job.pages.filter(p=>p.baseGR).length} confirmadas · ${job.pages.filter(p=>!p.baseGR&&!p.isOtherDocument).length} REVISAR`
   );
 
   setJobStatus(job.id,'FINALIZADO','st-done');
   document.getElementById(`actions-${job.id}`).style.display='flex';
 
-  const auditCount=job.pages.filter(p=>p.needsAudit||!p.baseGR).length;
+  const auditCount=job.pages.filter(p=>!p.isOtherDocument&&(p.needsAudit||!p.baseGR)).length;
   const auditBtn=document.getElementById(`jobAuditBtn-${job.id}`);
   if(auditBtn && appMode==='new'){
     auditBtn.style.display='inline-block';
@@ -1422,20 +1509,26 @@ async function processJob(job){
 
   rebuildResultsTable();
   updateResultStats();
+  updateGlobalReviewButton();
 
   logEvent(
-    `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR).length}`,
+    `FIN ruta ${job.name} · duración ${formatDuration(job.endedAt-job.startedAt)} · confirmadas ${job.pages.filter(p=>p.baseGR).length} · REVISAR ${job.pages.filter(p=>!p.baseGR&&!p.isOtherDocument).length}`,
     'ok'
   );
   await saveSessionSnapshotNow();
 }
 
 
-function rebuildMarkers(pages){
+function rebuildMarkers(pages,jobName='RUTA'){
   const counts=new Map();
-  let verify=1;
+  let verify=1,otherIndex=0;
+  const otherTotal=pages.filter(p=>p.isOtherDocument).length;
+  const otherBase=`otro documento_${safeName(jobName||'RUTA')}`;
   for(const p of pages){
-    if(p.baseGR){
+    if(p.isOtherDocument){
+      otherIndex++;
+      p.marker=otherTotal===1?otherBase:`${otherBase}_${otherIndex}`;
+    }else if(p.baseGR){
       const count=(counts.get(p.baseGR)||0)+1;
       counts.set(p.baseGR,count);
       p.marker=count===1?p.baseGR:`${p.baseGR}_${count}`;
@@ -1450,7 +1543,11 @@ function rebuildResultsTable(){
   tbody.innerHTML='';
   for(const job of jobs.values()){
     for(const p of job.pages){
-      addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CONFIRMADA AUTOMÁTICAMENTE · ${p.detection}`:'REVISAR',p.baseGR?'ok':'warn');
+      if(p.isOtherDocument){
+        addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,'OTRO DOCUMENTO · SIN GR','warn');
+      }else{
+        addResultRow(job.name,p.sourceFile,p.sourcePage,p.marker,p.baseGR?`CONFIRMADA AUTOMÁTICAMENTE · ${p.detection}`:'REVISAR',p.baseGR?'ok':'warn');
+      }
     }
   }
 }
@@ -2203,11 +2300,13 @@ async function groupByGR(id){
   // GR válidas agrupadas por baseGR.
   const groups=new Map();
 
-  // VERIFICAR siempre independiente.
+  // VERIFICAR y OTRO DOCUMENTO siempre independientes.
   const verifies=[];
 
   for(const p of job.pages){
-    if(p.baseGR){
+    if(p.isOtherDocument){
+      verifies.push(p);
+    }else if(p.baseGR){
       if(!groups.has(p.baseGR))groups.set(p.baseGR,[]);
       groups.get(p.baseGR).push(p.pageIndex);
     }else{
@@ -2385,6 +2484,7 @@ function openStableVersion(){
 
 function chooseMode(mode){
   appMode=mode;
+  const fm=document.getElementById('footerMode');if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':'NUEVA';
   document.getElementById('modeScreen').style.display='none';
 
   if(mode==='audit'){
@@ -2399,7 +2499,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
 
-  logEvent('Modo NUEVA V1.18 · Paddle C06→C09 si falla + Tesseract C08 único','info');
+  logEvent('Modo NUEVA V1.19 · Paddle C06→C09 si falla + Tesseract C08 único','info');
 }
 
 function backToModes(){
@@ -2415,6 +2515,7 @@ function backToModes(){
   document.getElementById('modeScreen').style.display='block';
   document.getElementById('auditFolderModal')?.classList.remove('open');
   appMode=null;
+  const fm=document.getElementById('footerMode');if(fm)fm.textContent='INICIO';
   scheduleSessionSave();
 }
 
@@ -2484,6 +2585,48 @@ function makeAuditFileHandle(file){
     name:file.name,
     async getFile(){ return file; }
   };
+}
+
+function openAuditLooseFilePicker(){
+  if(historicalAuditRunning)return;
+  const input=document.getElementById('auditLooseFilePicker');
+  if(!input)return;
+  input.value='';
+  input.click();
+}
+
+function addAuditLooseFile(file,source='picker'){
+  if(!file||!String(file.name||'').toLowerCase().endsWith('.pdf'))return false;
+  const signature=`${file.name}|${file.size||0}|${file.lastModified||0}`;
+  if(historicalAuditLooseFiles.some(x=>x.signature===signature))return false;
+  historicalAuditLooseFiles.push({
+    id:++historicalAuditLooseSeq,
+    name:file.name,
+    handle:makeAuditFileHandle(file),
+    source,
+    signature
+  });
+  return true;
+}
+
+function addAuditFilesFromPicker(event){
+  if(historicalAuditRunning)return;
+  let added=0;
+  for(const file of Array.from(event?.target?.files||[])){
+    if(addAuditLooseFile(file,'picker'))added++;
+  }
+  if(added)logEvent(`Archivos individuales agregados: ${added} PDF`,'info');
+  renderAuditFolderManager();
+  updateAuditFolderSummary();
+  scheduleSessionSave();
+}
+
+function removeAuditLooseFile(id){
+  if(historicalAuditRunning)return;
+  historicalAuditLooseFiles=historicalAuditLooseFiles.filter(f=>f.id!==id);
+  renderAuditFolderManager();
+  updateAuditFolderSummary();
+  scheduleSessionSave();
 }
 
 function addPreloadedAuditFolder(name, entries, source='picker'){
@@ -2610,44 +2753,55 @@ async function auditFolderDrop(event){
   if(historicalAuditRunning)return;
 
   const items=Array.from(event.dataTransfer?.items||[]);
-  if(!items.length)return;
-
-  let added=0;
+  const fallbackFiles=Array.from(event.dataTransfer?.files||[]);
+  let addedFolders=0,addedFiles=0;
 
   for(const item of items){
     if(item.kind!=='file')continue;
-
+    let handled=false;
     try{
       if(typeof item.getAsFileSystemHandle==='function'){
         const handle=await item.getAsFileSystemHandle();
         if(handle?.kind==='directory'){
-          const ok=await addDroppedDirectoryHandle(handle);
-          if(ok)added++;
-          continue;
+          if(await addDroppedDirectoryHandle(handle))addedFolders++;
+          handled=true;
+        }else if(handle?.kind==='file' && String(handle.name||'').toLowerCase().endsWith('.pdf')){
+          const file=await handle.getFile();
+          if(addAuditLooseFile(file,'drop'))addedFiles++;
+          handled=true;
         }
       }
     }catch(e){}
+    if(handled)continue;
 
     try{
       const entry=item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
       if(entry?.isDirectory){
         const entries=await legacyDirectoryToEntries(entry,entry.name,'');
         addPreloadedAuditFolder(entry.name,entries,'drop-legacy');
-        added++;
+        addedFolders++;
+        handled=true;
+      }else if(entry?.isFile){
+        const file=await readLegacyFileEntry(entry);
+        if(addAuditLooseFile(file,'drop-legacy'))addedFiles++;
+        handled=true;
       }
-    }catch(e){
-      console.error(e);
-    }
+    }catch(e){console.error(e);}
   }
 
-  if(!added){
-    alert('No se detectaron carpetas. Arrastra una o varias carpetas directamente desde el Explorador de Windows.');
+  if(!items.length){
+    for(const file of fallbackFiles){if(addAuditLooseFile(file,'drop-fallback'))addedFiles++;}
+  }
+
+  if(!addedFolders&&!addedFiles){
+    setAuditInlineStatus('No se detectaron carpetas ni PDF válidos en el arrastre.','warn');
     return;
   }
 
-  logEvent(`Arrastre múltiple: ${added} carpeta(s) agregada(s)`,'info');
+  logEvent(`Arrastre: ${addedFolders} carpeta(s) · ${addedFiles} PDF individual(es) agregados`,'info');
   renderAuditFolderManager();
   updateAuditFolderSummary();
+  scheduleSessionSave();
 }
 
 async function collectAuditFolderFiles(folderRecord){
@@ -2665,6 +2819,35 @@ async function collectAuditFolderFiles(folderRecord){
   }
 
   return [];
+}
+
+function collectAuditLooseFiles(){
+  return historicalAuditLooseFiles.map(f=>({
+    handle:f.handle,parentHandle:null,name:f.name,relativePath:f.name,
+    auditFolderId:null,auditFolderName:'ARCHIVOS INDIVIDUALES',auditRootPath:'',source:'individual'
+  }));
+}
+
+async function dedupeAuditEntries(entries){
+  const out=[];
+  const signatures=new Set();
+  for(const entry of entries){
+    let duplicate=false;
+    if(entry.handle?.isSameEntry){
+      for(const prev of out){
+        try{if(prev.handle?.isSameEntry && await entry.handle.isSameEntry(prev.handle)){duplicate=true;break;}}catch(e){}
+      }
+    }
+    if(!duplicate){
+      try{
+        const file=await entry.handle.getFile();
+        const sig=`${file.name}|${file.size||0}|${file.lastModified||0}`;
+        if(signatures.has(sig))duplicate=true; else signatures.add(sig);
+      }catch(e){}
+    }
+    if(!duplicate)out.push(entry);
+  }
+  return out;
 }
 
 async function addAuditFolder(){
@@ -2700,6 +2883,7 @@ async function addAuditFolder(){
     logEvent(`Carpeta agregada para auditoría: ${handle.name}`,'info');
     renderAuditFolderManager();
     updateAuditFolderSummary();
+    scheduleSessionSave();
 
   }catch(e){
     if(e.name!=='AbortError'){
@@ -2714,6 +2898,7 @@ function removeAuditFolder(id){
   historicalAuditFolders=historicalAuditFolders.filter(f=>f.id!==id);
   renderAuditFolderManager();
   updateAuditFolderSummary();
+  scheduleSessionSave();
 }
 
 function setAuditFolderPath(id,value){
@@ -2726,56 +2911,35 @@ function setAuditFolderPath(id,value){
 
 function renderAuditFolderManager(refocus=true){
   const box=document.getElementById('auditFolderRows');
-  const validation=document.getElementById('auditFolderValidation');
   if(!box)return;
+  box.innerHTML='';
 
-  if(!historicalAuditFolders.length){
-    box.innerHTML='<div class="folderEmpty">Todavía no hay carpetas seleccionadas.</div>';
-    if(validation)validation.textContent='';
+  if(!historicalAuditFolders.length&&!historicalAuditLooseFiles.length){
+    box.innerHTML='<div class="folderEmpty">Todavía no hay carpetas ni archivos seleccionados.</div>';
+    updateFolderValidationText();
     return;
   }
-
-  box.innerHTML='';
 
   for(const f of historicalAuditFolders){
     const row=document.createElement('div');
     row.className='folderRow';
-
     const name=document.createElement('div');
     name.className='folderName';
-    name.textContent=f.name;
-    name.title=f.name;
-
-    const pathWrap=document.createElement('div');
-    const lab=document.createElement('label');
-    lab.textContent='RUTA COMPLETA REAL DE WINDOWS (OPCIONAL)';
-    const input=document.createElement('input');
-    input.type='text';
-    input.className='folderPathInput optional';
-    input.value=f.basePath;
-    input.placeholder=`Opcional · Ej. D:\\TRABAJO\\28-09\\${f.name}`;
-    input.dataset.folderId=String(f.id);
-    input.addEventListener('input',ev=>{
-      f.basePath=ev.target.value.trim().replace(/[\\\/]+$/,'');
-      updateAuditFolderSummary();
-      updateFolderValidationText();
-    });
-    pathWrap.appendChild(lab);
-    pathWrap.appendChild(input);
-    const note=document.createElement('div');
-    note.className='folderPathNote';
-    note.textContent='Opcional. Si la dejas vacía, la auditoría funciona y el reporte mostrará la ruta relativa disponible.';
-    pathWrap.appendChild(note);
-
+    name.innerHTML=`<b>CARPETA</b> · ${esc(f.name)}<div class="small muted">Se analizará de forma recursiva, incluyendo todas sus subcarpetas.</div>`;
     const del=document.createElement('button');
-    del.className='danger';
-    del.textContent='ELIMINAR';
-    del.onclick=()=>removeAuditFolder(f.id);
+    del.className='danger';del.textContent='ELIMINAR';del.onclick=()=>removeAuditFolder(f.id);
+    row.appendChild(name);row.appendChild(del);box.appendChild(row);
+  }
 
-    row.appendChild(name);
-    row.appendChild(pathWrap);
-    row.appendChild(del);
-    box.appendChild(row);
+  for(const f of historicalAuditLooseFiles){
+    const row=document.createElement('div');
+    row.className='folderRow';
+    const name=document.createElement('div');
+    name.className='folderName';
+    name.innerHTML=`<b>PDF INDIVIDUAL</b> · ${esc(f.name)}`;
+    const del=document.createElement('button');
+    del.className='danger';del.textContent='ELIMINAR';del.onclick=()=>removeAuditLooseFile(f.id);
+    row.appendChild(name);row.appendChild(del);box.appendChild(row);
   }
 
   updateFolderValidationText();
@@ -2784,39 +2948,33 @@ function renderAuditFolderManager(refocus=true){
 function updateFolderValidationText(){
   const el=document.getElementById('auditFolderValidation');
   if(!el)return;
-
-  const complete=historicalAuditFolders.filter(f=>f.basePath).length;
-  const pending=historicalAuditFolders.length-complete;
-
-  if(!historicalAuditFolders.length){
-    el.textContent='';
-  }else if(pending){
-    el.textContent=`${historicalAuditFolders.length} carpeta(s) · ${complete} con ruta completa · ${pending} sin ruta (permitido)`;
-  }else{
-    el.textContent=`${historicalAuditFolders.length} carpeta(s) · todas con ruta completa`;
-  }
+  const f=historicalAuditFolders.length,a=historicalAuditLooseFiles.length;
+  el.textContent=(f||a)?`${f} carpeta(s) · ${a} PDF individual(es)`:' ';
 }
 
 function updateAuditFolderSummary(){
   const el=document.getElementById('auditFolderName');
   if(!el)return;
-
-  if(!historicalAuditFolders.length){
-    el.textContent='Ninguna carpeta seleccionada';
-    el.title='';
+  const f=historicalAuditFolders.length,a=historicalAuditLooseFiles.length;
+  if(!f&&!a){
+    el.textContent='Ninguna entrada seleccionada';el.title='';
     if(!historicalAuditRunning)setAuditStatus('ESPERANDO','st-wait');
     return;
   }
+  el.textContent=`${f} carpeta(s) · ${a} PDF individual(es)`;
+  el.title=[...historicalAuditFolders.map(x=>x.name),...historicalAuditLooseFiles.map(x=>x.name)].join(' · ');
+  if(!historicalAuditRunning)setAuditStatus('LISTO','st-ready');
+}
 
-  const complete=historicalAuditFolders.filter(f=>f.basePath).length;
-  const names=historicalAuditFolders.map(f=>f.name).join(' · ');
+function auditOptionChanged(){
+  scheduleSessionSave();
+  const checked=!!document.getElementById('auditIncludeOver10')?.checked;
+  logEvent(`Auditoría: PDF de más de 10 páginas ${checked?'INCLUIDOS':'OMITIDOS'}`,'info');
+}
 
-  el.textContent=`${historicalAuditFolders.length} carpeta(s) seleccionada(s) · ${complete} con ruta completa (opcional)`;
-  el.title=names;
-
-  if(!historicalAuditRunning){
-    setAuditStatus('LISTO','st-ready');
-  }
+function setAuditInlineStatus(message,type='info'){
+  const el=document.getElementById('auditFolderValidation');
+  if(el){el.textContent=message;el.className=`small ${type==='warn'?'bad':'muted'}`;}
 }
 
 async function collectPdfHandles(dirHandle,prefix='',folderRecord=null){
@@ -2845,6 +3003,12 @@ function extractGRFromFilename(name){
   const base=name.replace(/\.pdf$/i,'');
   const m=base.match(/\bT[A-Z0-9]+-\d+\b/i);
   return m ? m[0].toUpperCase() : null;
+}
+
+function isValidAuditFilenameForGR(name,gr){
+  if(!gr)return false;
+  const escaped=String(gr).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return new RegExp(`^${escaped}(?:_[2-9]\\d*|_[1-9]\\d+)?\\.pdf$`,'i').test(String(name||''));
 }
 
 function fullAuditPath(item){
@@ -2912,36 +3076,32 @@ function stopAuditTimer(){
 
 async function countHistoricalAuditPages(files){
   let total=0;
+  historicalAuditSkippedOver10=0;
+  const includeOver10=!!document.getElementById('auditIncludeOver10')?.checked;
   setAuditStatus('CONTANDO PÁGINAS','st-run');
 
   for(let i=0;i<files.length;i++){
     if(historicalAuditCancelRequested)break;
-
     const entry=files[i];
-    document.getElementById('auditCurrentFile').textContent=
-      `Preparando: ${fullAuditPath(entry)}`;
-    document.getElementById('auditBar').style.width=
-      `${files.length?Math.round(((i+1)/files.length)*100):0}%`;
-    document.getElementById('auditProgressText').textContent=
-      `Contando páginas · PDF ${i+1}/${files.length} · páginas detectadas: ${total}`;
-
+    document.getElementById('auditCurrentFile').textContent=`Preparando: ${fullAuditPath(entry)}`;
+    document.getElementById('auditBar').style.width=`${files.length?Math.round(((i+1)/files.length)*100):0}%`;
+    document.getElementById('auditProgressText').textContent=`Contando páginas · PDF ${i+1}/${files.length} · páginas a auditar: ${total}`;
     try{
       const file=await entry.handle.getFile();
       const bytes=new Uint8Array(await file.arrayBuffer());
       const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
       entry.pageCount=pdf.numPages;
-      total+=pdf.numPages;
+      entry.skipOver10=!includeOver10&&pdf.numPages>10;
+      if(entry.skipOver10)historicalAuditSkippedOver10++; else total+=pdf.numPages;
       try{await pdf.destroy();}catch(e){}
     }catch(e){
-      entry.pageCount=0;
-      entry.preflightError=e?.message||String(e);
+      entry.pageCount=0;entry.skipOver10=false;entry.preflightError=e?.message||String(e);
     }
-
     historicalAuditTotalPages=total;
+    document.getElementById('auditSkippedCount').textContent=historicalAuditSkippedOver10;
     updateAuditTiming();
     if(i%3===0)await yieldUI();
   }
-
   return total;
 }
 
@@ -2951,11 +3111,12 @@ function setAuditStatus(text,cls){
   el.className=`status ${cls}`;
 }
 
-function updateAuditCounters(files=0,ok=0,issues=0,fixed=null){
+function updateAuditCounters(files=0,ok=0,issues=0,fixed=null,skipped=null){
   document.getElementById('auditFilesCount').textContent=files;
   document.getElementById('auditOkCount').textContent=ok;
   document.getElementById('auditIssueCount').textContent=issues;
   if(fixed!==null)document.getElementById('auditFixedCount').textContent=fixed;
+  if(skipped!==null)document.getElementById('auditSkippedCount').textContent=skipped;
 }
 
 
@@ -2970,52 +3131,49 @@ function ensureAuditItemId(item){
   return item._id;
 }
 
+function auditFinalGR(item){
+  if(!item?.reviewed)return '';
+  return item.isOtherDocument?'':(item.correctedGR||'');
+}
+
+function auditExpectedFilename(item){
+  if(!item)return '';
+  if(item.result==='OMITIDO · MÁS DE 10 PÁGINAS'||item.result==='ERROR DE LECTURA')return '';
+  if(item.isOtherDocument)return 'OTRO DOCUMENTO';
+  const final=String(auditFinalGR(item)||'').trim();
+  if(final&& !final.includes(' / '))return `${final}.pdf`;
+  const found=String(item.foundGR||'').trim();
+  if(found&& !found.includes(' / '))return `${found}.pdf`;
+  if((final||found).includes(' / '))return 'VARIAS GR EN EL PDF';
+  return '';
+}
+
 function appendAuditReportItem(item){
   ensureAuditItemId(item);
-
   const tbody=document.getElementById('auditReportRows');
   const empty=document.getElementById('auditReportEmpty');
   if(empty)empty.style.display='none';
-
-  const tr=document.createElement('tr');
-  tr.id=auditItemId(item);
-
+  const tr=document.createElement('tr');tr.id=auditItemId(item);
   const pageText=(item.pages||[]).join(', ');
   const values=[
-    fullAuditPath(item),
-    item.originalName||item.name||'',
-    item.expectedGR||'',
-    item.foundGR||'',
-    item.reviewed ? (item.correctedGR||'') : '',
-    item.consensus||'',
-    pageText,
-    item.observation||''
+    fullAuditPath(item),item.originalName||item.name||'',item.foundGR||'',auditExpectedFilename(item),
+    auditFinalGR(item),item.result||'REVISAR',pageText,item.observation||''
   ];
-
-  values.forEach((v,idx)=>{
-    const td=document.createElement('td');
-    td.textContent=v;
-    if(idx===7)td.className='obsCell';
-    tr.appendChild(td);
-  });
-
+  values.forEach((v,idx)=>{const td=document.createElement('td');td.textContent=v;if(idx===7)td.className='obsCell';tr.appendChild(td);});
   tbody.appendChild(tr);
-
   document.getElementById('auditCopyBtn').disabled=false;
-  const copy2=document.getElementById('auditCopyBtn2');
-  if(copy2)copy2.disabled=false;
-  const excel1=document.getElementById('auditExcelBtn'); if(excel1)excel1.disabled=false;
-  const excel2=document.getElementById('auditExcelBtn2'); if(excel2)excel2.disabled=false;
+  const copy2=document.getElementById('auditCopyBtn2');if(copy2)copy2.disabled=false;
+  const excel1=document.getElementById('auditExcelBtn');if(excel1)excel1.disabled=false;
+  const excel2=document.getElementById('auditExcelBtn2');if(excel2)excel2.disabled=false;
 }
 
 function refreshAuditReportRow(item){
-  const row=document.getElementById(auditItemId(item));
-  if(!row)return;
-
+  const row=document.getElementById(auditItemId(item));if(!row)return;
   const cells=row.children;
-  if(cells[3])cells[3].textContent=item.foundGR||'';
-  if(cells[4])cells[4].textContent=item.reviewed ? (item.correctedGR||'') : '';
-  if(cells[5])cells[5].textContent=item.consensus||'';
+  if(cells[2])cells[2].textContent=item.foundGR||'';
+  if(cells[3])cells[3].textContent=auditExpectedFilename(item);
+  if(cells[4])cells[4].textContent=auditFinalGR(item);
+  if(cells[5])cells[5].textContent=item.result||'REVISAR';
   if(cells[6])cells[6].textContent=(item.pages||[]).join(', ');
   if(cells[7])cells[7].textContent=item.observation||'';
 }
@@ -3036,18 +3194,18 @@ function resetAuditReport(){
 
 function buildAuditReportTSV(){
   const lines=[[
-    'RUTA','ARCHIVO','GR DEL NOMBRE','GR DETECTADA',
-    'GR REVISADA','CONSENSO','PÁGINA','OBSERVACIÓN'
+    'RUTA','ARCHIVO ACTUAL','GR OCR CONFIRMADA','NOMBRE ESPERADO',
+    'GR FINAL','RESULTADO','PÁGINA','OBSERVACIÓN'
   ].join('\t')];
 
   for(const item of historicalAuditItems){
     lines.push([
       fullAuditPath(item),
       item.originalName||item.name||'',
-      item.expectedGR||'',
       item.foundGR||'',
-      item.reviewed ? (item.correctedGR||'') : '',
-      item.consensus||'',
+      auditExpectedFilename(item),
+      auditFinalGR(item),
+      item.result||'REVISAR',
       (item.pages||[]).join(', '),
       item.observation||''
     ].join('\t'));
@@ -3469,299 +3627,125 @@ async function auditReadPageHighPrecision(page,expected=null){
 
 async function startHistoricalAudit(){
   if(historicalAuditRunning)return;
-
-  if(!historicalAuditFolders.length){
-    alert('Agrega primero una o más carpetas para auditar.');
-    openAuditFolderManager();
-    return;
+  if(!historicalAuditFolders.length&&!historicalAuditLooseFiles.length){
+    setAuditInlineStatus('Agrega una carpeta madre o uno o varios PDF.','warn');
+    openAuditFolderManager();return;
   }
 
-  historicalAuditRunning=true;
-  historicalAuditCancelRequested=false;
-  historicalAuditItems=[];
-  historicalAuditIndex=0;
-  historicalAuditStartedAt=Date.now();
-  historicalAuditOcrStartedAt=null;
-  historicalAuditEndedAt=null;
-  historicalAuditTotalPages=0;
-  historicalAuditProcessedPages=0;
-
-  const foldersWithoutFullPath=historicalAuditFolders.filter(f=>!String(f.basePath||'').trim()).length;
-  if(foldersWithoutFullPath){
-    logEvent(`${foldersWithoutFullPath} carpeta(s) sin ruta absoluta de Windows; se usará ruta relativa en el reporte para esas carpetas.`,'warn');
-  }
-
+  historicalAuditRunning=true;historicalAuditCancelRequested=false;historicalAuditItems=[];historicalAuditReviewQueue=[];
+  historicalAuditIndex=0;historicalAuditStartedAt=Date.now();historicalAuditOcrStartedAt=null;historicalAuditEndedAt=null;
+  historicalAuditTotalPages=0;historicalAuditProcessedPages=0;historicalAuditSkippedOver10=0;
   resetAuditReport();
-
   document.getElementById('auditReviewBtn').disabled=true;
-  document.getElementById('auditReviewBtn').textContent='AUDITAR OBSERVACIONES (0)';
-  document.getElementById('auditCopyBtn').disabled=true;
-  const copy2Start=document.getElementById('auditCopyBtn2'); if(copy2Start)copy2Start.disabled=true;
-  document.getElementById('auditExcelBtn').disabled=true;
-  document.getElementById('auditExcelBtn2').disabled=true;
-  document.getElementById('auditStartBtn').disabled=true;
-  document.getElementById('auditCancelBtn').disabled=false;
-  document.getElementById('auditBar').style.width='0%';
-  document.getElementById('auditCurrentFile').textContent='Preparando auditoría…';
-  updateAuditCounters(0,0,0,0);
-  startAuditTimer();
+  document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
+  document.getElementById('auditCopyBtn').disabled=true;const copy2Start=document.getElementById('auditCopyBtn2');if(copy2Start)copy2Start.disabled=true;
+  document.getElementById('auditExcelBtn').disabled=true;document.getElementById('auditExcelBtn2').disabled=true;
+  document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;
+  document.getElementById('auditBar').style.width='0%';document.getElementById('auditCurrentFile').textContent='Preparando auditoría…';
+  updateAuditCounters(0,0,0,0,0);startAuditTimer();scheduleSessionSave();
 
-  let files=[];
-  let okCount=0;
-  let processed=0;
-
+  let files=[],okCount=0,processed=0;
   try{
-    // Reunir todas las carpetas como una sola cola conservando su raíz real.
     for(const folder of historicalAuditFolders){
       if(historicalAuditCancelRequested)break;
-      const found=await collectAuditFolderFiles(folder);
-      files.push(...found);
-      logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados`,'info');
+      const found=await collectAuditFolderFiles(folder);files.push(...found);
+      logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
     }
+    files.push(...collectAuditLooseFiles());
+    files=await dedupeAuditEntries(files);
+    logEvent(`Auditoría histórica: ${files.length} PDF únicos encontrados`,'info');
 
-    logEvent(`Auditoría histórica: ${files.length} PDF encontrados en ${historicalAuditFolders.length} carpeta(s)`,'info');
+    if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
 
-    if(!files.length){
-      setAuditStatus('SIN PDF','st-wait');
-      document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';
-      return;
-    }
-
-    // Prelectura ligera para conocer el número total de páginas y poder calcular ETA.
     await countHistoricalAuditPages(files);
+    if(historicalAuditCancelRequested){setAuditStatus('CANCELADO','st-wait');document.getElementById('auditProgressText').textContent='Cancelado durante el conteo de páginas.';return;}
 
-    if(historicalAuditCancelRequested){
-      setAuditStatus('CANCELADO','st-wait');
-      document.getElementById('auditProgressText').textContent='Cancelado durante el conteo de páginas.';
-      return;
+    // Registrar explícitamente los PDF omitidos por el filtro >10 páginas.
+    for(const entry of files.filter(x=>x.skipOver10)){
+      const item={...entry,expectedGR:extractGRFromFilename(entry.name),foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],
+        result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,
+        previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};
+      item.baseObservation=item.observation;historicalAuditItems.push(item);appendAuditReportItem(item);
     }
 
-    document.getElementById('auditBar').style.width='0%';
-    historicalAuditProcessedPages=0;
-    historicalAuditOcrStartedAt=Date.now();
-    setAuditStatus('AUDITANDO','st-run');
-    updateAuditTiming();
+    const auditable=files.filter(x=>!x.skipOver10);
+    document.getElementById('auditBar').style.width='0%';historicalAuditProcessedPages=0;historicalAuditOcrStartedAt=Date.now();
+    setAuditStatus('AUDITANDO','st-run');updateAuditTiming();
+    logEvent(`Inicio OCR auditoría · ${auditable.length} PDF · ${historicalAuditTotalPages} páginas · ${historicalAuditSkippedOver10} omitidos >10 páginas`,'info');
 
-    logEvent(`Inicio OCR auditoría · ${files.length} PDF · ${historicalAuditTotalPages} páginas`,'info');
-
-    for(let i=0;i<files.length;i++){
-      if(historicalAuditCancelRequested){
-        logEvent(`Auditoría cancelada por el usuario en ${processed}/${files.length} PDF`,'warn');
-        break;
-      }
-
-      const entry=files[i];
-      const expected=extractGRFromFilename(entry.name);
-
-      let pdf=null;
-      let pageResults=[];
-      let preview='';
-      let openError=null;
-      let pagesAttempted=0;
-
+    for(let i=0;i<auditable.length;i++){
+      if(historicalAuditCancelRequested){logEvent(`Auditoría cancelada en ${processed}/${auditable.length} PDF`,'warn');break;}
+      const entry=auditable[i];const expected=extractGRFromFilename(entry.name);
+      let pdf=null,pageResults=[],openError=null,pagesAttempted=0;
       try{
-        const file=await entry.handle.getFile();
-        const bytes=new Uint8Array(await file.arrayBuffer());
-        pdf=await pdfjsLib.getDocument({data:bytes}).promise;
-        entry.pageCount=pdf.numPages;
-
+        const file=await entry.handle.getFile();const bytes=new Uint8Array(await file.arrayBuffer());pdf=await pdfjsLib.getDocument({data:bytes}).promise;entry.pageCount=pdf.numPages;
         for(let pn=1;pn<=pdf.numPages;pn++){
           if(historicalAuditCancelRequested)break;
-
-          document.getElementById('auditCurrentFile').textContent=
-            `Procesando: ${fullAuditPath(entry)} · página ${pn}/${pdf.numPages}`;
-
-          const page=await pdf.getPage(pn);
-          const read=await auditReadPageHighPrecision(page,expected);
-          pagesAttempted++;
-          historicalAuditProcessedPages++;
-
-          if(!preview && read.previewDataUrl){
-            preview=read.previewDataUrl;
-          }
-
-          pageResults.push({
-            page:pn,
-            detected:read.bestValue,
-            suggested:read.suggestedValue,
-            fast:read.fastValue,
-            consensus:read.consensus,
-            strongConsensus:read.strongConsensus,
-            reason:read.reason||''
-          });
-
-          document.getElementById('auditBar').style.width=
-            `${historicalAuditTotalPages?Math.min(100,Math.round((historicalAuditProcessedPages/historicalAuditTotalPages)*100)):0}%`;
-          document.getElementById('auditProgressText').textContent=
-            `PDF ${processed+1}/${files.length} · páginas ${historicalAuditProcessedPages}/${historicalAuditTotalPages}`;
-          updateAuditTiming();
-
-          logEvent(
-            `AUDIT ${fullAuditPath(entry)} · pág. ${pn} · nombre ${expected||'SIN GR'} · Tesseract ${read.fastValue||'NINGUNA'} · detectada ${read.bestValue||read.suggestedValue||'NINGUNA'} · consenso ${read.consensus} · estrategia ${read.strategy||'-'} · localización ${read.locator||'-'}`,
-            read.strongConsensus?'info':'warn'
-          );
+          document.getElementById('auditCurrentFile').textContent=`Procesando: ${fullAuditPath(entry)} · página ${pn}/${pdf.numPages}`;
+          const page=await pdf.getPage(pn);const read=await auditReadPageHighPrecision(page,expected);pagesAttempted++;historicalAuditProcessedPages++;
+          pageResults.push({page:pn,detected:read.bestValue,suggested:read.suggestedValue,fast:read.fastValue,consensus:read.consensus,strongConsensus:read.strongConsensus,reason:read.reason||'',readings:read.readings||[],previewDataUrl:read.previewDataUrl||''});
+          document.getElementById('auditBar').style.width=`${historicalAuditTotalPages?Math.min(100,Math.round((historicalAuditProcessedPages/historicalAuditTotalPages)*100)):0}%`;
+          document.getElementById('auditProgressText').textContent=`PDF ${processed+1}/${auditable.length} · páginas ${historicalAuditProcessedPages}/${historicalAuditTotalPages}`;updateAuditTiming();
+          logEvent(`AUDIT ${fullAuditPath(entry)} · pág. ${pn} · GR en nombre ${expected||'SIN GR'} · Tesseract ${read.fastValue||'NINGUNA'} · OCR confirmado ${read.bestValue||'NINGUNO'} · ${read.consensus}`,read.strongConsensus?'info':'warn');
         }
+      }catch(err){openError=err?.message||String(err);}finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
+      if(openError&&entry.pageCount&&pagesAttempted===0)historicalAuditProcessedPages+=entry.pageCount;
 
-      }catch(err){
-        openError=err?.message||String(err);
-      }finally{
-        if(pdf){
-          try{await pdf.destroy();}catch(e){}
-        }
-      }
-
-      // Si el PDF no pudo abrirse, se cuenta su pageCount conocido como trabajo intentado
-      // para que el progreso total pueda finalizar correctamente.
-      if(openError && entry.pageCount && pagesAttempted===0){
-        historicalAuditProcessedPages+=entry.pageCount;
-      }
-
-      let observation='';
-      let foundGR=null;
-      let consensus='';
-      let pages=[];
-      let needsIssue=false;
-
-      if(openError){
-        needsIssue=true;
-        observation=`No se pudo analizar el PDF: ${openError}`;
-      }else{
-        const strong=pageResults.filter(r=>r.strongConsensus && r.detected);
-        const weak=pageResults.filter(r=>!r.strongConsensus);
-
-        if(strong.length){
-          const values=[...new Set(strong.map(r=>r.detected))];
-
-          if(values.length===1){
-            foundGR=values[0];
-            const related=strong.filter(r=>r.detected===foundGR);
-            consensus=related.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
-
-            if(expected){
-              if(foundGR!==expected){
-                needsIssue=true;
-                pages=related.map(r=>r.page);
-                observation=`No coincide con el nombre ${expected}. Lectura confirmada: ${foundGR}`;
-              }
-            }else{
-              needsIssue=true;
-              pages=related.map(r=>r.page);
-              observation=`El nombre del archivo no contiene una GR reconocible. Lectura confirmada: ${foundGR}`;
-            }
-
-          }else{
-            needsIssue=true;
-            pages=strong.map(r=>r.page);
-            foundGR=values.join(' / ');
-            consensus=strong.map(r=>`p${r.page}:${r.detected}(${r.consensus})`).join(' / ');
-            observation=`El PDF contiene lecturas confirmadas diferentes entre páginas: ${values.join(', ')}`;
+      let observation='',foundGR=null,consensus='',pages=[],needsIssue=false,result='CORRECTO',reviewPages=[];
+      if(openError){needsIssue=true;result='ERROR DE LECTURA';observation=`No se pudo analizar el PDF: ${openError}`;}
+      else{
+        const strong=pageResults.filter(r=>r.strongConsensus&&r.detected);const weak=pageResults.filter(r=>!r.strongConsensus);
+        const values=[...new Set(strong.map(r=>r.detected))];
+        if(values.length>1){
+          needsIssue=true;result='VARIAS GR EN EL PDF';foundGR=values.join(' / ');pages=strong.map(r=>r.page);
+          consensus=strong.map(r=>`p${r.page}:${r.detected}`).join(' / ');
+          observation=`El PDF contiene GR confirmadas diferentes entre páginas: ${values.join(', ')}.`;reviewPages=[...strong,...weak];
+        }else if(weak.length){
+          needsIssue=true;result='REVISAR OCR';foundGR=values.length===1?values[0]:null;pages=weak.map(r=>r.page);
+          consensus=weak.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
+          observation=`El OCR no logró una coincidencia estricta en ${weak.length} página(s). Revisión humana obligatoria.`;reviewPages=weak;
+        }else if(values.length===1){
+          foundGR=values[0];const expectedFullName=`${foundGR}.pdf`;
+          if(!isValidAuditFilenameForGR(entry.name,foundGR)){
+            needsIssue=true;result='NOMBRE INCORRECTO';pages=[strong[0]?.page||1];
+            consensus=strong.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
+            observation=`Nombre actual incorrecto. Nombre esperado según OCR confirmado: ${expectedFullName}`;reviewPages=strong.length?[strong[0]]:[];
           }
-        }
-
-        if(weak.length){
-          for(const r of weak){
-            const proposed=r.suggested||null;
-
-            // V1.16: una lectura débil SIEMPRE es observación.
-            // Incluso si el candidato coincide con el nombre, el nombre no cuenta como voto.
-            needsIssue=true;
-            pages=[...new Set([...pages,r.page])];
-
-            if(proposed && expected && proposed===expected){
-              observation+=(observation?' · ':'')+
-                `Coincide con el nombre ${expected}, pero Tesseract/PaddleOCR no fueron estables (pág. ${r.page}). REVISAR`;
-            }else if(proposed && expected){
-              observation+=(observation?' · ':'')+
-                `Doble motor no concluyente; requiere revisión. Nombre ${expected}; candidato ${proposed} (pág. ${r.page})`;
-            }else if(proposed && !expected){
-              observation+=(observation?' · ':'')+
-                `Nombre sin GR; lectura no estable ${proposed} en página ${r.page}. REVISAR`;
-            }else{
-              observation+=(observation?' · ':'')+
-                `Doble motor sin coincidencia estable en página ${r.page}; requiere revisión`+
-                (r.reason?` (${r.reason})`:'');
-            }
-          }
+        }else{
+          needsIssue=true;result='REVISAR OCR';pages=pageResults.map(r=>r.page);observation='No se obtuvo una GR confirmada por ambos motores.';reviewPages=pageResults;
         }
       }
 
       if(needsIssue){
-        const item={
-          ...entry,
-          expectedGR:expected,
-          foundGR:foundGR,
-          correctedGR:foundGR||expected||'',
-          consensus:consensus||'SIN CONSENSO',
-          pages,
-          observation,
-          previewDataUrl:preview,
-          reviewed:false,
-          originalName:entry.name
-        };
+        const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,
+          previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:openError};
+        historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${fullAuditPath(entry)} · ${result} · ${observation}`,'warn');
+      }else okCount++;
 
-        historicalAuditItems.push(item);
-        appendAuditReportItem(item);
-
-        document.getElementById('auditReviewBtn').disabled=false;
-        document.getElementById('auditReviewBtn').textContent=
-          `AUDITAR OBSERVACIONES (${historicalAuditItems.length})`;
-
-        logEvent(`OBSERVACIÓN · ${fullAuditPath(entry)} · ${observation}`,'warn');
-      }else{
-        okCount++;
-      }
-
-      processed++;
-      updateAuditCounters(
-        processed,
-        okCount,
-        historicalAuditItems.length,
-        historicalAuditItems.filter(x=>x.reviewed).length
-      );
-      updateAuditTiming();
-
+      processed++;updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
       if(processed%2===0)await yieldUI();
     }
 
-    historicalAuditEndedAt=Date.now();
-    updateAuditTiming();
-
+    buildHistoricalAuditReviewQueue();historicalAuditEndedAt=Date.now();updateAuditTiming();
     if(historicalAuditCancelRequested){
-      setAuditStatus('CANCELADO','st-wait');
-      document.getElementById('auditProgressText').textContent=
-        `Cancelado · ${processed} de ${files.length} PDF · ${historicalAuditProcessedPages}/${historicalAuditTotalPages} páginas · ${historicalAuditItems.length} observaciones conservadas`;
-      document.getElementById('auditCurrentFile').textContent='Procesando: cancelado por el usuario';
-      logEvent(`Auditoría cancelada · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'warn');
+      setAuditStatus('CANCELADO','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · ${processed}/${auditable.length} PDF`;document.getElementById('auditCurrentFile').textContent='Procesando: cancelado';
     }else{
-      historicalAuditProcessedPages=historicalAuditTotalPages;
-      document.getElementById('auditBar').style.width='100%';
-      document.getElementById('auditProgressText').textContent=
-        `Finalizado · ${files.length} PDF · ${historicalAuditTotalPages} páginas · ${historicalAuditItems.length} con observaciones`;
-      document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';
-
-      setAuditStatus('FINALIZADO','st-done');
-      logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');
+      historicalAuditProcessedPages=historicalAuditTotalPages;document.getElementById('auditBar').style.width='100%';
+      document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos · ${historicalAuditItems.length} observaciones`;
+      document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');
+      logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');
     }
-
-    updateAuditTiming();
+    updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
     document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;
-    document.getElementById('auditReviewBtn').disabled=historicalAuditItems.length===0;
-    document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;
-    document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
-
+    document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;
+    document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;
+    document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
+    await saveSessionSnapshotNow();
   }catch(err){
-    console.error(err);
-    historicalAuditEndedAt=Date.now();
-    setAuditStatus('ERROR','st-err');
-    logEvent(`ERROR AUDITORÍA: ${err?.message||err}`,'err');
-    alert('Ocurrió un error durante la auditoría.');
-
+    console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR','st-err');logEvent(`ERROR AUDITORÍA: ${err?.message||err}`,'err');
+    document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;
   }finally{
-    historicalAuditRunning=false;
-    document.getElementById('auditStartBtn').disabled=false;
-    document.getElementById('auditCancelBtn').disabled=true;
-    stopAuditTimer();
-    await terminateOCR();
+    historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();
   }
 }
 
@@ -3783,18 +3767,18 @@ async function copyAuditReport(){
 
 function auditReportRowsForExcel(){
   const rows=[[
-    'RUTA','ARCHIVO','GR DEL NOMBRE','GR DETECTADA',
-    'GR REVISADA','CONSENSO','PÁGINA','OBSERVACIÓN'
+    'RUTA','ARCHIVO ACTUAL','GR OCR CONFIRMADA','NOMBRE ESPERADO',
+    'GR FINAL','RESULTADO','PÁGINA','OBSERVACIÓN'
   ]];
 
   for(const item of historicalAuditItems){
     rows.push([
       fullAuditPath(item),
       item.originalName||item.name||'',
-      item.expectedGR||'',
       item.foundGR||'',
-      item.reviewed ? (item.correctedGR||'') : '',
-      item.consensus||'',
+      auditExpectedFilename(item),
+      auditFinalGR(item),
+      item.result||'REVISAR',
       (item.pages||[]).join(', '),
       item.observation||''
     ]);
@@ -3816,8 +3800,8 @@ function downloadAuditExcel(){
 
   const ws=XLSX.utils.aoa_to_sheet(auditReportRowsForExcel());
   ws['!cols']=[
-    {wch:60},{wch:30},{wch:20},{wch:26},
-    {wch:22},{wch:24},{wch:18},{wch:80}
+    {wch:60},{wch:48},{wch:24},{wch:28},
+    {wch:28},{wch:28},{wch:18},{wch:80}
   ];
   ws['!autofilter']={ref:ws['!ref']};
 
@@ -3838,80 +3822,140 @@ function downloadAuditExcel(){
   logEvent(`Reporte Excel descargado · ${historicalAuditItems.length} observaciones`,'ok');
 }
 
+function buildHistoricalAuditReviewQueue(){
+  const previous=new Map((historicalAuditReviewQueue||[]).map(q=>[`${q.parentItem?._id||''}|${q.pageResult?.page||0}`,q]));
+  historicalAuditReviewQueue=[];
+  for(const item of historicalAuditItems){
+    ensureAuditItemId(item);
+    if(item.skipReview)continue;
+    let pages=Array.isArray(item.reviewPages)?item.reviewPages.filter(Boolean):[];
+    if(!pages.length && item.pageResults?.length)pages=[item.pageResults[0]];
+    for(const r of pages){
+      const key=`${item._id}|${r.page||0}`;const old=previous.get(key);
+      historicalAuditReviewQueue.push({
+        parentItem:item,pageResult:r,
+        manualGR:old?.manualGR||(r.detected||r.suggested||item.foundGR||item.expectedGR||''),
+        isOtherDocument:!!old?.isOtherDocument,reviewed:!!old?.reviewed
+      });
+    }
+  }
+}
+
 function openHistoricalAuditQueue(){
-  if(!historicalAuditItems.length)return;
-  historicalAuditIndex=0;
+  buildHistoricalAuditReviewQueue();
+  if(!historicalAuditReviewQueue.length)return;
+  const firstPending=historicalAuditReviewQueue.findIndex(q=>!q.reviewed);
+  historicalAuditIndex=firstPending>=0?firstPending:0;
   document.getElementById('auditModal').classList.add('open');
   showHistoricalAuditItem();
 }
 
 function showHistoricalAuditItem(){
-  const item=historicalAuditItems[historicalAuditIndex];
-  if(!item){
-    closeAuditModal();
-    return;
-  }
+  const q=historicalAuditReviewQueue[historicalAuditIndex];
+  if(!q){closeAuditModal();return;}
+  const item=q.parentItem,r=q.pageResult||{};
+  const total=historicalAuditReviewQueue.length;
+  document.getElementById('auditModalCounter').textContent=`${historicalAuditIndex+1} / ${total}`;
+  document.getElementById('auditFooterCounter').textContent=`${historicalAuditIndex+1} / ${total}`;
+  document.getElementById('auditModalPath').textContent=`${fullAuditPath(item)} · página ${r.page||1}`;
+  document.getElementById('auditCurrentName').textContent=item.originalName||item.name||'';
+  document.getElementById('auditObservation').textContent=item.baseObservation||item.observation||'';
+  document.getElementById('auditSystemReading').textContent=r.detected||r.suggested||'SIN LECTURA';
 
-  document.getElementById('auditModalCounter').textContent=
-    `${historicalAuditIndex+1} de ${historicalAuditItems.length}`;
-  document.getElementById('auditModalPath').textContent=fullAuditPath(item);
-  document.getElementById('auditCurrentName').textContent=item.originalName;
-  document.getElementById('auditSystemReading').textContent=item.foundGR||'NO IDENTIFICADA';
-  document.getElementById('auditObservation').textContent=item.observation;
+  const tess=engineOptionFromReadings(r.readings||[],'TESSERACT');
+  const paddle=engineOptionFromReadings(r.readings||[],'PADDLEOCR');
+  document.getElementById('auditTessValue').textContent=tess.value||'SIN LECTURA';
+  document.getElementById('auditPaddleValue').textContent=paddle.value||'SIN LECTURA';
+  document.getElementById('auditTessChoice').disabled=!tess.value;
+  document.getElementById('auditPaddleChoice').disabled=!paddle.value;
 
-  const img=document.getElementById('auditPreview');
-  if(item.previewDataUrl){
-    img.src=item.previewDataUrl;
-    img.style.display='block';
-  }else{
-    img.removeAttribute('src');
-    img.style.display='none';
-  }
+  const img=document.getElementById('auditPreview');const preview=r.previewDataUrl||item.previewDataUrl||'';
+  if(preview){img.src=preview;img.style.display='block';}else{img.removeAttribute('src');img.style.display='none';}
 
-  const input=document.getElementById('auditManualGR');
-  input.value=item.correctedGR||item.foundGR||item.expectedGR||'';
-  setTimeout(()=>{input.focus();input.select();},50);
+  const chk=document.getElementById('auditNotGuide');chk.checked=!!q.isOtherDocument;
+  const input=document.getElementById('auditManualGR');input.disabled=!!q.isOtherDocument;
+  input.value=q.isOtherDocument?'':(q.manualGR||r.detected||r.suggested||'');
+  document.getElementById('auditInlineError').textContent='';
+  document.getElementById('auditPrevBtn').disabled=historicalAuditIndex===0;
+  document.getElementById('auditAcceptBtn').textContent=historicalAuditIndex===total-1?'FINALIZAR':'SIGUIENTE →';
+  setTimeout(()=>{if(!q.isOtherDocument){input.focus();input.select();}},30);
 }
 
-function acceptAuditItem(){
-  const item=historicalAuditItems[historicalAuditIndex];
-  if(!item)return;
+function selectHistoricalEngine(engine){
+  const q=historicalAuditReviewQueue[historicalAuditIndex];if(!q)return;
+  const opt=engineOptionFromReadings(q.pageResult?.readings||[],engine);if(!opt.value)return;
+  q.isOtherDocument=false;q.manualGR=opt.value;
+  const chk=document.getElementById('auditNotGuide');if(chk)chk.checked=false;
+  const input=document.getElementById('auditManualGR');input.disabled=false;input.value=opt.value;input.focus();input.select();
+  document.getElementById('auditInlineError').textContent='';
+}
 
+function historicalNotGuideChanged(){
+  const q=historicalAuditReviewQueue[historicalAuditIndex];if(!q)return;
+  const checked=!!document.getElementById('auditNotGuide')?.checked;q.isOtherDocument=checked;
+  const input=document.getElementById('auditManualGR');input.disabled=checked;
+  if(checked){input.value='';q.manualGR='';}else if(!input.value){q.manualGR=q.pageResult?.detected||q.pageResult?.suggested||'';input.value=q.manualGR;}
+  document.getElementById('auditInlineError').textContent='';
+}
+
+function saveCurrentHistoricalReview(){
+  const q=historicalAuditReviewQueue[historicalAuditIndex];if(!q)return false;
+  const other=!!document.getElementById('auditNotGuide')?.checked;
   const value=(document.getElementById('auditManualGR').value||'').trim().toUpperCase();
-
-  if(!/^T[A-Z0-9]+-\d+$/.test(value)){
-    alert('Escribe una GR válida, por ejemplo T611-00011956 o TS32-9850.');
-    document.getElementById('auditManualGR').focus();
-    return;
+  const err=document.getElementById('auditInlineError');
+  if(!other&&!/^T[A-Z0-9]+-\d+$/.test(value)){
+    err.textContent='Escribe una GR válida o marca “ESTE DOCUMENTO ESCANEADO NO ES UNA GUÍA DE REMISIÓN”.';
+    const input=document.getElementById('auditManualGR');input.focus();input.select();return false;
   }
+  err.textContent='';q.isOtherDocument=other;q.manualGR=other?'':value;q.reviewed=true;
+  refreshHistoricalParentAfterReview(q.parentItem);scheduleSessionSave();return true;
+}
 
-  item.correctedGR=value;
-  item.reviewed=true;
-  item.observation=`${item.observation} · REVISADO MANUALMENTE: ${value}`;
+function refreshHistoricalParentAfterReview(item){
+  const qs=historicalAuditReviewQueue.filter(q=>q.parentItem===item);
+  if(!qs.length)return;
+  item.reviewed=qs.every(q=>q.reviewed);
+  if(!item.reviewed){refreshAuditReportRow(item);return;}
+  const allOther=qs.every(q=>q.isOtherDocument);const anyOther=qs.some(q=>q.isOtherDocument);
+  const vals=[...new Set(qs.filter(q=>!q.isOtherDocument).map(q=>q.manualGR).filter(Boolean))];
+  const base=item.baseObservation||item.observation||'';
+  if(allOther){
+    item.isOtherDocument=true;item.correctedGR='';item.result='OTRO DOCUMENTO';
+    item.observation=`${base}${base?' · ':''}REVISADO: OTRO DOCUMENTO (NO ES GUÍA DE REMISIÓN)`;
+  }else if(anyOther){
+    item.isOtherDocument=false;item.correctedGR=vals.join(' / ');item.result='DOCUMENTO MIXTO';
+    item.observation=`${base}${base?' · ':''}REVISADO POR PÁGINA: contiene guía(s) y otro(s) documento(s)`;
+  }else if(vals.length>1){
+    item.isOtherDocument=false;item.correctedGR=vals.join(' / ');item.result='VARIAS GR EN EL PDF';
+    item.observation=`${base}${base?' · ':''}REVISADO MANUALMENTE POR PÁGINA: ${vals.join(', ')}`;
+  }else if(vals.length===1){
+    const value=vals[0];item.isOtherDocument=false;item.correctedGR=value;
+    const expectedFull=`${value}.pdf`;
+    item.result=isValidAuditFilenameForGR(item.originalName||'',value)?'REVISADO':'NOMBRE INCORRECTO';
+    item.observation=`${base}${base?' · ':''}REVISADO MANUALMENTE: ${value}`;
+  }
+  if(item.reviewed){item.previewDataUrl='';for(const r of (item.pageResults||[]))r.previewDataUrl='';}
   refreshAuditReportRow(item);
-  historicalAuditIndex++;
+  updateAuditCounters(Number(document.getElementById('auditFilesCount').textContent)||0,Number(document.getElementById('auditOkCount').textContent)||0,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
+  const pendingReviews=historicalAuditReviewQueue.filter(q=>!q.reviewed).length;const btn=document.getElementById('auditReviewBtn');if(btn){btn.textContent=`AUDITAR / REVISAR TODO (${pendingReviews})`;btn.disabled=pendingReviews===0;}
+}
 
-  updateAuditCounters(
-    Number(document.getElementById('auditFilesCount').textContent)||0,
-    Number(document.getElementById('auditOkCount').textContent)||0,
-    historicalAuditItems.length,
-    historicalAuditItems.filter(x=>x.reviewed).length
-  );
-
-  if(historicalAuditIndex>=historicalAuditItems.length){
-    buildAuditReport();
-      !historicalAuditItems.some(x=>x.reviewed && x.correctedGR && x.correctedGR!==x.expectedGR);
-    closeAuditModal();
-    alert('Auditoría manual completada.');
-    return;
+function historicalReviewNext(){
+  if(!saveCurrentHistoricalReview())return;
+  if(historicalAuditIndex>=historicalAuditReviewQueue.length-1){
+    buildAuditReport();closeAuditModal();saveSessionSnapshotNow();return;
   }
-
-  showHistoricalAuditItem();
+  historicalAuditIndex++;showHistoricalAuditItem();
 }
 
-function closeAuditModal(){
-  document.getElementById('auditModal').classList.remove('open');
+function historicalReviewPrevious(){
+  if(!saveCurrentHistoricalReview())return;
+  if(historicalAuditIndex<=0)return;historicalAuditIndex--;showHistoricalAuditItem();
 }
+
+function historicalReviewKeyDown(ev){if(ev.key==='Enter'){ev.preventDefault();historicalReviewNext();}}
+
+function closeAuditModal(){document.getElementById('auditModal').classList.remove('open');scheduleSessionSave();}
 
 function preserveSuffixName(originalName,expectedGR,correctedGR){
   if(expectedGR && originalName.toUpperCase().includes(expectedGR.toUpperCase())){
@@ -4017,10 +4061,11 @@ function selectReviewEngine(engine,focusInput=false){
   if(!item)return;
   const opt=engineOptionFromReadings(item.engineReadings,engine);
   if(!opt.value)return;
-  item.selectedEngine=engine;
+  item.selectedEngine=engine;item.isOtherDocument=false;
   item.humanReading=opt.value;
+  const chk=document.getElementById('jobReviewNotGuide');if(chk)chk.checked=false;
   const input=document.getElementById('jobReviewHumanGR');
-  input.value=opt.value;
+  input.disabled=false;input.value=opt.value;
   renderReviewEngineChoices(item);
   scheduleSessionSave();
   if(focusInput){setTimeout(()=>{input.focus();input.select();},0);}
@@ -4061,7 +4106,7 @@ function openJobAudit(id){
   const job=jobs.get(id);
   if(!job)return;
 
-  const pending=job.pages.filter(p=>p.needsAudit||!p.baseGR);
+  const pending=job.pages.filter(p=>!p.isOtherDocument&&(p.needsAudit||!p.baseGR));
   if(!pending.length){
     alert('No hay páginas pendientes de REVISAR.');
     return;
@@ -4073,10 +4118,10 @@ function openJobAudit(id){
       const previous=p.autoSuggested||deriveSuggestedFromReadings(p.engineReadings)||'';
       const human=p.humanAudit?.humanReading||previous||'';
       const item={
-        pageRef:p,sourceFile:p.sourceFile,sourcePage:p.sourcePage,
+        jobId:id,pageRef:p,sourceFile:p.sourceFile,sourcePage:p.sourcePage,
         previousReading:previous,humanReading:human,reviewed:!!p.humanAudit?.humanReading,
         observation:p.auditReason||'Revisión manual requerida',previewDataUrl:p.previewDataUrl||'',
-        engineReadings:p.engineReadings||[],selectedEngine:null
+        engineReadings:p.engineReadings||[],selectedEngine:null,isOtherDocument:!!p.isOtherDocument
       };
       item.selectedEngine=defaultEngineForItem(item);
       return item;
@@ -4092,6 +4137,34 @@ function openJobAudit(id){
   scheduleSessionSave();
 }
 
+function openAllJobAudits(){
+  if(queueRunning)return;
+  const items=[];
+  for(const [id,job] of jobs.entries()){
+    for(const p of (job.pages||[])){
+      if(p.isOtherDocument||!(p.needsAudit||!p.baseGR))continue;
+      const previous=p.autoSuggested||deriveSuggestedFromReadings(p.engineReadings)||'';
+      const human=p.humanAudit?.humanReading||previous||'';
+      const item={
+        jobId:id,pageRef:p,sourceFile:p.sourceFile,sourcePage:p.sourcePage,routeName:job.name||`Ruta ${id}`,
+        previousReading:previous,humanReading:human,reviewed:!!p.humanAudit?.humanReading,
+        observation:p.auditReason||'Revisión manual requerida',previewDataUrl:p.previewDataUrl||'',
+        engineReadings:p.engineReadings||[],selectedEngine:null,isOtherDocument:!!p.isOtherDocument
+      };
+      item.selectedEngine=defaultEngineForItem(item);
+      items.push(item);
+    }
+  }
+  if(!items.length)return;
+  jobReviewState={jobId:null,index:0,summary:false,items};
+  document.getElementById('jobReviewModal').classList.add('open');
+  document.getElementById('jobReviewEditor').style.display='flex';
+  document.getElementById('jobReviewSummary').style.display='none';
+  const applyBtn=document.getElementById('jobReviewApplyBtn');
+  if(applyBtn){applyBtn.disabled=false;applyBtn.textContent='APLICAR AUDITORÍA';}
+  showJobReviewItem();scheduleSessionSave();
+}
+
 function showJobReviewItem(){
   const st=jobReviewState;
   const item=st.items[st.index];
@@ -4100,7 +4173,7 @@ function showJobReviewItem(){
   const counter=`${st.index+1} / ${st.items.length}`;
   document.getElementById('jobReviewCounter').textContent=counter;
   document.getElementById('jobReviewFooterCounter').textContent=counter;
-  document.getElementById('jobReviewPath').textContent=`${item.sourceFile} · página ${item.sourcePage}`;
+  document.getElementById('jobReviewPath').textContent=`${item.routeName||jobs.get(item.jobId)?.name||''} · ${item.sourceFile} · página ${item.sourcePage}`;
   document.getElementById('jobReviewSuggested').textContent=item.previousReading||'SIN LECTURA';
   document.getElementById('jobReviewObservation').textContent=item.observation||'';
 
@@ -4116,30 +4189,51 @@ function showJobReviewItem(){
   renderReviewEngineChoices(item);
 
   const input=document.getElementById('jobReviewHumanGR');
-  input.value=item.humanReading||item.previousReading||'';
+  const otherChk=document.getElementById('jobReviewNotGuide');
+  if(otherChk)otherChk.checked=!!item.isOtherDocument;
+  input.disabled=!!item.isOtherDocument;
+  input.value=item.isOtherDocument?'':(item.humanReading||item.previousReading||'');
+  document.getElementById('jobReviewInlineError').textContent='';
   document.getElementById('jobReviewPrevBtn').disabled=st.index===0;
   document.getElementById('jobReviewNextBtn').textContent=st.index===st.items.length-1?'VER RESUMEN →':'SIGUIENTE →';
 
   const scroll=document.querySelector('#jobReviewEditor .reviewScrollArea');
   if(scroll)scroll.scrollTop=0;
-  setTimeout(()=>{input.focus();input.select();},50);
+  setTimeout(()=>{if(!input.disabled){input.focus();input.select();}},50);
+}
+
+function jobReviewNotGuideChanged(){
+  const item=jobReviewState.items[jobReviewState.index];
+  if(!item)return;
+  const checked=!!document.getElementById('jobReviewNotGuide')?.checked;
+  item.isOtherDocument=checked;
+  const input=document.getElementById('jobReviewHumanGR');
+  input.disabled=checked;
+  if(checked){input.value='';item.humanReading='';item.selectedEngine=null;}
+  else if(!input.value){input.value=item.previousReading||'';item.humanReading=input.value;}
+  document.getElementById('jobReviewInlineError').textContent='';
+  scheduleSessionSave();
 }
 
 function saveCurrentJobReviewItem(){
   const st=jobReviewState;
   const item=st.items[st.index];
   if(!item)return false;
+  const other=!!document.getElementById('jobReviewNotGuide')?.checked;
   const value=(document.getElementById('jobReviewHumanGR').value||'').trim().toUpperCase();
-  if(!/^T[A-Z0-9]+-\d+$/.test(value)){
-    alert('Escribe una GR válida, por ejemplo T611-00129571 o TS32-15526.');
+  const err=document.getElementById('jobReviewInlineError');
+  if(!other&&!/^T[A-Z0-9]+-\d+$/.test(value)){
+    if(err)err.textContent='Escribe una GR válida o marca “ESTE DOCUMENTO NO ES UNA GUÍA DE REMISIÓN”.';
     const input=document.getElementById('jobReviewHumanGR');input.focus();input.select();
     return false;
   }
-  item.humanReading=value;item.reviewed=true;
+  if(err)err.textContent='';
+  item.isOtherDocument=other;item.humanReading=other?'':value;item.reviewed=true;
   if(item.pageRef){
     item.pageRef.humanAudit={
-      previousReading:item.previousReading||'',humanReading:value,finalReading:value,
-      result:value===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE'
+      previousReading:item.previousReading||'',humanReading:other?'':value,finalReading:other?'':value,
+      isOtherDocument:other,
+      result:other?'OTRO DOCUMENTO':(value===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE')
     };
   }
   scheduleSessionSave();
@@ -4165,21 +4259,21 @@ function jobReviewKeyDown(ev){
 }
 
 function showJobReviewSummary(){
-  if(!jobReviewState.items.every(x=>x.reviewed&&/^T[A-Z0-9]+-\d+$/.test(x.humanReading||''))){
-    alert('Todavía hay lecturas pendientes de confirmar.');return;
+  if(!jobReviewState.items.every(x=>x.reviewed&&(x.isOtherDocument||/^T[A-Z0-9]+-\d+$/.test(x.humanReading||'')))){
+    const err=document.getElementById('jobReviewInlineError');if(err)err.textContent='Todavía hay lecturas pendientes de confirmar.';return;
   }
   jobReviewState.summary=true;
   document.getElementById('jobReviewEditor').style.display='none';
   document.getElementById('jobReviewSummary').style.display='flex';
   const body=document.getElementById('jobReviewSummaryBody');body.innerHTML='';
   for(const item of jobReviewState.items){
-    const changed=(item.previousReading||'')!==item.humanReading;
+    const changed=item.isOtherDocument||((item.previousReading||'')!==item.humanReading);
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td>${esc(item.sourceFile)}</td><td>${item.sourcePage}</td>
-      <td>${esc(item.previousReading||'SIN LECTURA')}</td><td>${esc(item.humanReading)}</td>
-      <td><b>${esc(item.humanReading)}</b></td>
-      <td class="${changed?'reviewChanged':'reviewSame'}">${changed?'CORREGIDA MANUALMENTE':'CONFIRMADA SIN CAMBIO'}</td>`;
+      <td>${esc(item.previousReading||'SIN LECTURA')}</td><td>${esc(item.isOtherDocument?'OTRO DOCUMENTO':item.humanReading)}</td>
+      <td><b>${esc(item.isOtherDocument?'OTRO DOCUMENTO':item.humanReading)}</b></td>
+      <td class="${changed?'reviewChanged':'reviewSame'}">${item.isOtherDocument?'OTRO DOCUMENTO':(changed?'CORREGIDA MANUALMENTE':'CONFIRMADA SIN CAMBIO')}</td>`;
     body.appendChild(tr);
   }
   const sumScroll=document.querySelector('#jobReviewSummary .reviewScrollArea');
@@ -4205,7 +4299,7 @@ function recalculateRecognitionStats(){
   let detected=0,verify=0;
   for(const job of jobs.values()){
     for(const p of job.pages||[]){
-      if(p.baseGR)detected++; else verify++;
+      if(p.baseGR)detected++; else if(!p.isOtherDocument)verify++;
     }
   }
   stats.detected=detected;
@@ -4215,74 +4309,65 @@ function recalculateRecognitionStats(){
 
 async function applyJobReview(){
   const st=jobReviewState;
-  const job=jobs.get(st.jobId);
-  if(!job)return;
-  if(!st.items.every(x=>x.reviewed&&/^T[A-Z0-9]+-\d+$/.test(x.humanReading||''))){
-    alert('Faltan lecturas humanas por confirmar.');
+  if(!st.items.every(x=>x.reviewed&&(x.isOtherDocument||/^T[A-Z0-9]+-\d+$/.test(x.humanReading||'')))){
+    const err=document.getElementById('jobReviewInlineError');if(err)err.textContent='Faltan lecturas humanas por confirmar.';
     return;
   }
 
+  const touched=new Set();
   for(const item of st.items){
+    const job=jobs.get(item.jobId||st.jobId);
+    if(!job)continue;
+    touched.add(job.id);
     const p=item.pageRef;
-    const value=item.humanReading;
-    p.baseGR=value;
-    p.needsAudit=false;
-    p.detection=value===(item.previousReading||'')?'CONFIRMADA MANUALMENTE':'CORREGIDA MANUALMENTE';
-    p.humanAudit={
-      previousReading:item.previousReading||'',
-      humanReading:value,
-      finalReading:value,
-      result:value===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE'
-    };
-    restoredHumanCorrections[humanCorrectionKey(job.name,p.sourceFile,p.sourcePage)]=value;
+    if(item.isOtherDocument){
+      p.isOtherDocument=true;p.baseGR=null;p.needsAudit=false;p.detection='OTRO DOCUMENTO · SIN GR';
+      p.humanAudit={previousReading:item.previousReading||'',humanReading:'',finalReading:'',isOtherDocument:true,result:'OTRO DOCUMENTO'};
+      p.previewDataUrl='';
+      restoredHumanCorrections[humanCorrectionKey(job.name,p.sourceFile,p.sourcePage)]='__OTRO_DOCUMENTO__';
+    }else{
+      const value=item.humanReading;
+      p.isOtherDocument=false;p.baseGR=value;p.needsAudit=false;
+      p.detection=value===(item.previousReading||'')?'CONFIRMADA MANUALMENTE':'CORREGIDA MANUALMENTE';
+      p.humanAudit={previousReading:item.previousReading||'',humanReading:value,finalReading:value,isOtherDocument:false,result:value===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE'};
+      p.previewDataUrl='';
+      restoredHumanCorrections[humanCorrectionKey(job.name,p.sourceFile,p.sourcePage)]=value;
+    }
   }
 
-  rebuildMarkers(job.pages);
-  await refreshMasterBookmarks(job);
-  recalculateRecognitionStats();
-  rebuildResultsTable();
-
-  const remaining=job.pages.filter(p=>p.needsAudit||!p.baseGR).length;
-  const btn=document.getElementById(`jobAuditBtn-${job.id}`);
-  if(btn){
-    btn.textContent=`AUDITAR REVISAR (${remaining})`;
-    btn.disabled=remaining===0;
-    btn.style.display='inline-block';
+  for(const id of touched){
+    const job=jobs.get(id);
+    rebuildMarkers(job.pages,job.name);
+    await refreshMasterBookmarks(job);
+    const remaining=job.pages.filter(p=>!p.isOtherDocument&&(p.needsAudit||!p.baseGR)).length;
+    const btn=document.getElementById(`jobAuditBtn-${job.id}`);
+    if(btn){btn.textContent=`AUDITAR REVISAR (${remaining})`;btn.disabled=remaining===0;btn.style.display='inline-block';}
+    setJobStatus(job.id,remaining?'REVISIÓN MANUAL PENDIENTE':'FINALIZADO · AUDITADO',remaining?'st-wait':'st-done');
   }
-  setJobStatus(job.id,remaining?'REVISIÓN MANUAL PENDIENTE':'FINALIZADO · AUDITADO','st-done');
-  logEvent(`AUDITORÍA HUMANA APLICADA · ${job.name} · ${st.items.length} página(s) · pendientes ${remaining}`,'ok');
+
+  recalculateRecognitionStats();rebuildResultsTable();updateGlobalReviewButton();
+  logEvent(`AUDITORÍA HUMANA APLICADA · ${st.items.length} página(s) · ${touched.size} ruta(s)`,'ok');
   await saveSessionSnapshotNow();
-  const applyBtn=document.getElementById('jobReviewApplyBtn'); if(applyBtn){applyBtn.disabled=true;applyBtn.textContent='AUDITORÍA APLICADA';}
-  alert('Auditoría humana aplicada. Los marcadores del PDF maestro fueron actualizados con la lectura final humana.');
+  const applyBtn=document.getElementById('jobReviewApplyBtn');if(applyBtn){applyBtn.disabled=true;applyBtn.textContent='AUDITORÍA APLICADA';}
   closeJobReviewModal();
 }
 
 function closeJobReviewModal(){
   if(jobReviewState.items.length && !jobReviewState.summary){
-    const input=document.getElementById('jobReviewHumanGR');
-    if(input && input.value.trim()){
-      const val=input.value.trim().toUpperCase();
-      if(/^T[A-Z0-9]+-\d+$/.test(val)){
-        const item=jobReviewState.items[jobReviewState.index];
-        if(item){
-          item.humanReading=val; item.reviewed=true;
-          if(item.pageRef){
-            item.pageRef.humanAudit={
-              previousReading:item.previousReading||'',humanReading:val,finalReading:val,
-              result:val===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE'
-            };
-          }
-        }
-      }
+    const item=jobReviewState.items[jobReviewState.index];
+    const other=!!document.getElementById('jobReviewNotGuide')?.checked;
+    const val=(document.getElementById('jobReviewHumanGR')?.value||'').trim().toUpperCase();
+    if(item && (other||/^T[A-Z0-9]+-\d+$/.test(val))){
+      item.isOtherDocument=other;item.humanReading=other?'':val;item.reviewed=true;
     }
   }
   document.getElementById('jobReviewModal').classList.remove('open');
-  scheduleSessionSave();
+  scheduleSessionSave();updateGlobalReviewButton();
 }
 
 
 // ============================================================
-// V1.18 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.19 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4294,15 +4379,16 @@ function hasActiveSession(){
   for(const j of jobs.values()){
     if(j.files?.length||j.pages?.length||j.name||j.folder)return true;
   }
-  return historicalAuditFolders.length>0||historicalAuditItems.length>0;
+  return historicalAuditFolders.length>0||historicalAuditLooseFiles.length>0||historicalAuditItems.length>0;
 }
 
 function setSessionBadge(saved){
   const badge=document.getElementById('sessionSaveBadge');
   const txt=document.getElementById('sessionSaveText');
-  if(!badge||!txt)return;
-  badge.classList.toggle('dirty',!saved);
-  txt.textContent=saved?'SESIÓN GUARDADA AUTOMÁTICAMENTE':'CAMBIOS PENDIENTES DE GUARDAR';
+  const foot=document.getElementById('footerSessionText');
+  if(badge){badge.classList.toggle('dirty',!saved);}
+  const message=saved?'DATOS DE SESIÓN AUTOGUARDADOS':'CAMBIOS DE SESIÓN PENDIENTES';
+  if(txt)txt.textContent=message;if(foot)foot.textContent=message;
 }
 
 function compactEngineReadings(readings){
@@ -4310,36 +4396,30 @@ function compactEngineReadings(readings){
 }
 
 function buildSessionSnapshot(){
-  const humanCorrections={...restoredHumanCorrections};
-  const compactJobs=[];
+  const humanCorrections={...restoredHumanCorrections};const compactJobs=[];
   for(const j of jobs.values()){
     if(!(j.name||j.files?.length||j.pages?.length||j.folder))continue;
     const pages=(j.pages||[]).map(p=>{
-      if(p.humanAudit?.humanReading){
-        humanCorrections[humanCorrectionKey(j.name,p.sourceFile,p.sourcePage)]=p.humanAudit.humanReading;
-      }
-      return {
-        sourceFile:p.sourceFile,sourcePage:p.sourcePage,baseGR:p.baseGR||null,marker:p.marker||'',
-        detection:p.detection||'',needsAudit:!!p.needsAudit,auditReason:p.auditReason||'',
-        autoSuggested:p.autoSuggested||'',engineReadings:compactEngineReadings(p.engineReadings),
-        humanAudit:p.humanAudit||null
-      };
+      const key=humanCorrectionKey(j.name,p.sourceFile,p.sourcePage);
+      if(p.humanAudit?.isOtherDocument)humanCorrections[key]='__OTRO_DOCUMENTO__';
+      else if(p.humanAudit?.humanReading)humanCorrections[key]=p.humanAudit.humanReading;
+      return {sourceFile:p.sourceFile,sourcePage:p.sourcePage,baseGR:p.baseGR||null,marker:p.marker||'',detection:p.detection||'',needsAudit:!!p.needsAudit,auditReason:p.auditReason||'',autoSuggested:p.autoSuggested||'',engineReadings:compactEngineReadings(p.engineReadings),humanAudit:p.humanAudit||null,isOtherDocument:!!p.isOtherDocument};
     });
-    compactJobs.push({
-      id:j.id,name:j.name||'',dpi:j.dpi||200,status:j.status||'',
-      fileNames:(j.files||[]).map(f=>f.name),folderName:j.folder?.name||'',pages
-    });
+    compactJobs.push({id:j.id,name:j.name||'',dpi:j.dpi||200,status:j.status||'',fileNames:(j.files||[]).map(f=>f.name),folderName:j.folder?.name||'',pages});
   }
-  return {
-    version:'1.18',savedAt:new Date().toISOString(),appMode,
-    humanCorrections, jobs:compactJobs,
-    auditReview:jobReviewState.items?.length?{
-      jobId:jobReviewState.jobId,index:jobReviewState.index,summary:jobReviewState.summary,
-      items:jobReviewState.items.map(x=>({
-        sourceFile:x.sourceFile,sourcePage:x.sourcePage,previousReading:x.previousReading||'',
-        humanReading:x.humanReading||'',reviewed:!!x.reviewed,observation:x.observation||''
-      }))
-    }:null
+
+  const auditItems=(historicalAuditItems||[]).map(item=>({
+    _id:item._id,relativePath:item.relativePath||'',auditFolderName:item.auditFolderName||'',auditRootPath:'',name:item.name||'',originalName:item.originalName||'',
+    expectedGR:item.expectedGR||'',foundGR:item.foundGR||'',correctedGR:item.correctedGR||'',pages:item.pages||[],result:item.result||'',observation:item.observation||'',baseObservation:item.baseObservation||'',reviewed:!!item.reviewed,isOtherDocument:!!item.isOtherDocument,skipReview:!!item.skipReview,
+    pageResults:(item.pageResults||[]).map(r=>({page:r.page,detected:r.detected||null,suggested:r.suggested||null,fast:r.fast||null,consensus:r.consensus||'',strongConsensus:!!r.strongConsensus,reason:r.reason||'',readings:compactEngineReadings(r.readings)})),
+    reviewPages:(item.reviewPages||[]).map(r=>r.page)
+  }));
+
+  return {version:'1.19',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
+    auditSettings:{includeOver10:!!document.getElementById('auditIncludeOver10')?.checked,folderNames:historicalAuditFolders.map(f=>f.name),looseFileNames:historicalAuditLooseFiles.map(f=>f.name),skippedOver10:historicalAuditSkippedOver10},
+    historicalAuditItems:auditItems,
+    historicalReviewQueue:(historicalAuditReviewQueue||[]).map(q=>({parentId:q.parentItem?._id||'',page:q.pageResult?.page||0,manualGR:q.manualGR||'',isOtherDocument:!!q.isOtherDocument,reviewed:!!q.reviewed})),
+    auditReview:jobReviewState.items?.length?{jobId:jobReviewState.jobId,index:jobReviewState.index,summary:jobReviewState.summary,items:jobReviewState.items.map(x=>({jobId:x.jobId,sourceFile:x.sourceFile,sourcePage:x.sourcePage,previousReading:x.previousReading||'',humanReading:x.humanReading||'',reviewed:!!x.reviewed,observation:x.observation||'',isOtherDocument:!!x.isOtherDocument}))}:null
   };
 }
 
@@ -4361,10 +4441,11 @@ function scheduleSessionSave(){
 
 function readSavedSession(){
   try{
-    const raw=localStorage.getItem(SESSION_KEY);
+    let raw=localStorage.getItem(SESSION_KEY);
+    if(!raw){for(const key of LEGACY_SESSION_KEYS){raw=localStorage.getItem(key);if(raw)break;}}
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17','1.18'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18','1.19'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
@@ -4374,31 +4455,60 @@ function showRecoveryIfAvailable(){
   const jobsCount=(data.jobs||[]).length;
   const pages=(data.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0);
   const corrections=Object.keys(data.humanCorrections||{}).length;
-  if(!jobsCount&&!pages&&!corrections)return;
+  const auditItems=(data.historicalAuditItems||[]).length;
+  if(!jobsCount&&!pages&&!corrections&&!auditItems)return;
   recoveredSnapshot=data;
   const dt=data.savedAt?new Date(data.savedAt):null;
   const when=dt&&!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
   document.getElementById('recoveryMessage').innerHTML=
     `Guardado: <b>${esc(when)}</b><br>`+
-    `Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b>.`;
+    `Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`;
   document.getElementById('recoveryModal').classList.add('open');
 }
 
 function recoverPreviousSession(){
   if(!recoveredSnapshot)return;
   restoredHumanCorrections={...(recoveredSnapshot.humanCorrections||{})};
+  if(recoveredSnapshot.auditSettings){
+    const chk=document.getElementById('auditIncludeOver10');if(chk)chk.checked=!!recoveredSnapshot.auditSettings.includeOver10;
+    historicalAuditSkippedOver10=Number(recoveredSnapshot.auditSettings.skippedOver10)||0;
+  }
+  historicalAuditItems=(recoveredSnapshot.historicalAuditItems||[]).map(raw=>{
+    const item={...raw,handle:null};ensureAuditItemId(item);
+    const pageMap=new Map((item.pageResults||[]).map(r=>[r.page,r]));item.reviewPages=(raw.reviewPages||[]).map(pg=>pageMap.get(pg)).filter(Boolean);
+    return item;
+  });
+  if(historicalAuditItems.length){
+    buildHistoricalAuditReviewQueue();
+    const qstate=new Map((recoveredSnapshot.historicalReviewQueue||[]).map(q=>[`${q.parentId}|${q.page}`,q]));
+    for(const q of historicalAuditReviewQueue){const st=qstate.get(`${q.parentItem?._id||''}|${q.pageResult?.page||0}`);if(st){q.manualGR=st.manualGR||q.manualGR;q.isOtherDocument=!!st.isOtherDocument;q.reviewed=!!st.reviewed;}}
+    for(const item of historicalAuditItems)refreshHistoricalParentAfterReview(item);
+    buildAuditReport();document.getElementById('auditCopyBtn').disabled=false;document.getElementById('auditExcelBtn').disabled=false;document.getElementById('auditExcelBtn2').disabled=false;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.every(q=>q.reviewed);document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.filter(q=>!q.reviewed).length})`;
+  }
+  document.getElementById('auditSkippedCount').textContent=historicalAuditSkippedOver10;
   document.getElementById('recoveryModal').classList.remove('open');
-  logEvent(`RECUPERACIÓN cargada · ${Object.keys(restoredHumanCorrections).length} corrección(es) humana(s) disponibles`,'ok');
-  alert('Datos de recuperación cargados. Vuelve a seleccionar el mismo lote y carpeta. Las correcciones humanas se reaplicarán automáticamente por nombre de lote, archivo y página.');
+  logEvent(`RECUPERACIÓN cargada · ${Object.keys(restoredHumanCorrections).length} corrección(es) · ${historicalAuditItems.length} observación(es) de auditoría`,'ok');
   setSessionBadge(true);
 }
 
 function discardRecoveredSession(){
-  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);for(const key of LEGACY_SESSION_KEYS)localStorage.removeItem(key);
   recoveredSnapshot=null;
   restoredHumanCorrections={};
   document.getElementById('recoveryModal').classList.remove('open');
   setSessionBadge(true);
+}
+
+async function clearWorkingSession(){
+  if(queueRunning||historicalAuditRunning){logEvent('No se puede limpiar la sesión mientras hay un proceso en ejecución.','warn');return;}
+  if(hasActiveSession()&&!confirm('¿Iniciar una sesión nueva? Se eliminarán de la memoria del navegador los datos de trabajo y el autoguardado. Los archivos ya guardados en disco no se borran.'))return;
+  jobs.clear();nextId=0;globalPages=0;stats={detected:0,verify:0,masters:0,errors:0};
+  historicalAuditFolders=[];historicalAuditLooseFiles=[];historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditSkippedOver10=0;
+  jobReviewState={jobId:null,items:[],index:0,summary:false};restoredHumanCorrections={};recoveredSnapshot=null;
+  localStorage.removeItem(SESSION_KEY);for(const key of LEGACY_SESSION_KEYS)localStorage.removeItem(key);
+  document.getElementById('jobs').innerHTML='';rebuildResultsTable();resetAuditReport();updateAuditCounters(0,0,0,0,0);updateAuditFolderSummary();
+  document.getElementById('auditBar').style.width='0%';document.getElementById('auditProgressText').textContent='Esperando';document.getElementById('auditCurrentFile').textContent='Procesando: —';setAuditStatus('ESPERANDO','st-wait');
+  updateSummary();updateResultStats();updateGlobalReviewButton();setSessionBadge(true);await terminateOCR();addJob();logEvent('NUEVA SESIÓN · memoria de trabajo y autoguardado limpiados','ok');
 }
 
 function continueCurrentSession(){
@@ -4529,7 +4639,7 @@ function setProgress(id,pct,text){
 }
 
 
-logEvent("Sistema listo · V1.18 Paddle adaptativo + Tesseract único","ok");
+logEvent("Sistema listo · V1.19 auditoría integral + interfaz mejorada","ok");
 addJob();
 </script>
 </body>
