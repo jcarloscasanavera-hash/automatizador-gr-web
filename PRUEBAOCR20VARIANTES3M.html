@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automatizador GR - Diagnóstico OCR 20 variantes 3 motores</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#202124}.app{max-width:1280px;margin:auto;padding:18px}.card{background:#fff;border:1px solid #d9dee4;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:16px;margin-bottom:14px}h1{margin:0 0 5px;font-size:24px}.muted{color:#5f6368;font-size:13px}.warning{margin-top:10px;padding:10px;border-radius:7px;background:#fff7e0;color:#7a4b00;font-size:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}button{border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:#1a73e8;color:#fff}.red{background:#d93025;color:#fff}.light{background:#fff;color:#1a73e8;border:1px solid #cfd5dc}.green{background:#188038;color:#fff}button:disabled{opacity:.45;cursor:not-allowed}input[type=file]{max-width:100%}.stats{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:8px;margin-top:12px}.metric{border:1px solid #e1e5ea;background:#fafafa;border-radius:7px;padding:9px;font-size:12px}.metric b{display:block;font-size:18px;margin-top:2px}.progress{height:16px;background:#e8eaed;border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:#1a73e8;transition:width .12s}.current{margin-top:7px;font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.console{height:520px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:8px;padding:11px;font-family:Consolas,monospace;font-size:11px;line-height:1.45;white-space:pre-wrap}.ok{color:#86efac}.warn{color:#fde68a}.err{color:#fca5a5}.info{color:#93c5fd}.section{color:#fff;font-weight:900}.configTable{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}.configTable th,.configTable td{border:1px solid #d9dee4;padding:5px;text-align:left}.configTable th{background:#eef3f8;position:sticky;top:0}.tableWrap{max-height:290px;overflow:auto;border:1px solid #d9dee4;border-radius:7px}@media(max-width:850px){.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <h1>DIAGNÓSTICO OCR · 20 VARIANTES · 3 MOTORES</h1>
+    <div class="muted"><b>PaddleOCR + Tesseract + TrOCR</b> · prueba experimental independiente · no renombra ni modifica archivos</div>
+    <div class="warning"><b>TrOCR:</b> usa <b>Xenova/trocr-small-printed</b> en navegador. La primera ejecución descargará y almacenará en caché el modelo; la consola mostrará el progreso de carga. Las 20 variantes se prueban en los tres motores.</div>
+    <div class="warning"><b>Uso recomendado:</b> selecciona el conjunto controlado de PDF cuya GR verdadera ya conoces (por ejemplo, los archivos “-estabien”). La primera GR válida del nombre se usa <b>solo para puntuar el resultado</b>; nunca se entrega al OCR como pista.</div>
+    <div class="toolbar">
+      <input id="pdfFiles" type="file" accept="application/pdf,.pdf" multiple>
+      <button id="startBtn" class="primary" onclick="startDiagnostic()">INICIAR PRUEBA 20 VARIANTES</button>
+      <button id="cancelBtn" class="red" onclick="cancelDiagnostic()" disabled>CANCELAR</button>
+      <button class="light" onclick="copyConsole()">COPIAR CONSOLA</button>
+      <button class="green" onclick="downloadConsole()">DESCARGAR CONSOLA TXT</button>
+      <button class="green" onclick="downloadCSV()">DESCARGAR RESULTADOS CSV</button>
+      <button class="light" onclick="clearConsole()">LIMPIAR CONSOLA</button>
+    </div>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <div id="current" class="current">Esperando archivos.</div>
+    <div class="stats">
+      <div class="metric">Archivos<b id="mFiles">0</b></div>
+      <div class="metric">Páginas evaluadas<b id="mPages">0</b></div>
+      <div class="metric">Variantes por página<b>20</b></div>
+      <div class="metric">Ejecuciones OCR previstas<b id="mRuns">0</b></div>
+      <div class="metric">Estado<b id="mState">LISTO</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <b>20 CONFIGURACIONES</b>
+    <div class="muted">Cada configuración genera una imagen y esa misma imagen es evaluada por los tres motores. PSM solo afecta a Tesseract. Varias variantes focalizadas están incluidas para favorecer a TrOCR y otras para Paddle/Tesseract.</div>
+    <div class="tableWrap"><table class="configTable"><thead><tr><th>ID</th><th>DPI</th><th>Recorte</th><th>Orientación</th><th>Preparación</th><th>Tesseract PSM</th><th>Motor(es) objetivo</th><th>Objetivo</th></tr></thead><tbody id="cfgBody"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>CONSOLA COMPLETA</b><span class="muted">Lectura por página, variante y los 3 motores + rankings independientes y complementariedad</span></div>
+    <div id="console" class="console"></div>
+  </div>
+</div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const GR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
+const ZONES={
+  legacy:{x0:.55,x1:1.00,y0:.00,y1:.25},
+  wide:{x0:.48,x1:.99,y0:.00,y1:.27},
+  a4:{x0:.55,x1:.96,y0:.05,y1:.20},
+  tight:{x0:.56,x1:.97,y0:.04,y1:.18},
+  line:{x0:.53,x1:.98,y0:.035,y1:.145},
+  micro:{x0:.57,x1:.96,y0:.045,y1:.125}
+};
+
+// D08/D09/D10 preservan equivalentes de las configuraciones operativas actuales:
+// D08 ~= C08 (Tesseract 600 A4 DESKEW RAW), D09 ~= C06 (Paddle 600 A4 HQ), D10 ~= C09 (Paddle respaldo 600 A4 OPTIMIZED).
+// D11-D20 incorporan recortes focalizados y preparaciones pensadas para TrOCR y para reforzar Paddle/Tesseract.
+const CONFIGS=[
+  {id:'D01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6',targets:'BASE',note:'Control histórico 300 DPI RAW sin enderezado'},
+  {id:'D02',dpi:300,zone:'legacy',deskew:true, prep:'optimized',psm:'6',targets:'TESS/PADDLE',note:'300 DPI + autoenderezado V2 + normalización'},
+  {id:'D03',dpi:400,zone:'legacy',deskew:true, prep:'raw',psm:'6',targets:'TESS/PADDLE',note:'400 DPI + autoenderezado V2'},
+  {id:'D04',dpi:450,zone:'legacy',deskew:true, prep:'optimized',psm:'6',targets:'TESS/PADDLE',note:'450 DPI + normalización tonal'},
+  {id:'D05',dpi:500,zone:'wide',deskew:true, prep:'raw',psm:'6',targets:'PADDLE',note:'500 DPI + recorte amplio para formatos variables'},
+  {id:'D06',dpi:500,zone:'wide',deskew:true, prep:'hq',psm:'6',targets:'PADDLE',note:'500 DPI amplio + HQ conservador'},
+  {id:'D07',dpi:550,zone:'wide',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE/TESS',note:'550 DPI amplio + optimización tonal'},
+  {id:'D08',dpi:600,zone:'a4',deskew:true, prep:'raw',psm:'6',targets:'TESS ACTUAL',note:'Referencia actual C08 · 600 A4 DESKEW RAW'},
+  {id:'D09',dpi:600,zone:'a4',deskew:true, prep:'hq',psm:'6',targets:'PADDLE ACTUAL',note:'Referencia actual C06 · 600 A4 HQ'},
+  {id:'D10',dpi:600,zone:'a4',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE RESPALDO',note:'Referencia actual C09 · 600 A4 OPTIMIZED'},
+  {id:'D11',dpi:600,zone:'tight',deskew:true, prep:'raw',psm:'7',targets:'TROCR/TESS',note:'600 DPI focalizado RAW · línea única'},
+  {id:'D12',dpi:600,zone:'tight',deskew:true, prep:'hq',psm:'7',targets:'TROCR/PADDLE',note:'600 DPI focalizado HQ · trazos limpios'},
+  {id:'D13',dpi:600,zone:'line',deskew:true, prep:'optimizedContrast',psm:'7',targets:'TROCR',note:'600 DPI línea compacta + contraste moderado'},
+  {id:'D14',dpi:600,zone:'line',deskew:true, prep:'otsu',psm:'7',targets:'TESS/TROCR',note:'600 DPI línea + Otsu · alto contraste'},
+  {id:'D15',dpi:600,zone:'wide',deskew:true, prep:'hq',psm:'11',targets:'PADDLE/TESS',note:'600 DPI amplio HQ · texto disperso PSM11'},
+  {id:'D16',dpi:650,zone:'a4',deskew:true, prep:'raw',psm:'6',targets:'PADDLE',note:'650 DPI A4 RAW · más detalle'},
+  {id:'D17',dpi:650,zone:'tight',deskew:true, prep:'hq',psm:'7',targets:'TROCR',note:'650 DPI focalizado HQ · TrOCR impreso'},
+  {id:'D18',dpi:700,zone:'a4',deskew:true, prep:'optimized',psm:'6',targets:'PADDLE',note:'700 DPI A4 + optimización tonal'},
+  {id:'D19',dpi:700,zone:'line',deskew:true, prep:'raw',psm:'7',targets:'TROCR',note:'700 DPI línea RAW · máxima preservación de caracteres'},
+  {id:'D20',dpi:700,zone:'micro',deskew:true, prep:'hq',psm:'7',targets:'TROCR/TESS',note:'700 DPI microrecorte HQ · una sola línea GR'}
+];
+
+let tessWorker=null,paddleOCR=null,paddleInitPromise=null,trocrPipe=null,trocrInitPromise=null,trocrRawImage=null;
+let running=false,cancelRequested=false;
+let allRows=[];
+
+function escText(v){return String(v??'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim();}
+function nowClock(){return new Date().toLocaleTimeString('es-PE',{hour12:false});}
+function log(msg,type='info'){
+  const box=document.getElementById('console');
+  const line=document.createElement('div');line.className=type;line.textContent=`[${nowClock()}] ${msg}`;box.appendChild(line);box.scrollTop=box.scrollHeight;
+}
+function section(msg){const box=document.getElementById('console');const line=document.createElement('div');line.className='section';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
+function yieldUI(){return new Promise(r=>setTimeout(r,0));}
+function findCandidates(text){
+  const source=String(text||'').toUpperCase().replace(/[‐‑‒–—−]/g,'-');
+  const variants=[source,source.replace(/\s+/g,'')];const out=[];
+  for(const v of variants){for(const m of (v.match(GR_REGEX)||[])){const g=m.toUpperCase().replace(/\s+/g,'');if(!out.includes(g)&&isGenericGR(g))out.push(g);}}
+  return out;
+}
+function splitGR(g){const m=String(g||'').toUpperCase().match(/^(T[A-Z0-9]+)-(\d+)$/);return m?{prefix:m[1],number:m[2]}:null;}
+function isGenericGR(g){const p=splitGR(g);return !!p&&p.prefix.length>=3&&p.prefix.length<=6&&p.number.length>=4&&p.number.length<=12;}
+function truthFromFilename(name){const c=findCandidates(String(name||'').replace(/\.pdf$/i,''));return c[0]||null;}
+function classify(read,truth){
+  if(!truth)return 'SIN_VERDAD';
+  if(read.value===truth)return 'CORRECTO';
+  if(!read.value && read.candidates.includes(truth))return 'AMBIGUO_CON_VERDAD';
+  if(read.value && read.value!==truth)return 'ERROR';
+  return 'SIN_LECTURA';
+}
+function statusShort(s){return s==='CORRECTO'?'OK':s==='ERROR'?'ERROR':s==='AMBIGUO_CON_VERDAD'?'AMBIGUO':s==='SIN_LECTURA'?'SIN LECTURA':'SIN VERDAD';}
+function statusType(s){return s==='CORRECTO'?'ok':s==='ERROR'?'err':'warn';}
+
+function cloneCanvas(source){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;c.getContext('2d',{willReadFrequently:true}).drawImage(source,0,0);return c;}
+function rotateCanvasSameSize(source,angleDeg){if(Math.abs(angleDeg)<.001)return cloneCanvas(source);const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.save();ctx.translate(c.width/2,c.height/2);ctx.rotate(angleDeg*Math.PI/180);ctx.drawImage(source,-source.width/2,-source.height/2);ctx.restore();return c;}
+function resizeCanvas(source,maxW=560,maxH=280){const ratio=Math.min(1,maxW/source.width,maxH/source.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(source.width*ratio));c.height=Math.max(1,Math.round(source.height*ratio));const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(source,0,0,c.width,c.height);return c;}
+function projectionScore(source){const ctx=source.getContext('2d',{willReadFrequently:true});const img=ctx.getImageData(0,0,source.width,source.height);const d=img.data,rows=new Float64Array(source.height);const xm=Math.floor(source.width*.03),ym=Math.floor(source.height*.03);for(let y=ym;y<source.height-ym;y++){let sum=0;for(let x=xm;x<source.width-xm;x++){const i=(y*source.width+x)*4,g=.299*d[i]+.587*d[i+1]+.114*d[i+2];if(g<225)sum+=(225-g);}rows[y]=sum;}let mean=0,n=0;for(let y=ym;y<source.height-ym;y++){mean+=rows[y];n++;}mean/=Math.max(1,n);let v=0;for(let y=ym;y<source.height-ym;y++){const q=rows[y]-mean;v+=q*q;}return (v/Math.max(1,n))/(mean+1);}
+function autoDeskewV2(source){
+  const sample=resizeCanvas(source),cache=new Map();const score=a=>{const k=a.toFixed(2);if(cache.has(k))return cache.get(k);const c=Math.abs(a)<.001?sample:rotateCanvasSameSize(sample,a);const s=projectionScore(c);cache.set(k,s);return s;};
+  const base=score(0);let bestA=0,bestS=base;
+  for(let a=-12;a<=12.001;a+=1){const s=score(a);if(s>bestS){bestS=s;bestA=a;}}
+  const coarse=bestA;for(let a=Math.max(-12,coarse-1);a<=Math.min(12,coarse+1)+.001;a+=.2){const s=score(a);if(s>bestS){bestS=s;bestA=a;}}
+  const improvement=(bestS-base)/Math.max(1,base);const boundary=Math.abs(bestA)>=11.8;const apply=!boundary&&Math.abs(bestA)>=.25&&improvement>=.02;const applied=apply?Math.round(bestA*100)/100:0;
+  return {canvas:apply?rotateCanvasSameSize(source,applied):cloneCanvas(source),applied:apply,angle:applied,improvement,boundaryRisk:boundary&&improvement>=.02};
+}
+
+async function renderZone(page,dpi,zoneName,cache){
+  const key=`${dpi}|${zoneName}`;if(cache.raw.has(key))return cache.raw.get(key);
+  const z=ZONES[zoneName],scale=dpi/72,viewport=page.getViewport({scale});
+  const sx=Math.floor(viewport.width*z.x0),sy=Math.floor(viewport.height*z.y0),ex=Math.ceil(viewport.width*z.x1),ey=Math.ceil(viewport.height*z.y1);
+  const c=document.createElement('canvas');c.width=Math.max(1,ex-sx);c.height=Math.max(1,ey-sy);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+  await page.render({canvasContext:ctx,viewport,transform:[1,0,0,1,-sx,-sy],background:'rgb(255,255,255)'}).promise;
+  cache.raw.set(key,c);return c;
+}
+
+function histogramLevels(d,lowPct=.015,highPct=.985){const hist=new Uint32Array(256);for(let i=0;i<d.length;i+=4){const g=Math.max(0,Math.min(255,Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2])));hist[g]++;}const total=Math.max(1,d.length/4),loT=total*lowPct,hiT=total*highPct;let a=0,lo=0,hi=255;for(let v=0;v<256;v++){a+=hist[v];if(a>=loT){lo=v;break;}}a=0;for(let v=0;v<256;v++){a+=hist[v];if(a>=hiT){hi=v;break;}}if(hi<=lo+12){lo=0;hi=255;}return {lo,hi,hist};}
+function applyUnsharp(c,amount=.32){const ctx=c.getContext('2d',{willReadFrequently:true}),src=ctx.getImageData(0,0,c.width,c.height),out=ctx.createImageData(c.width,c.height),s=src.data,o=out.data,w=c.width,h=c.height;o.set(s);const side=amount/4,center=1+amount;for(let y=1;y<h-1;y++){for(let x=1;x<w-1;x++){const i=(y*w+x)*4,v=Math.max(0,Math.min(255,s[i]*center-(s[i-4]+s[i+4]+s[i-w*4]+s[i+w*4])*side));o[i]=o[i+1]=o[i+2]=v;o[i+3]=255;}}ctx.putImageData(out,0,0);return c;}
+function otsuThreshold(hist,total){let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sumB=0,wB=0,max=0,t=175;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;sumB+=i*hist[i];const mB=sumB/wB,mF=(sum-sumB)/wF,between=wB*wF*(mB-mF)*(mB-mF);if(between>max){max=between;t=i;}}return t;}
+function preprocess(source,mode){
+  if(mode==='raw')return cloneCanvas(source);
+  const c=cloneCanvas(source),ctx=c.getContext('2d',{willReadFrequently:true}),img=ctx.getImageData(0,0,c.width,c.height),d=img.data;
+  if(mode==='hq'){
+    const {lo,hi}=histogramLevels(d,.005,.9965),span=Math.max(1,hi-lo);for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let n=Math.max(0,Math.min(1,(g-lo)/span)),v=255*Math.pow(n,.94);v=(v-128)*1.16+131;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return applyUnsharp(c,.32);
+  }
+  if(mode==='optimized'||mode==='optimizedContrast'){
+    const {lo,hi}=histogramLevels(d,.015,.985),span=Math.max(1,hi-lo);for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let n=Math.max(0,Math.min(1,(g-lo)/span)),v=255*Math.pow(n,.92);if(mode==='optimizedContrast')v=(v-128)*1.18+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
+  }
+  if(mode==='otsu'){
+    const {hist}=histogramLevels(d,0,1),t=otsuThreshold(hist,Math.max(1,d.length/4));for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>t?255:0;d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
+  }
+  for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let v=g;if(mode==='soft')v=(g-128)*1.35+128;else if(mode==='contrast')v=(g-128)*1.72+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
+}
+async function buildVariant(page,cfg,cache){
+  const raw=await renderZone(page,cfg.dpi,cfg.zone,cache);let base=raw,meta={applied:false,angle:0,improvement:0,boundaryRisk:false};
+  if(cfg.deskew){const k=`${cfg.dpi}|${cfg.zone}`;if(!cache.deskew.has(k))cache.deskew.set(k,autoDeskewV2(raw));meta=cache.deskew.get(k);base=meta.canvas;}
+  return {image:preprocess(base,cfg.prep),meta};
+}
+
+async function getTesseract(){
+  if(tessWorker)return tessWorker;log('Inicializando Tesseract.js…','info');
+  tessWorker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')document.getElementById('current').textContent=`Tesseract ${Math.round((m.progress||0)*100)}%`;}});
+  await tessWorker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',preserve_interword_spaces:'1',tessedit_pageseg_mode:'6'});log('Tesseract listo.','ok');return tessWorker;
+}
+async function getPaddle(){
+  if(paddleOCR)return paddleOCR;if(paddleInitPromise)return paddleInitPromise;log('Inicializando PaddleOCR PP-OCRv5…','info');
+  paddleInitPromise=(async()=>{let mod=null,lastErr=null;for(const url of ['https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle','https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/dist/index.mjs']){try{mod=await import(url);if(mod?.PaddleOCR)break;}catch(e){lastErr=e;}}if(!mod?.PaddleOCR)throw lastErr||new Error('No se pudo cargar PaddleOCR');paddleOCR=await mod.PaddleOCR.create({lang:'en',ocrVersion:'PP-OCRv5',ortOptions:{backend:'wasm',wasmPaths:'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/',numThreads:1,simd:true}});log('PaddleOCR listo.','ok');return paddleOCR;})().finally(()=>paddleInitPromise=null);return paddleInitPromise;
+}
+async function getTrOCR(){
+  if(trocrPipe)return trocrPipe;if(trocrInitPromise)return trocrInitPromise;
+  log('Inicializando TrOCR Small Printed (Transformers.js · q8 · WASM)…','info');
+  trocrInitPromise=(async()=>{
+    const mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+    const {pipeline,RawImage,env}=mod;trocrRawImage=RawImage;
+    try{if(env?.backends?.onnx?.wasm)env.backends.onnx.wasm.numThreads=1;}catch(e){}
+    let lastMilestone=-10;
+    const progress_callback=(info)=>{
+      const p=Number(info?.progress);
+      if(Number.isFinite(p)){
+        const pct=Math.max(0,Math.min(100,Math.round(p)));
+        document.getElementById('current').textContent=`TrOCR cargando modelo ${pct}%`;
+        if(pct>=lastMilestone+10||pct===100){lastMilestone=Math.floor(pct/10)*10;log(`TrOCR carga modelo: ${pct}% · ${info?.file||info?.name||info?.status||''}`,'info');}
+      }
+    };
+    trocrPipe=await pipeline('image-to-text','Xenova/trocr-small-printed',{dtype:'q8',device:'wasm',progress_callback});
+    log('TrOCR listo · Xenova/trocr-small-printed q8.','ok');
+    return trocrPipe;
+  })().finally(()=>trocrInitPromise=null);
+  return trocrInitPromise;
+}
+async function recognizeTesseract(image,psm){const w=await getTesseract();await w.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',preserve_interword_spaces:'1',tessedit_pageseg_mode:String(psm)});const t0=performance.now(),r=await w.recognize(image),ms=performance.now()-t0,raw=String(r.data.text||''),candidates=findCandidates(raw);return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:Number(r.data.confidence)||0,ms};}
+async function recognizePaddle(image){try{const p=await getPaddle(),t0=performance.now(),results=await p.predict(image,{textDetThresh:.25,textDetBoxThresh:.30,textDetUnclipRatio:1.8,textRecScoreThresh:.10}),ms=performance.now()-t0,result=Array.isArray(results)?results[0]:null,items=Array.isArray(result?.items)?result.items:[],raw=items.map(x=>x?.text||'').join(' '),candidates=findCandidates(raw),scores=items.map(x=>Number(x?.score)).filter(Number.isFinite),conf=scores.length?Math.max(...scores)*100:0;return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:conf,ms};}catch(e){return {value:null,candidates:[],raw:'',confidence:0,ms:0,error:e?.message||String(e)};}}
+async function recognizeTrOCR(image){
+  try{
+    const pipe=await getTrOCR(),t0=performance.now();
+    const rawImage=trocrRawImage.fromCanvas(image);
+    const out=await pipe(rawImage,{max_new_tokens:32,num_beams:1});
+    const ms=performance.now()-t0;
+    const raw=Array.isArray(out)?String(out[0]?.generated_text||''):String(out?.generated_text||out||'');
+    const candidates=findCandidates(raw);
+    return {value:candidates.length===1?candidates[0]:null,candidates,raw,confidence:null,ms};
+  }catch(e){return {value:null,candidates:[],raw:'',confidence:null,ms:0,error:e?.message||String(e)};}
+}
+
+function emptyBucket(){return {pages:0,correct:0,amb:0,wrong:0,none:0,conf:0,confN:0,ms:0};}
+function makeStats(){const s={};for(const c of CONFIGS)s[c.id]={cfg:c,t:emptyBucket(),p:emptyBucket(),r:emptyBucket(),all3Correct:0,atLeast2Correct:0,eitherCorrect:0};return s;}
+function bump(bucket,status,read){bucket.pages++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO_CON_VERDAD')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else if(status==='SIN_LECTURA')bucket.none++;if(Number.isFinite(read.confidence)){bucket.conf+=read.confidence;bucket.confN++;}bucket.ms+=Number(read.ms)||0;}
+function sortBuckets(stats,engine){return Object.values(stats).sort((a,b)=>{const A=a[engine],B=b[engine];return B.correct-A.correct || A.wrong-B.wrong || B.amb-A.amb || A.none-B.none || A.ms-B.ms;});}
+function rankLine(i,x,engine){const b=x[engine],avgC=b.confN?b.conf/b.confN:null,avgMs=b.pages?b.ms/b.pages:0;return `${String(i+1).padStart(2,'0')}. ${x.cfg.id} | OK ${b.correct}/${b.pages} | ERROR ${b.wrong} | AMBIGUO ${b.amb} | SIN LECTURA ${b.none} | conf.prom ${avgC===null?'N/D':avgC.toFixed(1)} | ms/prom ${Math.round(avgMs)} | objetivo ${x.cfg.targets} | ${x.cfg.note}`;}
+function combinedRank(stats){return Object.values(stats).sort((a,b)=>b.all3Correct-a.all3Correct || b.atLeast2Correct-a.atLeast2Correct || b.eitherCorrect-a.eitherCorrect || (b.t.correct+b.p.correct+b.r.correct)-(a.t.correct+a.p.correct+a.r.correct));}
+
+async function startDiagnostic(){
+  if(running)return;const files=[...document.getElementById('pdfFiles').files];if(!files.length){alert('Selecciona uno o varios PDF.');return;}
+  running=true;cancelRequested=false;allRows=[];document.getElementById('startBtn').disabled=true;document.getElementById('cancelBtn').disabled=false;document.getElementById('mFiles').textContent=files.length;document.getElementById('mState').textContent='EJECUTANDO';document.getElementById('bar').style.width='0%';
+  const stats=makeStats();let pagesDone=0,totalPagesKnown=0,totalUnits=0,unitsDone=0;
+  clearConsole();section('INICIO DIAGNÓSTICO OCR 20 VARIANTES · 3 MOTORES');
+  log(`Archivos seleccionados: ${files.length}`,'info');log('La GR del nombre se usa solo para puntuación. No se pasa como expected/pista a ningún motor.','warn');
+  log('Autoorientación: PDF.js respeta la rotación del PDF + autoenderezado fino V2 (±12°, búsqueda fina 0.2°, umbral de mejora 2%).','info');
+  log('Cada variante usa la MISMA imagen para PaddleOCR, Tesseract y TrOCR; solo PSM es específico de Tesseract.','info');
+  log('D08=C08 actual de Tesseract; D09=C06 actual de Paddle; D10=C09 respaldo actual de Paddle. D11-D20 añaden recortes/preprocesados orientados a TrOCR y a reforzar los otros motores.','info');
+  try{
+    // Conteo ligero solo para progreso del conjunto controlado. No se usa en la app operativa.
+    const sources=[];
+    for(const f of files){const bytes=new Uint8Array(await f.arrayBuffer()),pdf=await pdfjsLib.getDocument({data:bytes}).promise;sources.push({f,pdf,truth:truthFromFilename(f.name)});totalPagesKnown+=pdf.numPages;}
+    totalUnits=totalPagesKnown*CONFIGS.length;document.getElementById('mRuns').textContent=(totalUnits*3).toLocaleString('es-PE');
+    log(`Páginas totales: ${totalPagesKnown} · variantes por página: 20 · motores: 3 · ejecuciones OCR: ${totalUnits*3}`,'info');
+    await Promise.all([getTesseract(),getPaddle(),getTrOCR()]);
+    for(const src of sources){
+      if(cancelRequested)break;section(`ARCHIVO ${src.f.name}`);log(`Verdad de referencia por nombre: ${src.truth||'NO DISPONIBLE'} · páginas: ${src.pdf.numPages}`,src.truth?'ok':'warn');
+      for(let pn=1;pn<=src.pdf.numPages;pn++){
+        if(cancelRequested)break;const page=await src.pdf.getPage(pn),cache={raw:new Map(),deskew:new Map()};pagesDone++;document.getElementById('mPages').textContent=pagesDone;section(`${src.f.name} · PÁGINA ${pn}/${src.pdf.numPages} · VERDAD ${src.truth||'N/D'} · ROTACIÓN PDF ${page.rotate||0}°`);
+        for(const cfg of CONFIGS){
+          if(cancelRequested)break;document.getElementById('current').textContent=`${src.f.name} · pág. ${pn} · ${cfg.id} · ${cfg.dpi} DPI · ${cfg.zone} · ${cfg.prep}`;
+          const built=await buildVariant(page,cfg,cache);
+          const [t,p]=await Promise.all([recognizeTesseract(built.image,cfg.psm),recognizePaddle(built.image)]);
+          const r=await recognizeTrOCR(built.image);
+          const ts=classify(t,src.truth),ps=classify(p,src.truth),rs=classify(r,src.truth);
+          bump(stats[cfg.id].t,ts,t);bump(stats[cfg.id].p,ps,p);bump(stats[cfg.id].r,rs,r);
+          const correctCount=[ts,ps,rs].filter(x=>x==='CORRECTO').length;if(correctCount===3)stats[cfg.id].all3Correct++;if(correctCount>=2)stats[cfg.id].atLeast2Correct++;if(correctCount>=1)stats[cfg.id].eitherCorrect++;
+          const tilt=built.meta.applied?`${built.meta.angle>0?'+':''}${built.meta.angle.toFixed(2)}°`:(built.meta.boundaryRisk?'FUERA_RANGO':'0°');
+          const base=`${cfg.id} | ${cfg.dpi}DPI ${cfg.zone.toUpperCase()} ${cfg.prep.toUpperCase()} PSM${cfg.psm} | objetivo ${cfg.targets} | giro ${tilt} | `;
+          log(base+`TESS=${t.value||'-'} [${statusShort(ts)}] conf=${t.confidence.toFixed(1)} ms=${Math.round(t.ms)} cand=${t.candidates.join(',')||'-'} | RAW="${escText(t.raw).slice(0,180)}"`,statusType(ts));
+          log(base+`PADDLE=${p.value||'-'} [${statusShort(ps)}] conf=${p.confidence.toFixed(1)} ms=${Math.round(p.ms)} cand=${p.candidates.join(',')||'-'}${p.error?' err='+p.error:''} | RAW="${escText(p.raw).slice(0,180)}"`,statusType(ps));
+          log(base+`TROCR=${r.value||'-'} [${statusShort(rs)}] conf=N/D ms=${Math.round(r.ms)} cand=${r.candidates.join(',')||'-'}${r.error?' err='+r.error:''} | RAW="${escText(r.raw).slice(0,180)}"`,statusType(rs));
+          allRows.push({file:src.f.name,page:pn,truth:src.truth||'',config:cfg.id,dpi:cfg.dpi,zone:cfg.zone,prep:cfg.prep,psm:cfg.psm,targets:cfg.targets,deskewAngle:built.meta.angle||0,tValue:t.value||'',tStatus:ts,tConfidence:t.confidence,tCandidates:t.candidates.join('|'),tMs:t.ms,pValue:p.value||'',pStatus:ps,pConfidence:p.confidence,pCandidates:p.candidates.join('|'),pMs:p.ms,rValue:r.value||'',rStatus:rs,rCandidates:r.candidates.join('|'),rMs:r.ms});
+          unitsDone++;document.getElementById('bar').style.width=`${Math.round(unitsDone/Math.max(1,totalUnits)*100)}%`;await yieldUI();
+        }
+        cache.raw.clear();cache.deskew.clear();
+      }
+    }
+    section(cancelRequested?'RESUMEN PARCIAL POR CANCELACIÓN':'RESUMEN FINAL');
+    const tested=Object.values(stats)[0]?.t.pages||0;log(`Páginas puntuadas por configuración: ${tested}`,'info');
+    section('RANKING TESSERACT · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');sortBuckets(stats,'t').forEach((x,i)=>log(rankLine(i,x,'t'),i<3?'ok':'info'));
+    section('RANKING PADDLEOCR · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');sortBuckets(stats,'p').forEach((x,i)=>log(rankLine(i,x,'p'),i<3?'ok':'info'));
+    section('RANKING TROCR · prioridad: más correctas, menos errores, más ambiguas, menos sin lectura');sortBuckets(stats,'r').forEach((x,i)=>log(rankLine(i,x,'r'),i<3?'ok':'info'));
+    section('COMPLEMENTARIEDAD DE LOS 3 MOTORES POR VARIANTE');combinedRank(stats).forEach((x,i)=>log(`${String(i+1).padStart(2,'0')}. ${x.cfg.id} | LOS 3 CORRECTOS ${x.all3Correct}/${x.t.pages} | AL MENOS 2 CORRECTOS ${x.atLeast2Correct}/${x.t.pages} | AL MENOS 1 CORRECTO ${x.eitherCorrect}/${x.t.pages} | T ${x.t.correct} | P ${x.p.correct} | R ${x.r.correct} | objetivo ${x.cfg.targets} | ${x.cfg.note}`,i<3?'ok':'info'));
+    section('FIN');log(cancelRequested?'Prueba cancelada por el usuario. Rankings calculados con lo procesado.':'Prueba completada. Copia o descarga esta consola para el análisis.','ok');
+    document.getElementById('mState').textContent=cancelRequested?'CANCELADO':'FINALIZADO';
+  }catch(e){console.error(e);log(`ERROR GENERAL: ${e?.stack||e?.message||e}`,'err');document.getElementById('mState').textContent='ERROR';}
+  finally{running=false;document.getElementById('startBtn').disabled=false;document.getElementById('cancelBtn').disabled=true;document.getElementById('current').textContent=cancelRequested?'Prueba cancelada.':'Prueba terminada.';}
+}
+function cancelDiagnostic(){cancelRequested=true;document.getElementById('mState').textContent='CANCELANDO';log('Solicitud de cancelación recibida. Se detendrá al terminar la ejecución OCR actual.','warn');}
+async function copyConsole(){const txt=document.getElementById('console').innerText;try{await navigator.clipboard.writeText(txt);alert('Consola copiada.');}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Consola copiada.');}}
+function downloadConsole(){const txt=document.getElementById('console').innerText,blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OCR20VARIANTES3M_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function csvCell(v){const s=String(v??'');return /[";,\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function downloadCSV(){if(!allRows.length){alert('Todavía no hay resultados.');return;}const cols=Object.keys(allRows[0]),lines=[cols.join(';'),...allRows.map(r=>cols.map(c=>csvCell(r[c])).join(';'))],blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OCR20VARIANTES3M_RESULTADOS.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function clearConsole(){document.getElementById('console').innerHTML='';}
+function renderConfigTable(){const body=document.getElementById('cfgBody');body.innerHTML='';for(const c of CONFIGS){const tr=document.createElement('tr');tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${c.zone}</td><td>${c.deskew?'AUTO V2':'SIN DESKEW'}</td><td>${c.prep}</td><td>${c.psm}</td><td>${c.targets}</td><td>${c.note}</td>`;body.appendChild(tr);}}
+window.addEventListener('beforeunload',()=>{try{if(tessWorker)tessWorker.terminate();if(paddleOCR)paddleOCR.dispose();if(trocrPipe?.dispose)trocrPipe.dispose();}catch(e){}});
+renderConfigTable();log('Sistema listo · Diagnóstico OCR 20 variantes · PaddleOCR + Tesseract + TrOCR','ok');
+</script>
+</body>
+</html>
