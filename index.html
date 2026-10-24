@@ -441,7 +441,7 @@ th{background:#f1f3f4}
 }
 
 
-/* V1.23 · auditoría total sin deduplicación */
+/* V1.24 · auditoría total sin deduplicación */
 .header{position:sticky;top:0;z-index:850;margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .app{padding-top:0;padding-bottom:74px}
 .appFooter{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;border-top:1px solid #d9dee4;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:8px max(18px,calc((100vw - 1360px)/2 + 22px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
@@ -456,7 +456,7 @@ th{background:#f1f3f4}
 @media(max-width:760px){.appFooter{position:static;padding:10px;flex-direction:column;align-items:stretch}.app{padding-bottom:22px}.auditGridV119{grid-template-columns:1fr !important}.auditStats{grid-template-columns:1fr 1fr !important}.reviewPreviewWrap{height:260px;min-height:260px;max-height:260px}}
 
 
-/* V1.23 · diagnóstico OCR integrado 20 variantes x 3 motores */
+/* V1.24 · helpers OCR internos para auditoría histórica */
 #diagnosticArea{margin-bottom:16px}
 .diagWarning{margin-top:10px;padding:10px;border-radius:7px;background:#fff7e0;color:#7a4b00;font-size:13px}
 .diagStats{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:8px;margin-top:12px}
@@ -470,6 +470,10 @@ th{background:#f1f3f4}
 #diagnosticArea input[type=file]{max-width:100%}
 @media(max-width:850px){.diagStats{grid-template-columns:1fr 1fr}}
 
+
+/* V1.24 · pantalla principal de 3 opciones */
+.modeGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+@media(max-width:1000px){.modeGrid{grid-template-columns:1fr !important}}
 </style>
 </head>
 
@@ -478,9 +482,9 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.23 · DIAGNÓSTICO OCR 3 MOTORES INTEGRADO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.24 · ACTUALIZACIÓN DE V1.22</strong></div>
   <div class="muted" style="margin-top:3px">
-    V1.3 estable separada · V1.21 preservada · diagnóstico 20 variantes × 3 motores integrado
+    V1.3 estable separada · flujo normal V1.22 preservado · auditoría histórica 20 variantes × 3 motores
   </div>
   <div id="sessionSaveBadge" class="sessionBadge"><span class="dot"></span><span id="sessionSaveText">DATOS DE SESIÓN SIN CAMBIOS</span></div>
 </div>
@@ -488,25 +492,20 @@ th{background:#f1f3f4}
 
 <div id="modeScreen" class="card modeScreen">
   <div class="modeTitle">¿QUÉ QUIERES HACER?</div>
-  <div class="muted">La V1.3 estable permanece protegida. Las nuevas funciones se ejecutan por separado.</div>
+  <div class="muted">Tres opciones: base estable, trabajo normal y auditoría histórica.</div>
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.23.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. Respaldo estable sin cambios.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.23</strong>
-      <span>PaddleOCR usa C06 y solo si no logra leer prueba C09. Tesseract usa únicamente C08. Al final ambos motores se comparan de forma estricta.</span>
+      <strong>NUEVA VERSIÓN V1.24</strong>
+      <span>Flujo normal del sistema basado en V1.22 para procesar archivos nuevos. No ejecuta la auditoría masiva de 20 variantes.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
-      <span>Revisar todos los PDF, validar la GR de la esquina superior derecha y reportar solo observaciones.</span>
-    </button>
-    <button class="modeBtn" onclick="chooseMode('diagnostic')">
-      <strong>DIAGNÓSTICO OCR · 20 VARIANTES · 3 MOTORES</strong>
-      <span>Prueba comparativa integrada de PaddleOCR, Tesseract y TrOCR. Conserva D08/D09/D10 actuales y compara 20 optimizaciones con consola completa.</span>
-      <span class="modeBadge">PRUEBA CONTROLADA</span>
+      <span>Revisa PDF anteriores con 20 variantes × 3 motores, revisión humana, reporte, autoguardado progresivo y recuperación.</span>
     </button>
   </div>
 </div>
@@ -830,46 +829,6 @@ th{background:#f1f3f4}
 </div>
 
 
-<div id="diagnosticArea" style="display:none">
-<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="light" onclick="backToModes()">VOLVER AL INICIO</button></div>
-
-  <div class="card">
-    <h1>DIAGNÓSTICO OCR · 20 VARIANTES · 3 MOTORES · VERDAD POR PÁGINA</h1>
-    <div class="muted"><b>PaddleOCR + Tesseract + TrOCR</b> · prueba experimental integrada · no renombra ni modifica archivos</div>
-    <div class="diagWarning"><b>TrOCR:</b> usa <b>Xenova/trocr-small-printed</b> en navegador. La primera ejecución descargará y almacenará en caché el modelo; la consola mostrará el progreso de carga. Las 20 variantes se prueban en los tres motores.</div>
-    <div class="diagWarning"><b>Uso recomendado:</b> selecciona el conjunto controlado de PDF cuya GR verdadera ya conoces (por ejemplo, los archivos “-estabien”). La GR verdadera se obtiene del marcador <b>verdadero</b> (y, si corresponde, de <b>pag1/pag2...</b>) o del nombre <b>-estabien</b>. Se usa <b>solo para puntuar</b>; nunca se entrega al OCR como pista.</div>
-    <div class="toolbar">
-      <input id="diagPdfFiles" type="file" accept="application/pdf,.pdf" multiple>
-      <button id="diagStartBtn" class="primary" onclick="diagStartDiagnostic()">INICIAR PRUEBA 20 VARIANTES</button>
-      <button id="diagCancelBtn" class="red" onclick="diagCancelDiagnostic()" disabled>CANCELAR</button>
-      <button class="light" onclick="diagCopyConsole()">COPIAR CONSOLA</button>
-      <button class="green" onclick="diagDownloadConsole()">DESCARGAR CONSOLA TXT</button>
-      <button class="green" onclick="diagDownloadCSV()">DESCARGAR RESULTADOS CSV</button>
-      <button class="light" onclick="diagClearConsole()">LIMPIAR CONSOLA</button>
-    </div>
-    <div class="progress"><div id="diagBar" class="bar"></div></div>
-    <div id="diagCurrent" class="diagCurrentText">Esperando archivos.</div>
-    <div class="diagStats">
-      <div class="metric">Archivos<b id="diagMFiles">0</b></div>
-      <div class="metric">Páginas evaluadas<b id="diagMPages">0</b></div>
-      <div class="metric">Variantes por página<b>20</b></div>
-      <div class="metric">Ejecuciones OCR previstas<b id="diagMRuns">0</b></div>
-      <div class="metric">Estado<b id="diagMState">LISTO</b></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <b>20 CONFIGURACIONES</b>
-    <div class="muted">Cada configuración genera una imagen y esa misma imagen es evaluada por los tres motores. PSM solo afecta a Tesseract. Varias variantes focalizadas están incluidas para favorecer a TrOCR y otras para Paddle/Tesseract.</div>
-    <div class="diagTableWrap"><table class="diagConfigTable"><thead><tr><th>ID</th><th>DPI</th><th>Recorte</th><th>Orientación</th><th>Preparación</th><th>Tesseract PSM</th><th>Motor(es) objetivo</th><th>Objetivo</th></tr></thead><tbody id="diagCfgBody"></tbody></table></div>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>CONSOLA COMPLETA</b><span class="muted">Lectura por página, variante y los 3 motores + rankings independientes y complementariedad</span></div>
-    <div id="diagConsole" class="diagConsoleBox"></div>
-  </div>
-
-</div>
 
 <div id="leaveGuardModal" class="auditModal">
   <div class="auditDialog leaveDialog">
@@ -895,7 +854,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.23</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.24</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -969,8 +928,8 @@ let historicalAuditTotalFiles=0;
 let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
 
-// V1.23 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
-const SESSION_KEY='AUTOMATIZADOR_GR_V123_SESSION';
+// V1.24 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
+const SESSION_KEY='AUTOMATIZADOR_GR_V124_SESSION';
 const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V121_SESSION','AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
@@ -980,7 +939,7 @@ let recoveredSnapshot=null;
 let sessionSaveTimer=null;
 let auditResumeState=null;
 let historicalAuditRecoveredFiles=[];
-const AUDIT_DB_NAME='AUTOMATIZADOR_GR_V123_AUDIT';
+const AUDIT_DB_NAME='AUTOMATIZADOR_GR_V124_AUDIT';
 const AUDIT_DB_STORE='runtime';
 function auditDbOpen(){return new Promise((resolve,reject)=>{const q=indexedDB.open(AUDIT_DB_NAME,1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(AUDIT_DB_STORE))q.result.createObjectStore(AUDIT_DB_STORE);};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}
 async function auditDbPut(key,value){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readwrite');tx.objectStore(AUDIT_DB_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
@@ -1003,7 +962,7 @@ function auditSerializableItem(item){
   return {_id:item._id,relativePath:item.relativePath||'',auditFolderName:item.auditFolderName||'',auditRootPath:item.auditRootPath||'',name:item.name||'',originalName:item.originalName||'',expectedGR:item.expectedGR||'',foundGR:item.foundGR||'',correctedGR:item.correctedGR||'',consensus:item.consensus||'',pages:item.pages||[],observation:item.observation||'',baseObservation:item.baseObservation||'',reviewed:!!item.reviewed,isOtherDocument:!!item.isOtherDocument,skipReview:!!item.skipReview,result:item.result||'',previewDataUrl:item.previewDataUrl||'',pageResults:(item.pageResults||[]).map(r=>({page:r.page,detected:r.detected||null,suggested:r.suggested||null,fast:r.fast||null,consensus:r.consensus||'',strongConsensus:!!r.strongConsensus,reason:r.reason||'',readings:compactEngineReadings(r.readings),previewDataUrl:r.previewDataUrl||''})),reviewPages:(item.reviewPages||[]).map(r=>r.page||r)};
 }
 async function auditSaveCheckpoint(state){
-  const payload={version:'1.23',savedAt:new Date().toISOString(),...state,items:(historicalAuditItems||[]).map(auditSerializableItem)};
+  const payload={version:'1.24',savedAt:new Date().toISOString(),...state,items:(historicalAuditItems||[]).map(auditSerializableItem)};
   auditResumeState=payload; await auditDbPut('checkpoint',payload);
 }
 async function auditLoadCheckpoint(){return await auditDbGet('checkpoint').catch(()=>null);}
@@ -1356,7 +1315,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.23 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.24 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1392,7 +1351,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.23 · ${source.file.name} pág. ${pn} · `+
+        `V1.24 · ${source.file.name} pág. ${pn} · `+
         `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
@@ -1480,12 +1439,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.23 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.24 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.23 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
+    logEvent('V1.24 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2581,34 +2540,28 @@ function openStableVersion(){
 }
 
 function chooseMode(mode){
+  if(mode!=='new' && mode!=='audit')return;
   appMode=mode;
   const fm=document.getElementById('footerMode');
-  if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':mode==='diagnostic'?'DIAGNÓSTICO OCR':'NUEVA';
+  if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':'NUEVA';
   document.getElementById('modeScreen').style.display='none';
   document.getElementById('processArea').style.display='none';
   document.getElementById('auditArea').style.display='none';
-  document.getElementById('diagnosticArea').style.display='none';
 
   if(mode==='audit'){
     document.getElementById('auditArea').style.display='block';
     document.querySelector('.consoleCard').style.display='block';
-    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES','info');
-    return;
-  }
-  if(mode==='diagnostic'){
-    document.getElementById('diagnosticArea').style.display='block';
-    document.querySelector('.consoleCard').style.display='none';
-    diagRenderConfigTable();
+    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · 20 variantes × 3 motores · recuperación progresiva','info');
     return;
   }
 
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.23 · OCR operativo V1.21 preservado · Paddle C06→C09 si falla + Tesseract C08 único','info');
+  logEvent('Modo NUEVA V1.24 · flujo normal V1.22 preservado','info');
 }
 
 function backToModes(){
-  if(queueRunning||historicalAuditRunning||diagRunning){
+  if(queueRunning||historicalAuditRunning){
     alert('Hay un proceso en ejecución. Usa CANCELAR antes de regresar al inicio.');
     return;
   }
@@ -2617,7 +2570,6 @@ function backToModes(){
   }
   document.getElementById('processArea').style.display='none';
   document.getElementById('auditArea').style.display='none';
-  document.getElementById('diagnosticArea').style.display='none';
   document.getElementById('modeScreen').style.display='block';
   document.getElementById('auditFolderModal')?.classList.remove('open');
   appMode=null;
@@ -3677,14 +3629,14 @@ async function recognizeCrop(crop,psm='6',expected=null){
 
 
 // ============================================================
-// V1.23 · AUDITORÍA 20 VARIANTES × 3 MOTORES
+// V1.24 · AUDITORÍA 20 VARIANTES × 3 MOTORES
 // C01–C10 reproducen exactamente el diagnóstico histórico V1.17.
 // C11–C20 amplían resolución/recortes/preprocesado sin crear otro módulo.
 // Cada variante genera UNA imagen común para Tesseract, PaddleOCR y TrOCR.
 // Confirmación automática: los TRES motores deben producir una lectura estable
 // e idéntica. No existe mayoría 2/3; toda discrepancia pasa a revisión humana.
 // ============================================================
-const AUDIT_V123_CONFIGS=[
+const AUDIT_V124_CONFIGS=[
   {id:'C01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6'},
   {id:'C02',dpi:300,zone:'legacy',deskew:false,prep:'optimized',psm:'6'},
   {id:'C03',dpi:300,zone:'legacy',deskew:false,prep:'threshold',psm:'6'},
@@ -3707,11 +3659,11 @@ const AUDIT_V123_CONFIGS=[
   {id:'C20',dpi:700,zone:'micro',deskew:true,prep:'hq',psm:'7'}
 ];
 
-function auditV123FilterRead(read,expected){
+function auditV124FilterRead(read,expected){
   const candidates=filterCompleteCandidates(read?.candidates||[],expected);
   return {...read,candidates,value:candidates.length===1?candidates[0]:null};
 }
-function auditV123Stable(readings,engine){
+function auditV124Stable(readings,engine){
   const vals=(readings||[]).filter(r=>r.engine===engine&&r.value).map(r=>String(r.value).toUpperCase());
   if(!vals.length)return {value:null,count:0,unique:[]};
   const counts=new Map(); for(const v of vals)counts.set(v,(counts.get(v)||0)+1);
@@ -3723,14 +3675,14 @@ function auditV123Stable(readings,engine){
 async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resumeVariant=0,resumeReadings=[]){
   const cache={raw:new Map(),deskew:new Map()}, readings=[...(resumeReadings||[])];
   let previewDataUrl='';
-  for(let ci=Math.max(0,Number(resumeVariant)||0);ci<AUDIT_V123_CONFIGS.length;ci++){
+  for(let ci=Math.max(0,Number(resumeVariant)||0);ci<AUDIT_V124_CONFIGS.length;ci++){
     if(historicalAuditCancelRequested)break;
-    const cfg=AUDIT_V123_CONFIGS[ci];
+    const cfg=AUDIT_V124_CONFIGS[ci];
     const built=await diagBuildVariant(page,cfg,cache);
     if(cfg.id==='C08'){try{previewDataUrl=built.image.toDataURL('image/jpeg',.88);}catch(e){}}
     const [t0,p0]=await Promise.all([diagRecognizeTesseract(built.image,cfg.psm),diagRecognizePaddle(built.image)]);
     const r0=await diagRecognizeTrOCR(built.image);
-    const t=auditV123FilterRead(t0,expected),p=auditV123FilterRead(p0,expected),r=auditV123FilterRead(r0,expected);
+    const t=auditV124FilterRead(t0,expected),p=auditV124FilterRead(p0,expected),r=auditV124FilterRead(r0,expected);
     readings.push({engine:'TESSERACT',variant:cfg.id,value:t.value||null,confidence:Number(t.confidence)||0,candidates:t.candidates||[]});
     readings.push({engine:'PADDLEOCR',variant:cfg.id,value:p.value||null,confidence:Number(p.confidence)||0,candidates:p.candidates||[]});
     readings.push({engine:'TROCR',variant:cfg.id,value:r.value||null,confidence:0,candidates:r.candidates||[]});
@@ -3739,7 +3691,7 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
     if(ci%2===1)await yieldUI();
   }
   cache.raw.clear();cache.deskew.clear();
-  const T=auditV123Stable(readings,'TESSERACT'),P=auditV123Stable(readings,'PADDLEOCR'),R=auditV123Stable(readings,'TROCR');
+  const T=auditV124Stable(readings,'TESSERACT'),P=auditV124Stable(readings,'PADDLEOCR'),R=auditV124Stable(readings,'TROCR');
   readings.push({engine:'TESSERACT',variant:'ESTABLE',value:T.value||null,confidence:0,baseline:true});
   readings.push({engine:'PADDLEOCR',variant:'ESTABLE',value:P.value||null,confidence:0,baseline:true});
   readings.push({engine:'TROCR',variant:'ESTABLE',value:R.value||null,confidence:0,baseline:true});
@@ -3751,7 +3703,7 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
   return {
     fastValue:T.value,bestValue:confirmed?T.value:null,suggestedValue:suggested,
     consensus:confirmed?'TRIPLE MOTOR ESTABLE':reason,strongConsensus:confirmed,
-    previewDataUrl,readings,locator:'20VARIANTES-3MOTORES-V123',strategy:confirmed?'TRIPLE-MOTOR-V123':'REVISAR-TRIPLE-MOTOR-V123',reason
+    previewDataUrl,readings,locator:'20VARIANTES-3MOTORES-V124',strategy:confirmed?'TRIPLE-MOTOR-V124':'REVISAR-TRIPLE-MOTOR-V124',reason
   };
 }
 
@@ -3770,7 +3722,7 @@ async function startHistoricalAudit(){
     historicalAuditTotalFiles=Number(auditResumeState.totalFiles)||historicalAuditRecoveredFiles.length;historicalAuditProcessedFiles=Number(auditResumeState.processedFiles)||0;
     historicalAuditSkippedOver10=Number(auditResumeState.skippedOver10)||0;
     historicalAuditItems=(auditResumeState.items||[]).map(raw=>{const item={...raw,handle:null};ensureAuditItemId(item);const map=new Map((item.pageResults||[]).map(r=>[r.page,r]));item.reviewPages=(raw.reviewPages||[]).map(pg=>map.get(pg)).filter(Boolean);return item;});
-    buildAuditReport();logEvent(`RECUPERACIÓN V1.23 · reanudando desde PDF ${Number(auditResumeState.fileIndex||0)+1}, página ${Number(auditResumeState.pageNext||1)}`,'ok');
+    buildAuditReport();logEvent(`RECUPERACIÓN V1.24 · reanudando desde PDF ${Number(auditResumeState.fileIndex||0)+1}, página ${Number(auditResumeState.pageNext||1)}`,'ok');
   }
   document.getElementById('auditReviewBtn').disabled=true;document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
   document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;document.getElementById('auditCurrentFile').textContent=resuming?'Recuperando auditoría…':'Preparando auditoría…';
@@ -3782,7 +3734,7 @@ async function startHistoricalAudit(){
     else{
       for(const folder of historicalAuditFolders){if(historicalAuditCancelRequested)break;const found=await collectAuditFolderFiles(folder);files.push(...found);logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');}
       files.push(...collectAuditLooseFiles());
-      logEvent(`Auditoría V1.23: ${files.length} PDF · 20 variantes × 3 motores · sin deduplicación`,'info');
+      logEvent(`Auditoría V1.24: ${files.length} PDF · 20 variantes × 3 motores · sin deduplicación`,'info');
       if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
       document.getElementById('auditProgressText').textContent=`Guardando fuentes para recuperación · ${files.length} PDF`;
       await auditPersistFlatFiles(files);
@@ -3816,7 +3768,7 @@ async function startHistoricalAudit(){
           historicalAuditProcessedPages++;
           pageResults.push({page:pn,detected:read.bestValue,suggested:read.suggestedValue,fast:read.fastValue,consensus:read.consensus,strongConsensus:read.strongConsensus,reason:read.reason||'',readings:read.readings||[],previewDataUrl:read.previewDataUrl||''});
           const frac=(i+(pn/pdf.numPages))/files.length;document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;updateAuditTiming();
-          logEvent(`AUDIT V1.23 ${fullAuditPath(entry)} · pág. ${pn} · ${read.reason}`,read.strongConsensus?'info':'warn');
+          logEvent(`AUDIT V1.24 ${fullAuditPath(entry)} · pág. ${pn} · ${read.reason}`,read.strongConsensus?'info':'warn');
           await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i,pageNext:pn+1,pageResults,processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
         }
       }catch(err){openError=err?.message||String(err);}finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
@@ -3841,7 +3793,7 @@ async function startHistoricalAudit(){
     else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF · ${historicalAuditItems.length} observaciones`;setAuditStatus('FINALIZADO','st-done');document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await auditClearCheckpoint();}
     updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
     document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;await saveSessionSnapshotNow();
-  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.23: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error guardado para recuperación: ${err?.message||err}`;}
+  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.24: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error guardado para recuperación: ${err?.message||err}`;}
   finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();scheduleSessionSave();}
 }
 
@@ -4466,7 +4418,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.23 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.24 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4514,7 +4466,7 @@ function buildSessionSnapshot(){
     reviewPages:(item.reviewPages||[]).map(r=>r.page)
   }));
 
-  return {version:'1.23',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
+  return {version:'1.24',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
     auditSettings:{includeOver10:!!document.getElementById('auditIncludeOver10')?.checked,folderNames:historicalAuditFolders.map(f=>f.name),looseFileNames:historicalAuditLooseFiles.map(f=>f.name),skippedOver10:historicalAuditSkippedOver10},
     historicalAuditItems:auditItems,
     historicalReviewQueue:(historicalAuditReviewQueue||[]).map(q=>({parentId:q.parentItem?._id||'',page:q.pageResult?.page||0,manualGR:q.manualGR||'',isOtherDocument:!!q.isOtherDocument,reviewed:!!q.reviewed})),
@@ -4544,7 +4496,7 @@ function readSavedSession(){
     if(!raw){for(const key of LEGACY_SESSION_KEYS){raw=localStorage.getItem(key);if(raw)break;}}
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22','1.23'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22','1.24'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
@@ -4554,7 +4506,7 @@ async function showRecoveryIfAvailable(){
   const jobsCount=(data?.jobs||[]).length,pages=(data?.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0),corrections=Object.keys(data?.humanCorrections||{}).length;
   const auditItems=Math.max((data?.historicalAuditItems||[]).length,(cp?.items||[]).length);
   if(!jobsCount&&!pages&&!corrections&&!auditItems&&!cp?.inProgress)return;
-  recoveredSnapshot=data||{version:'1.23',humanCorrections:{},historicalAuditItems:[]};auditResumeState=cp||null;
+  recoveredSnapshot=data||{version:'1.24',humanCorrections:{},historicalAuditItems:[]};auditResumeState=cp||null;
   const dt=new Date(cp?.savedAt||data?.savedAt||Date.now()),when=!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
   document.getElementById('recoveryMessage').innerHTML=`Guardado: <b>${esc(when)}</b><br>Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`+(cp?.inProgress?`<br><b>Auditoría interrumpida recuperable:</b> PDF ${Number(cp.fileIndex||0)+1}/${cp.totalFiles||'?'} · próxima página ${cp.pageNext||1}.`:'');
   document.getElementById('recoveryModal').classList.add('open');
@@ -4740,7 +4692,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-// V1.23 · DIAGNÓSTICO OCR 20 VARIANTES × 3 MOTORES (INTEGRADO)
+// V1.24 · HELPERS OCR INTERNOS COMPARTIDOS POR AUDITORÍA
 // ============================================================
 
 const diagGR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
@@ -4992,10 +4944,10 @@ function diagDownloadCSV(){if(!diagAllRows.length){alert('Todavía no hay result
 function diagClearConsole(){document.getElementById('diagConsole').innerHTML='';}
 function diagRenderConfigTable(){const body=document.getElementById('diagCfgBody');body.innerHTML='';for(const c of diagCONFIGS){const tr=document.createElement('tr');tr.innerHTML=`<td><b>${c.id}</b></td><td>${c.dpi}</td><td>${c.zone}</td><td>${c.deskew?'AUTO V2':'SIN DESKEW'}</td><td>${c.prep}</td><td>${c.psm}</td><td>${c.targets}</td><td>${c.note}</td>`;body.appendChild(tr);}}
 window.addEventListener('beforeunload',()=>{try{if(diagTessWorker)diagTessWorker.terminate();if(diagPaddleOCR)diagPaddleOCR.dispose();if(diagTrocrPipe?.dispose)diagTrocrPipe.dispose();}catch(e){}});
-diagRenderConfigTable();diagLog('Sistema listo · Diagnóstico OCR 20 variantes · PaddleOCR + Tesseract + TrOCR','ok');
 
 
-logEvent("Sistema listo · V1.23 diagnóstico OCR integrado · auditoría total sin deduplicación","ok");
+
+logEvent("Sistema listo · V1.24 · flujo V1.22 preservado · auditoría 20 variantes × 3 motores sin deduplicación","ok");
 addJob();
 </script>
 </body>
