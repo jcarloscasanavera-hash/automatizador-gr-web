@@ -441,7 +441,7 @@ th{background:#f1f3f4}
 }
 
 
-/* V1.22 · auditoría total sin deduplicación */
+/* V1.23 · auditoría total sin deduplicación */
 .header{position:sticky;top:0;z-index:850;margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .app{padding-top:0;padding-bottom:74px}
 .appFooter{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;border-top:1px solid #d9dee4;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:8px max(18px,calc((100vw - 1360px)/2 + 22px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
@@ -456,7 +456,7 @@ th{background:#f1f3f4}
 @media(max-width:760px){.appFooter{position:static;padding:10px;flex-direction:column;align-items:stretch}.app{padding-bottom:22px}.auditGridV119{grid-template-columns:1fr !important}.auditStats{grid-template-columns:1fr 1fr !important}.reviewPreviewWrap{height:260px;min-height:260px;max-height:260px}}
 
 
-/* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
+/* V1.23 · diagnóstico OCR integrado 20 variantes x 3 motores */
 #diagnosticArea{margin-bottom:16px}
 .diagWarning{margin-top:10px;padding:10px;border-radius:7px;background:#fff7e0;color:#7a4b00;font-size:13px}
 .diagStats{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:8px;margin-top:12px}
@@ -478,7 +478,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.22 · DIAGNÓSTICO OCR 3 MOTORES INTEGRADO</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.23 · DIAGNÓSTICO OCR 3 MOTORES INTEGRADO</strong></div>
   <div class="muted" style="margin-top:3px">
     V1.3 estable separada · V1.21 preservada · diagnóstico 20 variantes × 3 motores integrado
   </div>
@@ -492,11 +492,11 @@ th{background:#f1f3f4}
   <div class="modeGrid">
     <button class="modeBtn" onclick="openStableVersion()">
       <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.22.</span>
+      <span>Abre una copia exacta de V1.3 en otra pestaña. No comparte código con V1.23.</span>
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.22</strong>
+      <strong>NUEVA VERSIÓN V1.23</strong>
       <span>PaddleOCR usa C06 y solo si no logra leer prueba C09. Tesseract usa únicamente C08. Al final ambos motores se comparan de forma estricta.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -564,7 +564,7 @@ th{background:#f1f3f4}
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
       <div>
         <h3 style="margin:0 0 4px">AUDITAR ARCHIVOS ANTERIORES</h3>
-        <div class="muted">Audita nombres completos y contenido OCR. Puedes seleccionar una carpeta madre (incluye todas sus subcarpetas) y/o PDF individuales. El nombre nunca cuenta como voto OCR.</div>
+        <div class="muted">Audita nombres completos y contenido OCR con 20 variantes y 3 motores (Tesseract, PaddleOCR y TrOCR). Puedes seleccionar una carpeta madre (incluye todas sus subcarpetas) y/o PDF individuales. El nombre nunca cuenta como voto OCR. La auditoría se autoguarda progresivamente y puede reanudarse tras una recarga.</div>
       </div>
       <button class="light" onclick="backToModes()">VOLVER AL INICIO</button>
     </div>
@@ -710,12 +710,16 @@ th{background:#f1f3f4}
             LECTURAS OCR DE ESTA PÁGINA
             <div class="reviewEngineChoices">
               <button id="auditTessChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('TESSERACT')">
-                <span class="engineName">TESSERACT C08</span>
+                <span class="engineName">TESSERACT</span>
                 <span id="auditTessValue" class="engineValue">SIN LECTURA</span>
               </button>
               <button id="auditPaddleChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('PADDLEOCR')">
                 <span class="engineName">PADDLEOCR</span>
                 <span id="auditPaddleValue" class="engineValue">SIN LECTURA</span>
+              </button>
+              <button id="auditTrocrChoice" class="engineChoice" type="button" onclick="selectHistoricalEngine('TROCR')">
+                <span class="engineName">TROCR</span>
+                <span id="auditTrocrValue" class="engineValue">SIN LECTURA</span>
               </button>
             </div>
             <div class="reviewEngines">Lectura OCR confirmada: <code id="auditSystemReading">SIN LECTURA</code></div>
@@ -891,7 +895,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.22</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.23</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -965,15 +969,45 @@ let historicalAuditTotalFiles=0;
 let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
 
-// V1.22 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
-const SESSION_KEY='AUTOMATIZADOR_GR_V121_SESSION';
-const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
+// V1.23 · auditoría total sin deduplicación + Paddle adaptativo + Tesseract C08 + protección de sesión
+const SESSION_KEY='AUTOMATIZADOR_GR_V123_SESSION';
+const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V121_SESSION','AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
 let navigationGuardBypass=false;
 let guardExitRequested=false;
 let restoredHumanCorrections={};
 let recoveredSnapshot=null;
 let sessionSaveTimer=null;
+let auditResumeState=null;
+let historicalAuditRecoveredFiles=[];
+const AUDIT_DB_NAME='AUTOMATIZADOR_GR_V123_AUDIT';
+const AUDIT_DB_STORE='runtime';
+function auditDbOpen(){return new Promise((resolve,reject)=>{const q=indexedDB.open(AUDIT_DB_NAME,1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(AUDIT_DB_STORE))q.result.createObjectStore(AUDIT_DB_STORE);};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}
+async function auditDbPut(key,value){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readwrite');tx.objectStore(AUDIT_DB_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
+async function auditDbGet(key){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readonly'),q=tx.objectStore(AUDIT_DB_STORE).get(key);q.onsuccess=()=>{const v=q.result;db.close();resolve(v);};q.onerror=()=>{db.close();reject(q.error);};});}
+async function auditDbDelete(key){const db=await auditDbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(AUDIT_DB_STORE,'readwrite');tx.objectStore(AUDIT_DB_STORE).delete(key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
+async function auditPersistFlatFiles(files){
+  const stored=[];
+  for(let i=0;i<files.length;i++){
+    const e=files[i],file=await e.handle.getFile();
+    stored.push({file,name:e.name,relativePath:e.relativePath||e.name,auditFolderId:e.auditFolderId||null,auditFolderName:e.auditFolderName||'',auditRootPath:e.auditRootPath||'',source:e.source||''});
+    if(i%20===0)await yieldUI();
+  }
+  await auditDbPut('files',stored);
+}
+async function auditLoadFlatFiles(){
+  const stored=await auditDbGet('files').catch(()=>null); if(!Array.isArray(stored))return [];
+  return stored.map(x=>({handle:makeAuditFileHandle(x.file),parentHandle:null,name:x.name||x.file?.name||'',relativePath:x.relativePath||x.name||'',auditFolderId:x.auditFolderId||null,auditFolderName:x.auditFolderName||'',auditRootPath:x.auditRootPath||'',source:x.source||'recovered'}));
+}
+function auditSerializableItem(item){
+  return {_id:item._id,relativePath:item.relativePath||'',auditFolderName:item.auditFolderName||'',auditRootPath:item.auditRootPath||'',name:item.name||'',originalName:item.originalName||'',expectedGR:item.expectedGR||'',foundGR:item.foundGR||'',correctedGR:item.correctedGR||'',consensus:item.consensus||'',pages:item.pages||[],observation:item.observation||'',baseObservation:item.baseObservation||'',reviewed:!!item.reviewed,isOtherDocument:!!item.isOtherDocument,skipReview:!!item.skipReview,result:item.result||'',previewDataUrl:item.previewDataUrl||'',pageResults:(item.pageResults||[]).map(r=>({page:r.page,detected:r.detected||null,suggested:r.suggested||null,fast:r.fast||null,consensus:r.consensus||'',strongConsensus:!!r.strongConsensus,reason:r.reason||'',readings:compactEngineReadings(r.readings),previewDataUrl:r.previewDataUrl||''})),reviewPages:(item.reviewPages||[]).map(r=>r.page||r)};
+}
+async function auditSaveCheckpoint(state){
+  const payload={version:'1.23',savedAt:new Date().toISOString(),...state,items:(historicalAuditItems||[]).map(auditSerializableItem)};
+  auditResumeState=payload; await auditDbPut('checkpoint',payload);
+}
+async function auditLoadCheckpoint(){return await auditDbGet('checkpoint').catch(()=>null);}
+async function auditClearCheckpoint(){auditResumeState=null;historicalAuditRecoveredFiles=[];await auditDbDelete('checkpoint').catch(()=>{});await auditDbDelete('files').catch(()=>{});}
 
 
 // Longitud variable: T + bloque alfanumérico + "-" + bloque numérico.
@@ -1322,7 +1356,7 @@ async function processJob(job){
   // ==========================================================
   // PASADA 1: PADDLE C06→C09 SI FALLA + TESSERACT C08 ÚNICO
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.22 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.23 · Paddle C06→C09 si falla · Tesseract C08 único · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1358,7 +1392,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.22 · ${source.file.name} pág. ${pn} · `+
+        `V1.23 · ${source.file.name} pág. ${pn} · `+
         `Tesseract C08=${dual.tesseract1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'}`,
         dual.confirmed?'ok':'warn'
@@ -1446,12 +1480,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.22 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.23 · ${pending.length} página(s) pasan a REVISAR. `+
       `No se permite 2/3, 3/5 ni ninguna mayoría Tesseract.`,
       'warn'
     );
   }else{
-    logEvent('V1.22 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
+    logEvent('V1.23 · todas las páginas superaron la comparación estricta entre PaddleOCR y Tesseract','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2570,7 +2604,7 @@ function chooseMode(mode){
 
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.22 · OCR operativo V1.21 preservado · Paddle C06→C09 si falla + Tesseract C08 único','info');
+  logEvent('Modo NUEVA V1.23 · OCR operativo V1.21 preservado · Paddle C06→C09 si falla + Tesseract C08 único','info');
 }
 
 function backToModes(){
@@ -3642,194 +3676,173 @@ async function recognizeCrop(crop,psm='6',expected=null){
 // V1.16: no existen funciones de votación por mayoría OCR.
 
 
-async function auditReadPageHighPrecision(page,expected=null){
-  // ==========================================================
-  // V1.18 · AUDITORÍA CON PADDLE ADAPTATIVO + TESSERACT ÚNICO
-  // - PaddleOCR intenta C06 y solo si falla usa C09.
-  // - Tesseract usa exclusivamente C08.
-  // - Solo una coincidencia exacta entre los resultados finales de ambos motores permite confirmar.
-  // - El nombre del archivo NO cuenta como voto.
-  // - Cualquier discrepancia o lectura incompleta = REVISAR.
-  // ==========================================================
+// ============================================================
+// V1.23 · AUDITORÍA 20 VARIANTES × 3 MOTORES
+// C01–C10 reproducen exactamente el diagnóstico histórico V1.17.
+// C11–C20 amplían resolución/recortes/preprocesado sin crear otro módulo.
+// Cada variante genera UNA imagen común para Tesseract, PaddleOCR y TrOCR.
+// Confirmación automática: los TRES motores deben producir una lectura estable
+// e idéntica. No existe mayoría 2/3; toda discrepancia pasa a revisión humana.
+// ============================================================
+const AUDIT_V123_CONFIGS=[
+  {id:'C01',dpi:300,zone:'legacy',deskew:false,prep:'raw',psm:'6'},
+  {id:'C02',dpi:300,zone:'legacy',deskew:false,prep:'optimized',psm:'6'},
+  {id:'C03',dpi:300,zone:'legacy',deskew:false,prep:'threshold',psm:'6'},
+  {id:'C04',dpi:400,zone:'legacy',deskew:false,prep:'raw',psm:'6'},
+  {id:'C05',dpi:450,zone:'legacy',deskew:false,prep:'optimized',psm:'6'},
+  {id:'C06',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'},
+  {id:'C07',dpi:600,zone:'a4',deskew:false,prep:'raw',psm:'6'},
+  {id:'C08',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'},
+  {id:'C09',dpi:600,zone:'a4',deskew:true,prep:'optimized',psm:'6'},
+  {id:'C10',dpi:600,zone:'a4',deskew:true,prep:'soft',psm:'7'},
+  {id:'C11',dpi:600,zone:'tight',deskew:true,prep:'raw',psm:'7'},
+  {id:'C12',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'},
+  {id:'C13',dpi:600,zone:'line',deskew:true,prep:'optimizedContrast',psm:'7'},
+  {id:'C14',dpi:600,zone:'line',deskew:true,prep:'otsu',psm:'7'},
+  {id:'C15',dpi:600,zone:'wide',deskew:true,prep:'hq',psm:'11'},
+  {id:'C16',dpi:650,zone:'a4',deskew:true,prep:'raw',psm:'6'},
+  {id:'C17',dpi:650,zone:'tight',deskew:true,prep:'hq',psm:'7'},
+  {id:'C18',dpi:700,zone:'a4',deskew:true,prep:'optimized',psm:'6'},
+  {id:'C19',dpi:700,zone:'line',deskew:true,prep:'raw',psm:'7'},
+  {id:'C20',dpi:700,zone:'micro',deskew:true,prep:'hq',psm:'7'}
+];
 
-  const dual=await detectByDualEngineStrict(page,null,null,null);
-  const values=(dual.readings||[]).map(r=>r.value).filter(Boolean);
-  const distinct=[...new Set(values)];
-
-  let suggested=dual.confirmed
-    ? dual.value
-    : (distinct.length===1 ? distinct[0] : (dual.suggestedValue||null));
-
+function auditV123FilterRead(read,expected){
+  const candidates=filterCompleteCandidates(read?.candidates||[],expected);
+  return {...read,candidates,value:candidates.length===1?candidates[0]:null};
+}
+function auditV123Stable(readings,engine){
+  const vals=(readings||[]).filter(r=>r.engine===engine&&r.value).map(r=>String(r.value).toUpperCase());
+  if(!vals.length)return {value:null,count:0,unique:[]};
+  const counts=new Map(); for(const v of vals)counts.set(v,(counts.get(v)||0)+1);
+  const ranked=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  const first=ranked[0],second=ranked[1];
+  const stable=first && first[1]>=2 && (!second || first[1]>second[1]);
+  return {value:stable?first[0]:null,count:first?.[1]||0,unique:ranked.map(x=>x[0])};
+}
+async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resumeVariant=0,resumeReadings=[]){
+  const cache={raw:new Map(),deskew:new Map()}, readings=[...(resumeReadings||[])];
+  let previewDataUrl='';
+  for(let ci=Math.max(0,Number(resumeVariant)||0);ci<AUDIT_V123_CONFIGS.length;ci++){
+    if(historicalAuditCancelRequested)break;
+    const cfg=AUDIT_V123_CONFIGS[ci];
+    const built=await diagBuildVariant(page,cfg,cache);
+    if(cfg.id==='C08'){try{previewDataUrl=built.image.toDataURL('image/jpeg',.88);}catch(e){}}
+    const [t0,p0]=await Promise.all([diagRecognizeTesseract(built.image,cfg.psm),diagRecognizePaddle(built.image)]);
+    const r0=await diagRecognizeTrOCR(built.image);
+    const t=auditV123FilterRead(t0,expected),p=auditV123FilterRead(p0,expected),r=auditV123FilterRead(r0,expected);
+    readings.push({engine:'TESSERACT',variant:cfg.id,value:t.value||null,confidence:Number(t.confidence)||0,candidates:t.candidates||[]});
+    readings.push({engine:'PADDLEOCR',variant:cfg.id,value:p.value||null,confidence:Number(p.confidence)||0,candidates:p.candidates||[]});
+    readings.push({engine:'TROCR',variant:cfg.id,value:r.value||null,confidence:0,candidates:r.candidates||[]});
+    document.getElementById('auditProgressText').textContent=`20 variantes × 3 motores · ${cfg.id} (${ci+1}/20)`;
+    if(onVariant)await onVariant(ci+1,readings);
+    if(ci%2===1)await yieldUI();
+  }
+  cache.raw.clear();cache.deskew.clear();
+  const T=auditV123Stable(readings,'TESSERACT'),P=auditV123Stable(readings,'PADDLEOCR'),R=auditV123Stable(readings,'TROCR');
+  readings.push({engine:'TESSERACT',variant:'ESTABLE',value:T.value||null,confidence:0,baseline:true});
+  readings.push({engine:'PADDLEOCR',variant:'ESTABLE',value:P.value||null,confidence:0,baseline:true});
+  readings.push({engine:'TROCR',variant:'ESTABLE',value:R.value||null,confidence:0,baseline:true});
+  const confirmed=!!(T.value&&P.value&&R.value&&T.value===P.value&&P.value===R.value);
+  const suggested=confirmed?T.value:(P.value||T.value||R.value||null);
+  const reason=confirmed
+    ? `Coincidencia estricta 3/3: ${T.value} · T=${T.count}/20 · P=${P.count}/20 · R=${R.count}/20`
+    : `REVISAR · T=${T.value||'-'} (${T.count}/20) · P=${P.value||'-'} (${P.count}/20) · R=${R.value||'-'} (${R.count}/20)`;
   return {
-    fastValue:dual.tesseract1||null,
-    bestValue:dual.confirmed?dual.value:null,
-    suggestedValue:suggested,
-    consensus:dual.confirmed
-      ? 'DOBLE MOTOR ESTABLE'
-      : `REVISAR · T C08:${dual.tesseract1||'-'} / P ${dual.paddleSource||'C06'}:${dual.paddle1||'-'}`,
-    strongConsensus:dual.confirmed,
-    previewDataUrl:dual.previewDataUrl||'',
-    readings:dual.readings||[],
-    locator:'PADDLE-C06-C09-TESSERACT-C08-V118',
-    strategy:dual.confirmed?'DOBLE-MOTOR-V118':'REVISAR-DOBLE-MOTOR-V118',
-    reason:dual.reason||''
+    fastValue:T.value,bestValue:confirmed?T.value:null,suggestedValue:suggested,
+    consensus:confirmed?'TRIPLE MOTOR ESTABLE':reason,strongConsensus:confirmed,
+    previewDataUrl,readings,locator:'20VARIANTES-3MOTORES-V123',strategy:confirmed?'TRIPLE-MOTOR-V123':'REVISAR-TRIPLE-MOTOR-V123',reason
   };
 }
 
 async function startHistoricalAudit(){
   if(historicalAuditRunning)return;
-  if(!historicalAuditFolders.length&&!historicalAuditLooseFiles.length){
-    setAuditInlineStatus('Agrega una carpeta madre o uno o varios PDF.','warn');
-    openAuditFolderManager();return;
+  const resuming=!!(auditResumeState?.inProgress && historicalAuditRecoveredFiles.length);
+  if(!resuming && !historicalAuditFolders.length&&!historicalAuditLooseFiles.length){setAuditInlineStatus('Agrega una carpeta madre o uno o varios PDF.','warn');openAuditFolderManager();return;}
+
+  historicalAuditRunning=true;historicalAuditCancelRequested=false;
+  if(!resuming){
+    historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditStartedAt=Date.now();historicalAuditOcrStartedAt=null;historicalAuditEndedAt=null;
+    historicalAuditTotalPages=0;historicalAuditProcessedPages=0;historicalAuditTotalFiles=0;historicalAuditProcessedFiles=0;historicalAuditSkippedOver10=0;resetAuditReport();
+  }else{
+    historicalAuditStartedAt=auditResumeState.startedAt||Date.now();historicalAuditOcrStartedAt=Date.now();historicalAuditEndedAt=null;
+    historicalAuditTotalPages=Number(auditResumeState.totalPages)||0;historicalAuditProcessedPages=Number(auditResumeState.processedPages)||0;
+    historicalAuditTotalFiles=Number(auditResumeState.totalFiles)||historicalAuditRecoveredFiles.length;historicalAuditProcessedFiles=Number(auditResumeState.processedFiles)||0;
+    historicalAuditSkippedOver10=Number(auditResumeState.skippedOver10)||0;
+    historicalAuditItems=(auditResumeState.items||[]).map(raw=>{const item={...raw,handle:null};ensureAuditItemId(item);const map=new Map((item.pageResults||[]).map(r=>[r.page,r]));item.reviewPages=(raw.reviewPages||[]).map(pg=>map.get(pg)).filter(Boolean);return item;});
+    buildAuditReport();logEvent(`RECUPERACIÓN V1.23 · reanudando desde PDF ${Number(auditResumeState.fileIndex||0)+1}, página ${Number(auditResumeState.pageNext||1)}`,'ok');
   }
+  document.getElementById('auditReviewBtn').disabled=true;document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
+  document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;document.getElementById('auditCurrentFile').textContent=resuming?'Recuperando auditoría…':'Preparando auditoría…';
+  updateAuditCounters(historicalAuditProcessedFiles,Number(auditResumeState?.okCount)||0,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);startAuditTimer();
 
-  historicalAuditRunning=true;historicalAuditCancelRequested=false;historicalAuditItems=[];historicalAuditReviewQueue=[];
-  historicalAuditIndex=0;historicalAuditStartedAt=Date.now();historicalAuditOcrStartedAt=null;historicalAuditEndedAt=null;
-  historicalAuditTotalPages=0;historicalAuditProcessedPages=0;historicalAuditTotalFiles=0;historicalAuditProcessedFiles=0;historicalAuditSkippedOver10=0;
-  resetAuditReport();
-  document.getElementById('auditReviewBtn').disabled=true;
-  document.getElementById('auditReviewBtn').textContent='AUDITAR / REVISAR TODO (0)';
-  document.getElementById('auditCopyBtn').disabled=true;const copy2Start=document.getElementById('auditCopyBtn2');if(copy2Start)copy2Start.disabled=true;
-  document.getElementById('auditExcelBtn').disabled=true;document.getElementById('auditExcelBtn2').disabled=true;
-  document.getElementById('auditStartBtn').disabled=true;document.getElementById('auditCancelBtn').disabled=false;
-  document.getElementById('auditBar').style.width='0%';document.getElementById('auditCurrentFile').textContent='Preparando auditoría…';
-  updateAuditCounters(0,0,0,0,0);startAuditTimer();scheduleSessionSave();
-
-  let files=[],okCount=0,processed=0;
+  let files=[],okCount=Number(auditResumeState?.okCount)||0,processed=Number(auditResumeState?.processed)||0;
   try{
-    for(const folder of historicalAuditFolders){
-      if(historicalAuditCancelRequested)break;
-      const found=await collectAuditFolderFiles(folder);files.push(...found);
-      logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
+    if(resuming){files=historicalAuditRecoveredFiles;}
+    else{
+      for(const folder of historicalAuditFolders){if(historicalAuditCancelRequested)break;const found=await collectAuditFolderFiles(folder);files.push(...found);logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');}
+      files.push(...collectAuditLooseFiles());
+      logEvent(`Auditoría V1.23: ${files.length} PDF · 20 variantes × 3 motores · sin deduplicación`,'info');
+      if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
+      document.getElementById('auditProgressText').textContent=`Guardando fuentes para recuperación · ${files.length} PDF`;
+      await auditPersistFlatFiles(files);
     }
-    files.push(...collectAuditLooseFiles());
-    // V1.21: política explícita de auditoría total.
-    // NO se eliminan duplicados: si el mismo PDF existe en dos o más rutas,
-    // cada ocurrencia se procesa y se reporta de forma independiente.
-    logEvent(`Auditoría histórica: ${files.length} PDF encontrados · TODOS se revisarán según los criterios seleccionados · sin deduplicación`,'info');
 
-    if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
-
-    document.getElementById('auditProgressText').textContent=`Preparación completada · ${files.length} PDF encontrados · sin deduplicación`;
-    document.getElementById('auditCurrentFile').textContent='Preparación completada · iniciando auditoría…';
-    await yieldUI();
-
-    // V1.21: NO existe preconteo ni deduplicación. Cada PDF encontrado se abre una sola vez.
-    // Al abrirlo se conoce numPages: si supera 10 y el check está desmarcado, se omite inmediatamente;
-    // de lo contrario el OCR empieza en ese mismo archivo. Esto permite progreso visible desde el PDF 1.
     const includeOver10=!!document.getElementById('auditIncludeOver10')?.checked;
-    historicalAuditTotalFiles=files.length;
-    historicalAuditProcessedFiles=0;
-    document.getElementById('auditBar').style.width='0%';historicalAuditProcessedPages=0;historicalAuditTotalPages=0;historicalAuditOcrStartedAt=Date.now();
-    setAuditStatus('AUDITANDO','st-run');updateAuditTiming();
-    logEvent(`Inicio auditoría en una sola pasada · ${files.length} PDF · filtro >10 páginas: ${includeOver10?'INCLUIR':'OMITIR'}`,'info');
-
-    for(let i=0;i<files.length;i++){
+    historicalAuditTotalFiles=files.length;historicalAuditOcrStartedAt=Date.now();setAuditStatus('AUDITANDO','st-run');updateAuditTiming();
+    const startFile=resuming?Number(auditResumeState.fileIndex||0):0;
+    for(let i=startFile;i<files.length;i++){
       if(historicalAuditCancelRequested){logEvent(`Auditoría cancelada · ${historicalAuditProcessedFiles}/${files.length} PDF revisados`,'warn');break;}
-      const entry=files[i];const expected=extractGRFromFilename(entry.name);
-      let pdf=null,pageResults=[],openError=null,pagesAttempted=0;
+      const entry=files[i],expected=extractGRFromFilename(entry.name);let pdf=null,openError=null;
+      let pageResults=(resuming&&i===startFile&&Array.isArray(auditResumeState.pageResults))?[...auditResumeState.pageResults]:[];
+      let pageStart=(resuming&&i===startFile)?Math.max(1,Number(auditResumeState.pageNext)||1):1;
       document.getElementById('auditCurrentFile').textContent=`Abriendo PDF ${i+1}/${files.length}: ${fullAuditPath(entry)}`;
-      document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · abriendo archivo…`;
-      document.getElementById('auditBar').style.width=`${files.length?Math.round((i/files.length)*100):0}%`;
-      updateAuditTiming();
-      if(i%10===0)await yieldUI();
       try{
-        const file=await entry.handle.getFile();
-        const bytes=new Uint8Array(await file.arrayBuffer());
-        pdf=await pdfjsLib.getDocument({data:bytes}).promise;
-        entry.pageCount=pdf.numPages;
-
-        if(!includeOver10 && pdf.numPages>10){
-          entry.skipOver10=true;
-          historicalAuditSkippedOver10++;
-          const item={...entry,expectedGR:expected,foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],
-            result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,
-            previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};
-          item.baseObservation=item.observation;
-          historicalAuditItems.push(item);appendAuditReportItem(item);
-          historicalAuditProcessedFiles=i+1;
-          document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;
-          document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · OMITIDO (${pdf.numPages} páginas > 10)`;
-          updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
-          updateAuditTiming();
-          if(historicalAuditSkippedOver10<=10 || historicalAuditSkippedOver10%100===0)logEvent(`OMITIDO >10 · ${fullAuditPath(entry)} · ${pdf.numPages} páginas`,'warn');
-          continue;
+        const file=await entry.handle.getFile(),bytes=new Uint8Array(await file.arrayBuffer());pdf=await pdfjsLib.getDocument({data:bytes}).promise;entry.pageCount=pdf.numPages;
+        if(!includeOver10&&pdf.numPages>10){
+          historicalAuditSkippedOver10++;const item={...entry,expectedGR:expected,foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};item.baseObservation=item.observation;historicalAuditItems.push(item);appendAuditReportItem(item);processed++;historicalAuditProcessedFiles=i+1;
+          await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i+1,pageNext:1,pageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});continue;
         }
-
-        entry.skipOver10=false;
-        historicalAuditTotalPages+=pdf.numPages;
-        for(let pn=1;pn<=pdf.numPages;pn++){
+        if(pageStart===1)historicalAuditTotalPages+=pdf.numPages;
+        for(let pn=pageStart;pn<=pdf.numPages;pn++){
           if(historicalAuditCancelRequested)break;
-          document.getElementById('auditCurrentFile').textContent=`Procesando PDF ${i+1}/${files.length}: ${fullAuditPath(entry)} · página ${pn}/${pdf.numPages}`;
-          const page=await pdf.getPage(pn);const read=await auditReadPageHighPrecision(page,expected);pagesAttempted++;historicalAuditProcessedPages++;
+          document.getElementById('auditCurrentFile').textContent=`PDF ${i+1}/${files.length}: ${fullAuditPath(entry)} · página ${pn}/${pdf.numPages}`;
+          const page=await pdf.getPage(pn);
+          const resumeVariant=(resuming&&i===startFile&&pn===pageStart)?Number(auditResumeState.partialVariant||0):0;
+          const resumeReadings=(resuming&&i===startFile&&pn===pageStart)?(auditResumeState.partialReadings||[]):[];
+          const read=await auditReadPageHighPrecision(page,expected,async(variantDone,partialReadings)=>{
+            if(variantDone%5===0)await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i,pageNext:pn,pageResults,partialVariant:variantDone,partialReadings:compactEngineReadings(partialReadings),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          },resumeVariant,resumeReadings);
+          historicalAuditProcessedPages++;
           pageResults.push({page:pn,detected:read.bestValue,suggested:read.suggestedValue,fast:read.fastValue,consensus:read.consensus,strongConsensus:read.strongConsensus,reason:read.reason||'',readings:read.readings||[],previewDataUrl:read.previewDataUrl||''});
-          const frac=(i+(pn/pdf.numPages))/files.length;
-          document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;
-          document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · página ${pn}/${pdf.numPages} · páginas OCR ${historicalAuditProcessedPages}`;updateAuditTiming();
-          logEvent(`AUDIT ${fullAuditPath(entry)} · pág. ${pn} · GR en nombre ${expected||'SIN GR'} · Tesseract ${read.fastValue||'NINGUNA'} · OCR confirmado ${read.bestValue||'NINGUNO'} · ${read.consensus}`,read.strongConsensus?'info':'warn');
+          const frac=(i+(pn/pdf.numPages))/files.length;document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;updateAuditTiming();
+          logEvent(`AUDIT V1.23 ${fullAuditPath(entry)} · pág. ${pn} · ${read.reason}`,read.strongConsensus?'info':'warn');
+          await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i,pageNext:pn+1,pageResults,processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
         }
       }catch(err){openError=err?.message||String(err);}finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
-      if(openError&&entry.pageCount&&pagesAttempted===0)historicalAuditProcessedPages+=0;
+      if(historicalAuditCancelRequested)break;
 
       let observation='',foundGR=null,consensus='',pages=[],needsIssue=false,result='CORRECTO',reviewPages=[];
       if(openError){needsIssue=true;result='ERROR DE LECTURA';observation=`No se pudo analizar el PDF: ${openError}`;}
       else{
-        const strong=pageResults.filter(r=>r.strongConsensus&&r.detected);const weak=pageResults.filter(r=>!r.strongConsensus);
-        const values=[...new Set(strong.map(r=>r.detected))];
-        if(values.length>1){
-          needsIssue=true;result='VARIAS GR EN EL PDF';foundGR=values.join(' / ');pages=strong.map(r=>r.page);
-          consensus=strong.map(r=>`p${r.page}:${r.detected}`).join(' / ');
-          observation=`El PDF contiene GR confirmadas diferentes entre páginas: ${values.join(', ')}.`;reviewPages=[...strong,...weak];
-        }else if(weak.length){
-          needsIssue=true;result='REVISAR OCR';foundGR=values.length===1?values[0]:null;pages=weak.map(r=>r.page);
-          consensus=weak.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
-          observation=`El OCR no logró una coincidencia estricta en ${weak.length} página(s). Revisión humana obligatoria.`;reviewPages=weak;
-        }else if(values.length===1){
-          foundGR=values[0];const expectedFullName=`${foundGR}.pdf`;
-          if(!isValidAuditFilenameForGR(entry.name,foundGR)){
-            needsIssue=true;result='NOMBRE INCORRECTO';pages=[strong[0]?.page||1];
-            consensus=strong.map(r=>`p${r.page}:${r.consensus}`).join(' / ');
-            observation=`Nombre actual incorrecto. Nombre esperado según OCR confirmado: ${expectedFullName}`;reviewPages=strong.length?[strong[0]]:[];
-          }
-        }else{
-          needsIssue=true;result='REVISAR OCR';pages=pageResults.map(r=>r.page);observation='No se obtuvo una GR confirmada por ambos motores.';reviewPages=pageResults;
-        }
+        const strong=pageResults.filter(r=>r.strongConsensus&&r.detected),weak=pageResults.filter(r=>!r.strongConsensus),values=[...new Set(strong.map(r=>r.detected))];
+        if(values.length>1){needsIssue=true;result='VARIAS GR EN EL PDF';foundGR=values.join(' / ');pages=strong.map(r=>r.page);consensus=strong.map(r=>`p${r.page}:${r.detected}`).join(' / ');observation=`El PDF contiene GR confirmadas diferentes entre páginas: ${values.join(', ')}.`;reviewPages=[...strong,...weak];}
+        else if(weak.length){needsIssue=true;result='REVISAR OCR';foundGR=values[0]||null;pages=weak.map(r=>r.page);consensus=weak.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Los 3 motores no lograron coincidencia estricta en ${weak.length} página(s). Revisión humana obligatoria.`;reviewPages=weak;}
+        else if(values.length===1){foundGR=values[0];if(!isValidAuditFilenameForGR(entry.name,foundGR)){needsIssue=true;result='NOMBRE INCORRECTO';pages=[strong[0]?.page||1];consensus=strong.map(r=>`p${r.page}:${r.consensus}`).join(' / ');observation=`Nombre actual incorrecto. Nombre esperado según OCR confirmado: ${foundGR}.pdf`;reviewPages=strong.length?[strong[0]]:[];}}
+        else{needsIssue=true;result='REVISAR OCR';pages=pageResults.map(r=>r.page);observation='No se obtuvo una GR confirmada por los tres motores.';reviewPages=pageResults;}
       }
-
-      if(needsIssue){
-        const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,
-          previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:openError};
-        historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${fullAuditPath(entry)} · ${result} · ${observation}`,'warn');
-      }else okCount++;
-
-      processed++;
-      historicalAuditProcessedFiles=i+1;
-      document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;
-      updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
-      if((i+1)%2===0)await yieldUI();
+      if(needsIssue){const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:!!openError};historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${fullAuditPath(entry)} · ${result}`,'warn');}else okCount++;
+      processed++;historicalAuditProcessedFiles=i+1;document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
+      await auditSaveCheckpoint({inProgress:true,startedAt:historicalAuditStartedAt,fileIndex:i+1,pageNext:1,pageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
     }
 
     buildHistoricalAuditReviewQueue();historicalAuditEndedAt=Date.now();updateAuditTiming();
-    if(historicalAuditCancelRequested){
-      setAuditStatus('CANCELADO','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · ${historicalAuditProcessedFiles}/${files.length} PDF revisados`;document.getElementById('auditCurrentFile').textContent='Procesando: cancelado';
-    }else{
-      historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';
-      document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;
-      document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');
-      logEvent(`Auditoría histórica terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');
-    }
+    if(historicalAuditCancelRequested){setAuditStatus('CANCELADO · RECUPERABLE','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF`;document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';}
+    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF · ${historicalAuditItems.length} observaciones`;setAuditStatus('FINALIZADO','st-done');document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await auditClearCheckpoint();}
     updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
-    document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;
-    document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;
-    document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;
-    document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
-    await saveSessionSnapshotNow();
-  }catch(err){
-    console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR','st-err');logEvent(`ERROR AUDITORÍA: ${err?.message||err}`,'err');
-    document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;
-  }finally{
-    historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();
-  }
+    document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;await saveSessionSnapshotNow();
+  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.23: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error guardado para recuperación: ${err?.message||err}`;}
+  finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();scheduleSessionSave();}
 }
 
 function buildAuditReport(){
@@ -3947,10 +3960,13 @@ function showHistoricalAuditItem(){
 
   const tess=engineOptionFromReadings(r.readings||[],'TESSERACT');
   const paddle=engineOptionFromReadings(r.readings||[],'PADDLEOCR');
+  const trocr=engineOptionFromReadings(r.readings||[],'TROCR');
   document.getElementById('auditTessValue').textContent=tess.value||'SIN LECTURA';
   document.getElementById('auditPaddleValue').textContent=paddle.value||'SIN LECTURA';
+  document.getElementById('auditTrocrValue').textContent=trocr.value||'SIN LECTURA';
   document.getElementById('auditTessChoice').disabled=!tess.value;
   document.getElementById('auditPaddleChoice').disabled=!paddle.value;
+  document.getElementById('auditTrocrChoice').disabled=!trocr.value;
 
   const img=document.getElementById('auditPreview');const preview=r.previewDataUrl||item.previewDataUrl||'';
   if(preview){img.src=preview;img.style.display='block';}else{img.removeAttribute('src');img.style.display='none';}
@@ -4450,7 +4466,7 @@ function closeJobReviewModal(){
 
 
 // ============================================================
-// V1.22 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
+// V1.23 · AUTOGUARDADO Y PROTECCIÓN DE NAVEGACIÓN
 // ============================================================
 function humanCorrectionKey(jobName,fileName,page){
   return `${String(jobName||'').trim()}|${String(fileName||'').trim()}|${Number(page)||0}`;
@@ -4475,7 +4491,7 @@ function setSessionBadge(saved){
 }
 
 function compactEngineReadings(readings){
-  return (readings||[]).map(r=>({engine:r.engine||'',variant:r.variant||'',value:r.value||null,confidence:Number(r.confidence)||0}));
+  return (readings||[]).map(r=>({engine:r.engine||'',variant:r.variant||'',value:r.value||null,confidence:Number(r.confidence)||0,baseline:!!r.baseline}));
 }
 
 function buildSessionSnapshot(){
@@ -4498,7 +4514,7 @@ function buildSessionSnapshot(){
     reviewPages:(item.reviewPages||[]).map(r=>r.page)
   }));
 
-  return {version:'1.22',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
+  return {version:'1.23',savedAt:new Date().toISOString(),appMode,humanCorrections,jobs:compactJobs,
     auditSettings:{includeOver10:!!document.getElementById('auditIncludeOver10')?.checked,folderNames:historicalAuditFolders.map(f=>f.name),looseFileNames:historicalAuditLooseFiles.map(f=>f.name),skippedOver10:historicalAuditSkippedOver10},
     historicalAuditItems:auditItems,
     historicalReviewQueue:(historicalAuditReviewQueue||[]).map(q=>({parentId:q.parentItem?._id||'',page:q.pageResult?.page||0,manualGR:q.manualGR||'',isOtherDocument:!!q.isOtherDocument,reviewed:!!q.reviewed})),
@@ -4528,29 +4544,26 @@ function readSavedSession(){
     if(!raw){for(const key of LEGACY_SESSION_KEYS){raw=localStorage.getItem(key);if(raw)break;}}
     if(!raw)return null;
     const data=JSON.parse(raw);
-    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22'].includes(data?.version)?data:null;
+    return ['1.12','1.13','1.14','1.17','1.18','1.19','1.20','1.21','1.22','1.23'].includes(data?.version)?data:null;
   }catch(e){return null;}
 }
 
-function showRecoveryIfAvailable(){
+async function showRecoveryIfAvailable(){
   const data=readSavedSession();
-  if(!data)return;
-  const jobsCount=(data.jobs||[]).length;
-  const pages=(data.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0);
-  const corrections=Object.keys(data.humanCorrections||{}).length;
-  const auditItems=(data.historicalAuditItems||[]).length;
-  if(!jobsCount&&!pages&&!corrections&&!auditItems)return;
-  recoveredSnapshot=data;
-  const dt=data.savedAt?new Date(data.savedAt):null;
-  const when=dt&&!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
-  document.getElementById('recoveryMessage').innerHTML=
-    `Guardado: <b>${esc(when)}</b><br>`+
-    `Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`;
+  const cp=await auditLoadCheckpoint();
+  const jobsCount=(data?.jobs||[]).length,pages=(data?.jobs||[]).reduce((n,j)=>n+(j.pages||[]).length,0),corrections=Object.keys(data?.humanCorrections||{}).length;
+  const auditItems=Math.max((data?.historicalAuditItems||[]).length,(cp?.items||[]).length);
+  if(!jobsCount&&!pages&&!corrections&&!auditItems&&!cp?.inProgress)return;
+  recoveredSnapshot=data||{version:'1.23',humanCorrections:{},historicalAuditItems:[]};auditResumeState=cp||null;
+  const dt=new Date(cp?.savedAt||data?.savedAt||Date.now()),when=!Number.isNaN(dt.getTime())?dt.toLocaleString('es-PE'):'fecha no disponible';
+  document.getElementById('recoveryMessage').innerHTML=`Guardado: <b>${esc(when)}</b><br>Lotes registrados: <b>${jobsCount}</b> · páginas registradas: <b>${pages}</b> · correcciones humanas: <b>${corrections}</b> · observaciones de auditoría: <b>${auditItems}</b>.`+(cp?.inProgress?`<br><b>Auditoría interrumpida recuperable:</b> PDF ${Number(cp.fileIndex||0)+1}/${cp.totalFiles||'?'} · próxima página ${cp.pageNext||1}.`:'');
   document.getElementById('recoveryModal').classList.add('open');
 }
 
-function recoverPreviousSession(){
+async function recoverPreviousSession(){
   if(!recoveredSnapshot)return;
+  const cp=await auditLoadCheckpoint();
+  if(cp?.inProgress){auditResumeState=cp;historicalAuditRecoveredFiles=await auditLoadFlatFiles();}
   restoredHumanCorrections={...(recoveredSnapshot.humanCorrections||{})};
   if(recoveredSnapshot.auditSettings){
     const chk=document.getElementById('auditIncludeOver10');if(chk)chk.checked=!!recoveredSnapshot.auditSettings.includeOver10;
@@ -4571,10 +4584,12 @@ function recoverPreviousSession(){
   document.getElementById('auditSkippedCount').textContent=historicalAuditSkippedOver10;
   document.getElementById('recoveryModal').classList.remove('open');
   logEvent(`RECUPERACIÓN cargada · ${Object.keys(restoredHumanCorrections).length} corrección(es) · ${historicalAuditItems.length} observación(es) de auditoría`,'ok');
+  if(auditResumeState?.inProgress&&historicalAuditRecoveredFiles.length){document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';setAuditStatus('AUDITORÍA RECUPERADA','st-ready');document.getElementById('auditProgressText').textContent=`Avance recuperado · PDF ${Number(auditResumeState.fileIndex||0)+1}/${auditResumeState.totalFiles||'?'} · página ${auditResumeState.pageNext||1}`;}
   setSessionBadge(true);
 }
 
-function discardRecoveredSession(){
+async function discardRecoveredSession(){
+  await auditClearCheckpoint();
   localStorage.removeItem(SESSION_KEY);for(const key of LEGACY_SESSION_KEYS)localStorage.removeItem(key);
   recoveredSnapshot=null;
   restoredHumanCorrections={};
@@ -4585,6 +4600,7 @@ function discardRecoveredSession(){
 async function clearWorkingSession(){
   if(queueRunning||historicalAuditRunning){logEvent('No se puede limpiar la sesión mientras hay un proceso en ejecución.','warn');return;}
   if(hasActiveSession()&&!confirm('¿Iniciar una sesión nueva? Se eliminarán de la memoria del navegador los datos de trabajo y el autoguardado. Los archivos ya guardados en disco no se borran.'))return;
+  await auditClearCheckpoint();
   jobs.clear();nextId=0;globalPages=0;stats={detected:0,verify:0,masters:0,errors:0};
   historicalAuditFolders=[];historicalAuditLooseFiles=[];historicalAuditItems=[];historicalAuditReviewQueue=[];historicalAuditIndex=0;historicalAuditSkippedOver10=0;
   jobReviewState={jobId:null,items:[],index:0,summary:false};restoredHumanCorrections={};recoveredSnapshot=null;
@@ -4631,7 +4647,7 @@ window.addEventListener('beforeunload',ev=>{
   ev.returnValue='';
 });
 
-setTimeout(showRecoveryIfAvailable,350);
+setTimeout(()=>{showRecoveryIfAvailable();},350);
 
 function logEvent(message,type='info'){
   const box=document.getElementById('consoleBox');
@@ -4724,7 +4740,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-// V1.22 · DIAGNÓSTICO OCR 20 VARIANTES × 3 MOTORES (INTEGRADO)
+// V1.23 · DIAGNÓSTICO OCR 20 VARIANTES × 3 MOTORES (INTEGRADO)
 // ============================================================
 
 const diagGR_REGEX=/\bT[A-Z0-9]+-\d+\b/gi;
@@ -4855,8 +4871,8 @@ function diagPreprocess(source,mode){
   if(mode==='optimized'||mode==='optimizedContrast'){
     const {lo,hi}=diagHistogramLevels(d,.015,.985),span=Math.max(1,hi-lo);for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let n=Math.max(0,Math.min(1,(g-lo)/span)),v=255*Math.pow(n,.92);if(mode==='optimizedContrast')v=(v-128)*1.18+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
   }
-  if(mode==='otsu'){
-    const {hist}=diagHistogramLevels(d,0,1),t=diagOtsuThreshold(hist,Math.max(1,d.length/4));for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>t?255:0;d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
+  if(mode==='otsu'||mode==='threshold'){
+    const t=mode==='threshold'?175:diagOtsuThreshold(diagHistogramLevels(d,0,1).hist,Math.max(1,d.length/4));for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>t?255:0;d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
   }
   for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let v=g;if(mode==='soft')v=(g-128)*1.35+128;else if(mode==='contrast')v=(g-128)*1.72+128;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v;}ctx.putImageData(img,0,0);return c;
 }
@@ -4979,7 +4995,7 @@ window.addEventListener('beforeunload',()=>{try{if(diagTessWorker)diagTessWorker
 diagRenderConfigTable();diagLog('Sistema listo · Diagnóstico OCR 20 variantes · PaddleOCR + Tesseract + TrOCR','ok');
 
 
-logEvent("Sistema listo · V1.22 diagnóstico OCR integrado · auditoría total sin deduplicación","ok");
+logEvent("Sistema listo · V1.23 diagnóstico OCR integrado · auditoría total sin deduplicación","ok");
 addJob();
 </script>
 </body>
