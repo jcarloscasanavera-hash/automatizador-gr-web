@@ -468,7 +468,7 @@ th{background:#f1f3f4}
 /* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
 
-/* V1.35 · auditoría histórica escalonada + Indra de rescate + módulo aislado de pruebas OCR */
+/* V1.36 · auditoría histórica + lecturas por motor en observaciones + consola exhaustiva de espera */
 .testCard{padding:18px;margin-bottom:14px}
 .testTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
 .testActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -511,12 +511,12 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.35</strong>
+      <strong>NUEVA VERSIÓN V1.36</strong>
       <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
       <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
-      <span>Revisa PDF anteriores con Tesseract C08→P02 y PaddleOCR C06→C09. Indra P09→P07 entra solo si uno o ambos motores quedan SIN LECTURA; revisión humana y autoguardado progresivo.</span>
+      <span>Revisa PDF anteriores con Tesseract C08→P02 y PaddleOCR C06→C09. Indra P09→P07 entra solo si uno o ambos motores quedan SIN LECTURA. V1.36 añade lecturas por motor en observaciones y consola detallada de cada espera/operación.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('test')">
       <strong>PRUEBAS OCR · 10 CONFIGURACIONES</strong>
@@ -647,6 +647,9 @@ th{background:#f1f3f4}
           <tr>
             <th>RUTA</th>
             <th>ARCHIVO ACTUAL</th>
+            <th>TESSERACT</th>
+            <th>PADDLEOCR</th>
+            <th>INDRA OCR</th>
             <th>GR OCR CONFIRMADA</th>
             <th>NOMBRE ESPERADO</th>
             <th>GR FINAL</th>
@@ -981,7 +984,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.35</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.36</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1057,7 +1060,7 @@ let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
 let historicalAuditCheckpoint=null;
 
-// V1.35 · auditoría histórica escalonada + Indra de rescate + protección de sesión sin base de datos (schema de sesión V1.25 compatible)
+// V1.36 · auditoría histórica escalonada + Indra de rescate + protección de sesión sin base de datos (schema de sesión V1.25 compatible)
 const SESSION_KEY='AUTOMATIZADOR_GR_V125_SESSION';
 const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V121_SESSION','AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
@@ -2668,19 +2671,19 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.35 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.36 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
   if(mode==='audit'){
     document.getElementById('auditArea').style.display='block';
     document.querySelector('.consoleCard').style.display='block';
-    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · V1.35 escalonado · Tesseract C08→P02 · Paddle C06→C09 · Indra P09→P07 solo ante SIN LECTURA · autoguardado progresivo','info');
+    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · V1.36 escalonado · Tesseract C08→P02 · Paddle C06→C09 · Indra P09→P07 solo ante SIN LECTURA · autoguardado progresivo','info');
     return;
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.35 · auditoría histórica escalonada con Indra de rescate · módulo de pruebas aislado preservado','info');
+  logEvent('Modo NUEVA V1.36 · auditoría histórica escalonada con Indra de rescate · módulo de pruebas aislado preservado','info');
 }
 
 function backToModes(){
@@ -3309,6 +3312,56 @@ function auditExpectedFilename(item){
   return '';
 }
 
+function auditShortVariant(variant){
+  const v=String(variant||'').trim();
+  const m=v.match(/^(C\d+|P\d+)/i);
+  return m?m[1].toUpperCase():(v||'FINAL');
+}
+
+function auditMotorReadingsText(item,engine){
+  const results=Array.isArray(item?.pageResults)?item.pageResults:[];
+  const wantedPages=new Set((item?.pages||[]).map(x=>Number(x)).filter(Number.isFinite));
+  const selected=results.filter(r=>!wantedPages.size||wantedPages.has(Number(r.page)));
+  if(!selected.length){
+    if(String(item?.result||'').startsWith('OMITIDO')||item?.result==='ERROR DE LECTURA')return 'NO EJECUTADO';
+    return '';
+  }
+  const pieces=[];
+  for(const pr of selected){
+    let reads=(pr?.readings||[]).filter(r=>r?.engine===engine&&!r?.baseline);
+    if(!reads.length)reads=(pr?.readings||[]).filter(r=>r?.engine===engine&&r?.baseline);
+    if(!reads.length){
+      pieces.push(`p${pr.page}: NO EJECUTADO`);
+      continue;
+    }
+    const seen=new Set();
+    const vals=[];
+    for(const r of reads){
+      const key=`${auditShortVariant(r.variant)}|${r.value||''}|${Math.round(Number(r.confidence)||0)}|${r.error||''}`;
+      if(seen.has(key))continue;seen.add(key);
+      const conf=Number.isFinite(Number(r.confidence))?` [${Math.round(Number(r.confidence)||0)}]`:'';
+      const value=r.value||'SIN LECTURA';
+      const err=r.error?` · ERROR: ${r.error}`:'';
+      vals.push(`${auditShortVariant(r.variant)}=${value}${conf}${err}`);
+    }
+    pieces.push(`p${pr.page}: ${vals.join(' · ')}`);
+  }
+  return pieces.join(' | ');
+}
+
+async function auditTraceAwait(label,fn,type='info'){
+  const t0=performance.now();
+  logEvent(`ESPERANDO · ${label}`,type);
+  try{
+    const value=await fn();
+    logEvent(`COMPLETADO · ${label} · ${Math.round(performance.now()-t0)} ms`,'info');
+    return value;
+  }catch(err){
+    logEvent(`ERROR · ${label} · ${Math.round(performance.now()-t0)} ms · ${err?.message||err}`,'err');
+    throw err;
+  }
+}
+
 function appendAuditReportItem(item){
   ensureAuditItemId(item);
   const tbody=document.getElementById('auditReportRows');
@@ -3317,10 +3370,11 @@ function appendAuditReportItem(item){
   const tr=document.createElement('tr');tr.id=auditItemId(item);
   const pageText=(item.pages||[]).join(', ');
   const values=[
-    fullAuditPath(item),item.originalName||item.name||'',item.foundGR||'',auditExpectedFilename(item),
-    auditFinalGR(item),item.result||'REVISAR',pageText,item.observation||''
+    fullAuditPath(item),item.originalName||item.name||'',
+    auditMotorReadingsText(item,'TESSERACT'),auditMotorReadingsText(item,'PADDLEOCR'),auditMotorReadingsText(item,'INDRA'),
+    item.foundGR||'',auditExpectedFilename(item),auditFinalGR(item),item.result||'REVISAR',pageText,item.observation||''
   ];
-  values.forEach((v,idx)=>{const td=document.createElement('td');td.textContent=v;if(idx===7)td.className='obsCell';tr.appendChild(td);});
+  values.forEach((v,idx)=>{const td=document.createElement('td');td.textContent=v;if(idx===10)td.className='obsCell';tr.appendChild(td);});
   tbody.appendChild(tr);
   document.getElementById('auditCopyBtn').disabled=false;
   const copy2=document.getElementById('auditCopyBtn2');if(copy2)copy2.disabled=false;
@@ -3331,12 +3385,15 @@ function appendAuditReportItem(item){
 function refreshAuditReportRow(item){
   const row=document.getElementById(auditItemId(item));if(!row)return;
   const cells=row.children;
-  if(cells[2])cells[2].textContent=item.foundGR||'';
-  if(cells[3])cells[3].textContent=auditExpectedFilename(item);
-  if(cells[4])cells[4].textContent=auditFinalGR(item);
-  if(cells[5])cells[5].textContent=item.result||'REVISAR';
-  if(cells[6])cells[6].textContent=(item.pages||[]).join(', ');
-  if(cells[7])cells[7].textContent=item.observation||'';
+  if(cells[2])cells[2].textContent=auditMotorReadingsText(item,'TESSERACT');
+  if(cells[3])cells[3].textContent=auditMotorReadingsText(item,'PADDLEOCR');
+  if(cells[4])cells[4].textContent=auditMotorReadingsText(item,'INDRA');
+  if(cells[5])cells[5].textContent=item.foundGR||'';
+  if(cells[6])cells[6].textContent=auditExpectedFilename(item);
+  if(cells[7])cells[7].textContent=auditFinalGR(item);
+  if(cells[8])cells[8].textContent=item.result||'REVISAR';
+  if(cells[9])cells[9].textContent=(item.pages||[]).join(', ');
+  if(cells[10])cells[10].textContent=item.observation||'';
 }
 
 function resetAuditReport(){
@@ -3355,7 +3412,7 @@ function resetAuditReport(){
 
 function buildAuditReportTSV(){
   const lines=[[
-    'RUTA','ARCHIVO ACTUAL','GR OCR CONFIRMADA','NOMBRE ESPERADO',
+    'RUTA','ARCHIVO ACTUAL','TESSERACT','PADDLEOCR','INDRA OCR','GR OCR CONFIRMADA','NOMBRE ESPERADO',
     'GR FINAL','RESULTADO','PÁGINA','OBSERVACIÓN'
   ].join('\t')];
 
@@ -3363,6 +3420,9 @@ function buildAuditReportTSV(){
     lines.push([
       fullAuditPath(item),
       item.originalName||item.name||'',
+      auditMotorReadingsText(item,'TESSERACT'),
+      auditMotorReadingsText(item,'PADDLEOCR'),
+      auditMotorReadingsText(item,'INDRA'),
       item.foundGR||'',
       auditExpectedFilename(item),
       auditFinalGR(item),
@@ -3883,13 +3943,13 @@ function auditV131FindReading(readings,engine,variant){
   return (readings||[]).find(r=>r?.engine===engine&&String(r?.variant||'').startsWith(variant))||null;
 }
 
-// V1.35 · TERCER MOTOR DE RESCATE: INDRA OCR.
+// V1.36 · TERCER MOTOR DE RESCATE: INDRA OCR.
 // Se ejecuta EXCLUSIVAMENTE cuando el resultado final de Tesseract o PaddleOCR
 // queda SIN LECTURA. No interviene si ambos motores ya devolvieron una GR,
 // aunque discrepen. P09 es primaria (39/39; ~325 ms promedio en la muestra) y
 // P07 es respaldo (39/39) solo si P09 no devuelve una GR completa.
-const AUDIT_V135_INDRA_PRIMARY={id:'P09',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7',label:'P09 INDRA PRIMARIA'};
-const AUDIT_V135_INDRA_FALLBACK={id:'P07',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6',label:'P07 INDRA RESPALDO'};
+const AUDIT_V136_INDRA_PRIMARY={id:'P09',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7',label:'P09 INDRA PRIMARIA'};
+const AUDIT_V136_INDRA_FALLBACK={id:'P07',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6',label:'P07 INDRA RESPALDO'};
 let auditIndraEngine=null;
 let auditIndraInitPromise=null;
 let auditIndraLastError=null;
@@ -3916,7 +3976,7 @@ async function auditGetIndra(){
   if(auditIndraInitPromise)return auditIndraInitPromise;
   logEvent('INDRA RESCATE · inicializando modelos Latin ONNX en Web Worker…','info');
   auditIndraInitPromise=(async()=>{
-    const mod=await import(AUDIT_INDRA_MODULE);
+    const mod=await auditTraceAwait('Indra · cargar módulo JavaScript',()=>import(AUDIT_INDRA_MODULE));
     if(typeof mod?.Indra!=='function')throw new Error('El módulo web de Indra no expuso la clase Indra.');
     if(!auditIndraWorkerBlobUrl){
       const workerSource=`import ${JSON.stringify(AUDIT_INDRA_WORKER_MODULE)};`;
@@ -3932,10 +3992,10 @@ async function auditGetIndra(){
         logEvent(`INDRA RESCATE · modelo ${p.name} · ${p.state==='download'?'descargando':'listo'}`,p.state==='ready'?'ok':'info');
       }
     });
-    await Promise.race([
+    await auditTraceAwait('Indra · esperar carga/verificación de modelos ONNX',()=>Promise.race([
       auditIndraEngine.ready,
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tiempo agotado inicializando Indra OCR.')),120000))
-    ]);
+    ]));
     auditIndraLastError=null;
     logEvent('INDRA RESCATE listo · Web Worker activo.','ok');
     return auditIndraEngine;
@@ -3973,7 +4033,7 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
 
   async function checkpoint(){
     completedSteps++;
-    if(onVariant)await onVariant(completedSteps,readings);
+    if(onVariant)await auditTraceAwait(`guardado progresivo · paso OCR ${completedSteps}`,()=>onVariant(completedSteps,readings));
     await yieldUI();
   }
 
@@ -3982,9 +4042,9 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
   let tPrimaryBuilt=null;
   if(!tPrimary){
     document.getElementById('auditProgressText').textContent='Tesseract C08 histórica · paso 1';
-    tPrimaryBuilt=await auditV125BuildVariant(page,AUDIT_V131_TESS_PRIMARY,cache);
+    tPrimaryBuilt=await auditTraceAwait('Tesseract C08 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V131_TESS_PRIMARY,cache));
     try{previewDataUrl=tPrimaryBuilt.image.toDataURL('image/jpeg',.92);}catch(e){}
-    const r=await auditV125Tesseract(tPrimaryBuilt.image,AUDIT_V131_TESS_PRIMARY,expected);
+    const r=await auditTraceAwait('Tesseract C08 · reconocimiento OCR',()=>auditV125Tesseract(tPrimaryBuilt.image,AUDIT_V131_TESS_PRIMARY,expected));
     tPrimary={engine:'TESSERACT',variant:'C08 · HISTÓRICA PRIMARIA',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||''};
     readings.push(tPrimary);
     logEvent(`TESSERACT C08 HISTÓRICA · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}]`,r.value?'info':'warn');
@@ -3999,8 +4059,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
     if(!tFallback){
       document.getElementById('auditProgressText').textContent='Tesseract P02 respaldo · C08 sin lectura';
       logEvent('TESSERACT C08 SIN LECTURA · ejecutando respaldo P02','warn');
-      const built=await auditV125BuildVariant(page,AUDIT_V131_TESS_FALLBACK,cache);
-      const r=await auditV125Tesseract(built.image,AUDIT_V131_TESS_FALLBACK,expected);
+      const built=await auditTraceAwait('Tesseract P02 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V131_TESS_FALLBACK,cache));
+      const r=await auditTraceAwait('Tesseract P02 · reconocimiento OCR',()=>auditV125Tesseract(built.image,AUDIT_V131_TESS_FALLBACK,expected));
       tFallback={engine:'TESSERACT',variant:'P02 · NUEVA RESPALDO',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||''};
       readings.push(tFallback);
       logEvent(`TESSERACT P02 RESPALDO · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}]`,r.value?'info':'warn');
@@ -4014,8 +4074,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
   let pPrimary=auditV131FindReading(readings,'PADDLEOCR','C06');
   if(!pPrimary){
     document.getElementById('auditProgressText').textContent='PaddleOCR C06 histórica · motor 2';
-    const built=await auditV125BuildVariant(page,AUDIT_V131_PADDLE_PRIMARY,cache);
-    const r=await auditV125Paddle(built.image,expected);
+    const built=await auditTraceAwait('PaddleOCR C06 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V131_PADDLE_PRIMARY,cache));
+    const r=await auditTraceAwait('PaddleOCR C06 · reconocimiento OCR / inicialización si corresponde',()=>auditV125Paddle(built.image,expected));
     pPrimary={engine:'PADDLEOCR',variant:'C06 · HISTÓRICA PRIMARIA',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||''};
     readings.push(pPrimary);
     logEvent(`PADDLE C06 HISTÓRICA · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}]`,r.value?'info':'warn');
@@ -4030,8 +4090,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
     if(!pFallback){
       document.getElementById('auditProgressText').textContent='PaddleOCR C09 respaldo · C06 sin lectura';
       logEvent('PADDLE C06 SIN LECTURA · ejecutando respaldo C09','warn');
-      const built=await auditV125BuildVariant(page,AUDIT_V131_PADDLE_FALLBACK,cache);
-      const r=await auditV125Paddle(built.image,expected);
+      const built=await auditTraceAwait('PaddleOCR C09 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V131_PADDLE_FALLBACK,cache));
+      const r=await auditTraceAwait('PaddleOCR C09 · reconocimiento OCR',()=>auditV125Paddle(built.image,expected));
       pFallback={engine:'PADDLEOCR',variant:'C09 · RESPALDO',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||''};
       readings.push(pFallback);
       logEvent(`PADDLE C09 RESPALDO · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}]`,r.value?'info':'warn');
@@ -4044,7 +4104,7 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
   // Si la página se recuperó desde autoguardado, regeneramos la vista previa C08 sin repetir OCR.
   if(!previewDataUrl){
     try{
-      tPrimaryBuilt=tPrimaryBuilt||await auditV125BuildVariant(page,AUDIT_V131_TESS_PRIMARY,cache);
+      tPrimaryBuilt=tPrimaryBuilt||await auditTraceAwait('vista previa C08 · regenerar imagen',()=>auditV125BuildVariant(page,AUDIT_V131_TESS_PRIMARY,cache));
       previewDataUrl=tPrimaryBuilt.image.toDataURL('image/jpeg',.92);
     }catch(e){}
   }
@@ -4060,8 +4120,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
     if(!iPrimary){
       document.getElementById('auditProgressText').textContent='Indra P09 rescate · falta lectura Tesseract/Paddle';
       logEvent(`INDRA ACTIVADO · ${!tValue&&!pValue?'Tesseract y Paddle SIN LECTURA':!tValue?'Tesseract SIN LECTURA':'Paddle SIN LECTURA'} · ejecutando P09`,'warn');
-      const built=await auditV125BuildVariant(page,AUDIT_V135_INDRA_PRIMARY,cache);
-      const r=await auditReadIndra(built.image,expected);
+      const built=await auditTraceAwait('Indra P09 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V136_INDRA_PRIMARY,cache));
+      const r=await auditTraceAwait('Indra P09 · inferencia OCR en Web Worker',()=>auditReadIndra(built.image,expected));
       iPrimary={engine:'INDRA',variant:'P09 · RESCATE PRIMARIO',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||'',ms:Number(r.ms)||0};
       readings.push(iPrimary);
       logEvent(`INDRA P09 PRIMARIA · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}] · ${Math.round(Number(r.ms)||0)} ms`,r.value?'info':'warn');
@@ -4076,8 +4136,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
       if(!iFallback){
         document.getElementById('auditProgressText').textContent='Indra P07 respaldo · P09 sin lectura';
         logEvent('INDRA P09 SIN LECTURA · ejecutando respaldo P07','warn');
-        const built=await auditV125BuildVariant(page,AUDIT_V135_INDRA_FALLBACK,cache);
-        const r=await auditReadIndra(built.image,expected);
+        const built=await auditTraceAwait('Indra P07 · renderizar/preparar imagen',()=>auditV125BuildVariant(page,AUDIT_V136_INDRA_FALLBACK,cache));
+        const r=await auditTraceAwait('Indra P07 · inferencia OCR en Web Worker',()=>auditReadIndra(built.image,expected));
         iFallback={engine:'INDRA',variant:'P07 · RESCATE RESPALDO',value:r.value||null,confidence:Number(r.confidence)||0,error:r.error||'',ms:Number(r.ms)||0};
         readings.push(iFallback);
         logEvent(`INDRA P07 RESPALDO · ${r.value||'SIN LECTURA'} [${Math.round(Number(r.confidence)||0)}] · ${Math.round(Number(r.ms)||0)} ms`,r.value?'info':'warn');
@@ -4160,8 +4220,8 @@ async function auditReadPageHighPrecision(page,expected=null,onVariant=null,resu
     strongConsensus:confirmed,
     previewDataUrl,
     readings,
-    locator:'ESCALONADO-3MOTORES-V135',
-    strategy:confirmed?`CONFIRMADO-${confirmedBy}-V135`:'REVISAR-3MOTORES-V135',
+    locator:'ESCALONADO-3MOTORES-V136',
+    strategy:confirmed?`CONFIRMADO-${confirmedBy}-V136`:'REVISAR-3MOTORES-V136',
     reason
   };
 }
@@ -4212,23 +4272,24 @@ async function startHistoricalAudit(){
   try{
     for(const folder of historicalAuditFolders){
       if(historicalAuditCancelRequested)break;
-      const found=await collectAuditFolderFiles(folder);files.push(...found);
+      const found=await auditTraceAwait(`explorar carpeta ${folder.name} y enumerar PDF`,()=>collectAuditFolderFiles(folder));files.push(...found);
       logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
     }
-    files.push(...collectAuditLooseFiles());
-    logEvent(`Auditoría V1.35: ${files.length} PDF · Tesseract C08→P02 · Paddle C06→C09 · Indra P09→P07 solo ante SIN LECTURA · confirmación mínima 2 motores independientes`,'info');
+    const looseFiles=collectAuditLooseFiles();files.push(...looseFiles);logEvent(`Archivos PDF individuales agregados: ${looseFiles.length}`,'info');
+    logEvent(`Auditoría V1.36: ${files.length} PDF · Tesseract C08→P02 · Paddle C06→C09 · Indra P09→P07 solo ante SIN LECTURA · confirmación mínima 2 motores independientes`,'info');
     if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
 
     historicalAuditTotalFiles=files.length;historicalAuditOcrStartedAt=historicalAuditOcrStartedAt||Date.now();
     const includeOver10=!!document.getElementById('auditIncludeOver10')?.checked;
-    setAuditStatus(resume?'REANUDANDO':'AUDITANDO','st-run');updateAuditTiming();
+    setAuditStatus(resume?'REANUDANDO':'AUDITANDO','st-run');updateAuditTiming();logEvent(`ESTADO · ${resume?'reanudando':'auditoría iniciada'} · ${files.length} PDF en cola`,'info');
 
     for(let i=0;i<files.length;i++){
       if(historicalAuditCancelRequested){logEvent(`Auditoría cancelada · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF revisados`,'warn');break;}
       const entry=files[i],path=fullAuditPath(entry);
-      if(completedPaths.has(path))continue;
+      if(completedPaths.has(path)){logEvent(`REANUDACIÓN · PDF ya completado, se omite reprocesamiento · ${path}`,'info');continue;}
 
       const expected=extractGRFromFilename(entry.name);
+      logEvent(`PDF INICIO · ${i+1}/${files.length} · ${path} · GR en nombre: ${expected||'N/D'}`,'info');
       let pdf=null,pageResults=[],openError=null,pagesAttempted=0;
       const isCurrentResume=resume&&cp.currentPath===path;
       let pageStart=isCurrentResume?Math.max(1,Number(cp.currentPage)||1):1;
@@ -4240,16 +4301,18 @@ async function startHistoricalAudit(){
       updateAuditTiming();if(i%5===0)await yieldUI();
 
       try{
-        const file=await entry.handle.getFile();
-        const bytes=new Uint8Array(await file.arrayBuffer());
-        pdf=await pdfjsLib.getDocument({data:bytes}).promise;entry.pageCount=pdf.numPages;
+        const file=await auditTraceAwait(`abrir archivo · ${path}`,()=>entry.handle.getFile());
+        const buffer=await auditTraceAwait(`leer bytes del PDF · ${path}`,()=>file.arrayBuffer());
+        const bytes=new Uint8Array(buffer);
+        pdf=await auditTraceAwait(`PDF.js · interpretar documento · ${path}`,()=>pdfjsLib.getDocument({data:bytes}).promise);entry.pageCount=pdf.numPages;
+        logEvent(`PDF ABIERTO · ${path} · ${pdf.numPages} página(s)`,'info');
 
         if(!includeOver10 && pdf.numPages>10){
-          entry.skipOver10=true;historicalAuditSkippedOver10++;
+          entry.skipOver10=true;historicalAuditSkippedOver10++;logEvent(`OMITIDO · ${path} · ${pdf.numPages} páginas (>10) · no se ejecutará OCR`,'warn');
           const item={...entry,expectedGR:expected,foundGR:'',correctedGR:'',pages:[`1-${entry.pageCount}`],result:'OMITIDO · MÁS DE 10 PÁGINAS',observation:`Omitido por configuración: el PDF tiene ${entry.pageCount} páginas y “INCLUIR PDF CON MÁS DE 10 PÁGINAS” está desmarcado.`,previewDataUrl:'',reviewed:false,skipReview:true,originalName:entry.name,baseObservation:''};
           item.baseObservation=item.observation;historicalAuditItems.push(item);appendAuditReportItem(item);
           completedPaths.add(path);historicalAuditProcessedFiles=completedPaths.size;processed++;
-          await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          await auditTraceAwait(`autoguardado · PDF omitido · ${path}`,()=>auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10}));
           continue;
         }
 
@@ -4258,16 +4321,17 @@ async function startHistoricalAudit(){
         for(let pn=pageStart;pn<=pdf.numPages;pn++){
           if(historicalAuditCancelRequested)break;
           document.getElementById('auditCurrentFile').textContent=`Procesando PDF ${i+1}/${files.length}: ${path} · página ${pn}/${pdf.numPages}`;
-          const page=await pdf.getPage(pn);
+          const page=await auditTraceAwait(`PDF ${i+1}/${files.length} · cargar página ${pn}/${pdf.numPages} · ${path}`,()=>pdf.getPage(pn));
           const resumeThisPage=isCurrentResume&&pn===pageStart;
           const variantStart=resumeThisPage?Math.max(0,Number(cp.nextVariant)||0):0;
           const resumeReadings=resumeThisPage?(cp.partialReadings||[]):[];
-          const read=await auditReadPageHighPrecision(page,expected,async(variantDone,readings)=>{
+          logEvent(`PÁGINA INICIO · ${path} · pág. ${pn}/${pdf.numPages} · esperado por nombre: ${expected||'N/D'}`,'info');
+          const read=await auditTraceAwait(`procesamiento OCR completo · ${path} · pág. ${pn}/${pdf.numPages}`,()=>auditReadPageHighPrecision(page,expected,async(variantDone,readings)=>{
             await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:path,currentPage:pn,nextVariant:variantDone,partialReadings:compactEngineReadings(readings),currentPdfPageResults:auditV125CompactPageResults(pageResults),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
-          },variantStart,resumeReadings);
+          },variantStart,resumeReadings));
           pagesAttempted++;historicalAuditProcessedPages++;
           pageResults.push({page:pn,detected:read.bestValue,suggested:read.suggestedValue,fast:read.fastValue,consensus:read.consensus,strongConsensus:read.strongConsensus,reason:read.reason||'',readings:read.readings||[],previewDataUrl:read.previewDataUrl||''});
-          await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:path,currentPage:pn+1,nextVariant:0,partialReadings:[],currentPdfPageResults:auditV125CompactPageResults(pageResults),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+          await auditTraceAwait(`autoguardado · página ${pn} terminada · ${path}`,()=>auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:path,currentPage:pn+1,nextVariant:0,partialReadings:[],currentPdfPageResults:auditV125CompactPageResults(pageResults),processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10}));
           const frac=(i+(pn/pdf.numPages))/files.length;document.getElementById('auditBar').style.width=`${Math.min(100,Math.round(frac*100))}%`;
           document.getElementById('auditProgressText').textContent=`PDF ${i+1}/${files.length} · página ${pn}/${pdf.numPages} · páginas OCR ${historicalAuditProcessedPages}`;updateAuditTiming();
           logEvent(`PÁGINA FINAL · ${path} · pág. ${pn} · T/P/I · ${read.consensus}`,read.strongConsensus?'ok':'warn');
@@ -4277,9 +4341,9 @@ async function startHistoricalAudit(){
         // en localStorage. Regeneramos únicamente la vista previa C08, sin repetir OCR.
         for(const r of pageResults){
           if(r.previewDataUrl)continue;
-          try{const pg=await pdf.getPage(r.page);const cache={raw:new Map(),deskew:new Map()};const b=await auditV125BuildVariant(pg,AUDIT_V125_CONFIGS[7],cache);r.previewDataUrl=b.image.toDataURL('image/jpeg',.92);}catch(e){}
+          try{const pg=await auditTraceAwait(`reanudación · cargar página ${r.page} para vista previa`,()=>pdf.getPage(r.page));const cache={raw:new Map(),deskew:new Map()};const b=await auditTraceAwait(`reanudación · regenerar vista previa página ${r.page}`,()=>auditV125BuildVariant(pg,AUDIT_V125_CONFIGS[7],cache));r.previewDataUrl=b.image.toDataURL('image/jpeg',.92);}catch(e){logEvent(`AVISO · no se pudo regenerar vista previa p${r.page} · ${e?.message||e}`,'warn');}
         }
-      }catch(err){openError=err?.message||String(err);}finally{if(pdf){try{await pdf.destroy();}catch(e){}}}
+      }catch(err){openError=err?.message||String(err);logEvent(`ERROR DE PDF · ${path} · ${openError}`,'err');}finally{if(pdf){try{await auditTraceAwait(`cerrar/liberar PDF · ${path}`,()=>pdf.destroy());}catch(e){logEvent(`AVISO · no se pudo liberar PDF · ${path} · ${e?.message||e}`,'warn');}}}
       if(historicalAuditCancelRequested)break;
 
       let observation='',foundGR=null,consensus='',pages=[],needsIssue=false,result='CORRECTO',reviewPages=[];
@@ -4293,27 +4357,28 @@ async function startHistoricalAudit(){
       }
 
       if(needsIssue){const item={...entry,expectedGR:expected,foundGR,correctedGR:'',consensus:consensus||'SIN CONSENSO',pages,observation,baseObservation:observation,previewDataUrl:reviewPages[0]?.previewDataUrl||pageResults[0]?.previewDataUrl||'',reviewed:false,originalName:entry.name,result,pageResults,reviewPages,skipReview:!!openError};historicalAuditItems.push(item);appendAuditReportItem(item);logEvent(`OBSERVACIÓN · ${path} · ${result} · ${observation}`,'warn');}
-      else okCount++;
+      else{okCount++;logEvent(`PDF CORRECTO · ${path} · sin observaciones`,'ok');}
 
       processed++;completedPaths.add(path);historicalAuditProcessedFiles=completedPaths.size;
       document.getElementById('auditBar').style.width=`${Math.round(((i+1)/files.length)*100)}%`;
       updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);updateAuditTiming();
-      await auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10});
+      await auditTraceAwait(`autoguardado · PDF finalizado · ${path}`,()=>auditV125SaveCheckpoint({startedAt:historicalAuditStartedAt,completedPaths:[...completedPaths],countedPaths:[...countedPaths],currentPath:'',currentPage:1,nextVariant:0,partialReadings:[],currentPdfPageResults:[],processed,okCount,totalFiles:files.length,processedFiles:historicalAuditProcessedFiles,totalPages:historicalAuditTotalPages,processedPages:historicalAuditProcessedPages,skippedOver10:historicalAuditSkippedOver10}));
       if((i+1)%2===0)await yieldUI();
     }
 
     buildHistoricalAuditReviewQueue();historicalAuditEndedAt=Date.now();updateAuditTiming();
     if(historicalAuditCancelRequested){setAuditStatus('CANCELADO · RECUPERABLE','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF`;document.getElementById('auditCurrentFile').textContent='Procesando: cancelado';document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';}
-    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');historicalAuditCheckpoint=null;document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await saveSessionSnapshotNow();logEvent(`Auditoría V1.35 terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');}
+    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');historicalAuditCheckpoint=null;document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await auditTraceAwait('guardado final de sesión',()=>saveSessionSnapshotNow());logEvent(`Auditoría V1.36 terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');}
     updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
     document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
-  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.35: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;await saveSessionSnapshotNow();}
-  finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();}
+    logEvent(`REVISIÓN DE OBSERVADOS · ${historicalAuditReviewQueue.length} página(s) quedan disponibles para revisión manual repetible e ilimitada durante la sesión`,'info');
+  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.36: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;await auditTraceAwait('guardar estado recuperable tras error',()=>saveSessionSnapshotNow());}
+  finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();try{await auditTraceAwait('liberar motor Tesseract',()=>terminateOCR());}catch(e){}scheduleSessionSave();logEvent('ESTADO · auditoría detenida; controles liberados','info');}
 }
 
 
 // ============================================================
-// V1.35 · MÓDULO AISLADO DE PRUEBAS OCR
+// V1.36 · MÓDULO AISLADO DE PRUEBAS OCR
 // 10 configuraciones candidatas × motores seleccionables: Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR.
 // No modifica ni renombra archivos. La verdad del nombre solo puntúa.
 // ============================================================
@@ -4404,7 +4469,7 @@ function testLog(msg,type='info'){
 function testSection(msg){const box=document.getElementById('testConsoleBox');if(!box)return;const line=document.createElement('div');line.className='section';line.textContent=`\n===== ${msg} =====`;box.appendChild(line);box.scrollTop=box.scrollHeight;}
 function clearTestConsole(){const b=document.getElementById('testConsoleBox');if(b)b.innerHTML='';}
 async function copyTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'';await copyText(txt);alert('Consola de pruebas copiada.');}
-function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV134_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function downloadTestConsole(){const txt=document.getElementById('testConsoleBox')?.innerText||'',blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PRUEBASOCRV136_CONSOLA.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
 function testFindTruth(name,page=1){
   const base=String(name||'').replace(/\.pdf$/i,'');const lower=base.toLowerCase();
@@ -4767,7 +4832,7 @@ async function testReadOnnxTR(image){
   }catch(e){return testNormalizeEngineRead({value:null,candidates:[],raw:'',confidence:0,ms:performance.now()-t0,error:e?.message||String(e),detectedBoxes:0,recognizedCrops:0});}
 }
 
-// V1.35 · EASYOCR EN NAVEGADOR · CRAFT + CRNN (English G2).
+// V1.36 · EASYOCR EN NAVEGADOR · CRAFT + CRNN (English G2).
 // Implementación JS nativa @qduc/easyocr-web 0.1.3 + ONNX Runtime Web 1.23.2.
 // Se carga SOLO cuando el usuario marca EASYOCR. No interviene en auditoría histórica.
 // La inferencia WASM usa proxy worker para evitar bloquear la interfaz durante el cálculo pesado.
@@ -4851,7 +4916,7 @@ async function testReadEasyOCR(image){
   }
 }
 
-// V1.35 · INDRA OCR EN NAVEGADOR · detector + reconocedor Latin ONNX.
+// V1.36 · INDRA OCR EN NAVEGADOR · detector + reconocedor Latin ONNX.
 // Port web fijado a commit e95a31e3... de pg0/indra-wasm. La inferencia ocurre en Web Worker.
 // Se usa SOLO en PRUEBAS OCR; no modifica la auditoría histórica Tesseract/Paddle.
 let testIndraModule=null;
@@ -4995,11 +5060,11 @@ async function startOcrTest(){
   testRunning=true;testCancelRequested=false;testRows=[];testPageSummaries=[];testStats=makeTestStats();testTotalPages=0;testPagesDone=0;testRunsDone=0;
   document.getElementById('testStartBtn').disabled=true;document.getElementById('testCancelBtn').disabled=false;document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
   document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';clearTestConsole();
-  testSection(`INICIO · PRUEBAS OCR V1.35 · 10 CONFIGURACIONES × ${testActiveEngines.length} MOTOR(ES)`);
+  testSection(`INICIO · PRUEBAS OCR V1.36 · 10 CONFIGURACIONES × ${testActiveEngines.length} MOTOR(ES)`);
   testLog(`PDF seleccionados: ${testFiles.length}`,'info');
   testLog(`Motores activos: ${testActiveEngines.map(testEngineLabel).join(' + ')}`,'info');
   testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a ningún motor. Se aceptan “verdadero”, “verdero” y “estabien”.','warn');
-  testLog('V1.35: OnnxTR y EasyOCR se conservan como experimentales. Indra OCR usa ONNX Runtime Web en Web Worker y solo se carga si está marcado.','info');
+  testLog('V1.36: OnnxTR y EasyOCR se conservan como experimentales. Indra OCR usa ONNX Runtime Web en Web Worker y solo se carga si está marcado.','info');
   testLog('Configuraciones P06/P07/P08 preservan C08 Tesseract, C06 Paddle y C09 Paddle respaldo. En auditoría, Indra usa P09→P07 únicamente cuando falta lectura Tesseract/Paddle.','info');
   try{
     const skipOver10=!!document.getElementById('testSkipOver10')?.checked;
@@ -5135,7 +5200,7 @@ function downloadTestExcel(){
   const detailHeaders=['file','page','truth','config','dpi','zone','deskew','prep','psm','engine','value','status','confidence','ms','candidates','detectedBoxes','recognizedCrops','raw','error'];const detail=[detailHeaders,...testRows.map(r=>detailHeaders.map(k=>r[k]??''))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'DetalleLecturas');
   const configs=[['ID','DPI','RECORTE','ENDEREZADO','PREPROCESADO','PSM','ORIGEN','NOTA'],...TEST_V130_CONFIGS.map(c=>[c.id,c.dpi,c.zone,c.deskew?'SI':'NO',c.prep,c.psm,c.origin,c.note])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(configs),'Configuraciones');
   const engines=[['MOTOR','ACTIVO','ARQUITECTURA'],['Tesseract',testEngineSelected('TESSERACT')?'SI':'NO','Tesseract.js / LSTM'],['PaddleOCR',testEngineSelected('PADDLEOCR')?'SI':'NO','PaddleOCR detector + recognizer'],['OnnxTR',testEngineSelected('ONNXTR')?'SI':'NO','DBNet MobileNet V3 Large + PARSeq'],['EasyOCR',testEngineSelected('EASYOCR')?'SI':'NO','CRAFT + CRNN English G2 · ONNX Runtime Web'],['Indra OCR',testEngineSelected('INDRA')?'SI':'NO','Indra OCR Latin ONNX · Web Worker']];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(engines),'Motores');
-  XLSX.writeFile(wb,'PRUEBASOCRV134_RESULTADOS.xlsx');
+  XLSX.writeFile(wb,'PRUEBASOCRV136_RESULTADOS.xlsx');
 }
 
 function buildAuditReport(){
@@ -5156,7 +5221,7 @@ async function copyAuditReport(){
 
 function auditReportRowsForExcel(){
   const rows=[[
-    'RUTA','ARCHIVO ACTUAL','GR OCR CONFIRMADA','NOMBRE ESPERADO',
+    'RUTA','ARCHIVO ACTUAL','TESSERACT','PADDLEOCR','INDRA OCR','GR OCR CONFIRMADA','NOMBRE ESPERADO',
     'GR FINAL','RESULTADO','PÁGINA','OBSERVACIÓN'
   ]];
 
@@ -5164,6 +5229,9 @@ function auditReportRowsForExcel(){
     rows.push([
       fullAuditPath(item),
       item.originalName||item.name||'',
+      auditMotorReadingsText(item,'TESSERACT'),
+      auditMotorReadingsText(item,'PADDLEOCR'),
+      auditMotorReadingsText(item,'INDRA'),
       item.foundGR||'',
       auditExpectedFilename(item),
       auditFinalGR(item),
@@ -5189,8 +5257,8 @@ function downloadAuditExcel(){
 
   const ws=XLSX.utils.aoa_to_sheet(auditReportRowsForExcel());
   ws['!cols']=[
-    {wch:60},{wch:48},{wch:24},{wch:28},
-    {wch:28},{wch:28},{wch:18},{wch:80}
+    {wch:60},{wch:48},{wch:42},{wch:42},{wch:42},
+    {wch:24},{wch:28},{wch:28},{wch:28},{wch:18},{wch:80}
   ];
   ws['!autofilter']={ref:ws['!ref']};
 
@@ -5232,9 +5300,14 @@ function buildHistoricalAuditReviewQueue(){
 
 function openHistoricalAuditQueue(){
   buildHistoricalAuditReviewQueue();
-  if(!historicalAuditReviewQueue.length)return;
+  if(!historicalAuditReviewQueue.length){
+    logEvent('REVISIÓN DE OBSERVADOS · no hay observaciones revisables','warn');
+    return;
+  }
   const firstPending=historicalAuditReviewQueue.findIndex(q=>!q.reviewed);
   historicalAuditIndex=firstPending>=0?firstPending:0;
+  const alreadyReviewed=historicalAuditReviewQueue.filter(q=>q.reviewed).length;
+  logEvent(`REVISIÓN DE OBSERVADOS · nueva pasada iniciada · ${historicalAuditReviewQueue.length} página(s) revisables · ${alreadyReviewed} ya revisada(s) previamente · SOLO LECTURA DE PDF; no se renombra ni modifica ningún archivo`,'info');
   document.getElementById('auditModal').classList.add('open');
   showHistoricalAuditItem();
 }
@@ -5248,6 +5321,7 @@ function showHistoricalAuditItem(){
   document.getElementById('auditFooterCounter').textContent=`${historicalAuditIndex+1} / ${total}`;
   document.getElementById('auditModalPath').textContent=`${fullAuditPath(item)} · página ${r.page||1}`;
   document.getElementById('auditCurrentName').textContent=item.originalName||item.name||'';
+  logEvent(`REVISIÓN OBSERVADO · mostrando ${historicalAuditIndex+1}/${total} · ${fullAuditPath(item)} · pág. ${r.page||1} · estado previo: ${q.reviewed?'YA REVISADO':'PENDIENTE'}`,'info');
   document.getElementById('auditObservation').textContent=item.baseObservation||item.observation||'';
   document.getElementById('auditSystemReading').textContent=r.detected||r.suggested||'SIN LECTURA';
 
@@ -5301,6 +5375,7 @@ function saveCurrentHistoricalReview(){
     const input=document.getElementById('auditManualGR');input.focus();input.select();return false;
   }
   err.textContent='';q.isOtherDocument=other;q.manualGR=other?'':value;q.reviewed=true;
+  logEvent(`REVISIÓN OBSERVADO · guardado diagnóstico · ${fullAuditPath(q.parentItem)} · pág. ${q.pageResult?.page||1} · ${other?'OTRO DOCUMENTO':`GR=${value}`} · ningún PDF fue modificado`,'ok');
   refreshHistoricalParentAfterReview(q.parentItem);scheduleSessionSave();return true;
 }
 
@@ -5327,16 +5402,20 @@ function refreshHistoricalParentAfterReview(item){
     item.result=isValidAuditFilenameForGR(item.originalName||'',value)?'REVISADO':'NOMBRE INCORRECTO';
     item.observation=`${base}${base?' · ':''}REVISADO MANUALMENTE: ${value}`;
   }
-  if(item.reviewed){item.previewDataUrl='';for(const r of (item.pageResults||[]))r.previewDataUrl='';}
+  // V1.36: conservar vistas previas durante toda la sesión para permitir revisar observados cualquier cantidad de veces.
   refreshAuditReportRow(item);
   updateAuditCounters(Number(document.getElementById('auditFilesCount').textContent)||0,Number(document.getElementById('auditOkCount').textContent)||0,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
-  const pendingReviews=historicalAuditReviewQueue.filter(q=>!q.reviewed).length;const btn=document.getElementById('auditReviewBtn');if(btn){btn.textContent=`AUDITAR / REVISAR TODO (${pendingReviews})`;btn.disabled=pendingReviews===0;}
+  const reviewable=historicalAuditReviewQueue.length;const btn=document.getElementById('auditReviewBtn');if(btn){btn.textContent=`AUDITAR / REVISAR TODO (${reviewable})`;btn.disabled=reviewable===0;}
 }
 
 function historicalReviewNext(){
   if(!saveCurrentHistoricalReview())return;
   if(historicalAuditIndex>=historicalAuditReviewQueue.length-1){
-    buildAuditReport();closeAuditModal();saveSessionSnapshotNow();return;
+    buildAuditReport();
+    const btn=document.getElementById('auditReviewBtn');
+    if(btn){btn.textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;btn.disabled=historicalAuditReviewQueue.length===0;}
+    logEvent(`REVISIÓN DE OBSERVADOS · pasada finalizada · ${historicalAuditReviewQueue.length} página(s) disponibles para volver a revisar cuando quieras · ningún PDF fue modificado`,'ok');
+    closeAuditModal();saveSessionSnapshotNow();return;
   }
   historicalAuditIndex++;showHistoricalAuditItem();
 }
@@ -5348,7 +5427,7 @@ function historicalReviewPrevious(){
 
 function historicalReviewKeyDown(ev){if(ev.key==='Enter'){ev.preventDefault();historicalReviewNext();}}
 
-function closeAuditModal(){document.getElementById('auditModal').classList.remove('open');scheduleSessionSave();}
+function closeAuditModal(){document.getElementById('auditModal').classList.remove('open');logEvent('REVISIÓN DE OBSERVADOS · ventana cerrada · los observados permanecen disponibles para otra pasada','info');scheduleSessionSave();}
 
 function preserveSuffixName(originalName,expectedGR,correctedGR){
   if(expectedGR && originalName.toUpperCase().includes(expectedGR.toUpperCase())){
@@ -5883,7 +5962,8 @@ function recoverPreviousSession(){
     const qstate=new Map((recoveredSnapshot.historicalReviewQueue||[]).map(q=>[`${q.parentId}|${q.page}`,q]));
     for(const q of historicalAuditReviewQueue){const st=qstate.get(`${q.parentItem?._id||''}|${q.pageResult?.page||0}`);if(st){q.manualGR=st.manualGR||q.manualGR;q.isOtherDocument=!!st.isOtherDocument;q.reviewed=!!st.reviewed;}}
     for(const item of historicalAuditItems)refreshHistoricalParentAfterReview(item);
-    buildAuditReport();document.getElementById('auditCopyBtn').disabled=false;document.getElementById('auditExcelBtn').disabled=false;document.getElementById('auditExcelBtn2').disabled=false;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.every(q=>q.reviewed);document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.filter(q=>!q.reviewed).length})`;
+    buildAuditReport();document.getElementById('auditCopyBtn').disabled=false;document.getElementById('auditExcelBtn').disabled=false;document.getElementById('auditExcelBtn2').disabled=false;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;
+    logEvent(`RECUPERACIÓN · ${historicalAuditReviewQueue.length} observado(s) disponibles nuevamente para revisión manual repetible`,'info');
   }
   document.getElementById('auditSkippedCount').textContent=historicalAuditSkippedOver10;
   if(historicalAuditCheckpoint?.inProgress){
@@ -6046,7 +6126,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.35 · auditoría histórica Tesseract/Paddle + Indra de rescate · módulo de pruebas OCR preservado","ok");
+logEvent("Sistema listo · V1.36 · reporte por motor + consola exhaustiva de estados/esperas · Tesseract/Paddle + Indra de rescate","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
