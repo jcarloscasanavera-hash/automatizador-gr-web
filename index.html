@@ -459,7 +459,7 @@ th{background:#f1f3f4}
 /* V1.22 · diagnóstico OCR integrado 20 variantes x 3 motores */
 
 
-/* V1.31 · auditoría histórica escalonada + módulo aislado de pruebas OCR */
+/* V1.32 · auditoría histórica escalonada + módulo aislado de pruebas OCR */
 .testCard{padding:18px;margin-bottom:14px}
 .testTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
 .testActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -484,7 +484,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.31 · AUDITORÍA HISTÓRICA ESCALONADA + PRUEBAS OCR</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.32 · AUDITORÍA HISTÓRICA ESCALONADA + PRUEBAS OCR</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -502,7 +502,7 @@ th{background:#f1f3f4}
       <span class="modeBadge">BASE ESTABLE</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.31</strong>
+      <strong>NUEVA VERSIÓN V1.32</strong>
       <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
     </button>
     <button class="modeBtn" onclick="chooseMode('audit')">
@@ -511,7 +511,7 @@ th{background:#f1f3f4}
     </button>
     <button class="modeBtn" onclick="chooseMode('test')">
       <strong>PRUEBAS OCR · 10 CONFIGURACIONES</strong>
-      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a los motores seleccionados: Tesseract, PaddleOCR y OnnxTR (DBNet + PARSeq). Mide aciertos verdaderos y no modifica los PDF.</span>
+      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a los motores seleccionados: Tesseract, PaddleOCR y OnnxTR (OpenCV + DBNet + PARSeq). Mide aciertos verdaderos y no modifica los PDF.</span>
       <span class="modeBadge">SOLO PRUEBAS</span>
     </button>
   </div>
@@ -678,7 +678,7 @@ th{background:#f1f3f4}
       <strong>MOTORES QUE INTERVIENEN:</strong>
       <label class="testEngineCheck"><input class="testEngineToggle" id="testEngineTess" type="checkbox" checked onchange="testEngineSelectionChanged()"> TESSERACT</label>
       <label class="testEngineCheck"><input class="testEngineToggle" id="testEnginePaddle" type="checkbox" checked onchange="testEngineSelectionChanged()"> PADDLEOCR</label>
-      <label class="testEngineCheck"><input class="testEngineToggle" id="testEngineOnnxTR" type="checkbox" checked onchange="testEngineSelectionChanged()"> ONNXTR · DBNET + PARSEQ</label>
+      <label class="testEngineCheck"><input class="testEngineToggle" id="testEngineOnnxTR" type="checkbox" checked onchange="testEngineSelectionChanged()"> ONNXTR · OPENCV + DBNET + PARSEQ</label>
       <span class="testEngineHint">Un motor desmarcado no se carga ni consume tiempo de prueba.</span>
     </div>
 
@@ -960,7 +960,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.31</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.32</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1036,7 +1036,7 @@ let historicalAuditProcessedFiles=0;
 let historicalAuditTimer=null;
 let historicalAuditCheckpoint=null;
 
-// V1.31 · auditoría histórica escalonada + protección de sesión sin base de datos (schema de sesión V1.25 compatible)
+// V1.32 · auditoría histórica escalonada + protección de sesión sin base de datos (schema de sesión V1.25 compatible)
 const SESSION_KEY='AUTOMATIZADOR_GR_V125_SESSION';
 const LEGACY_SESSION_KEYS=['AUTOMATIZADOR_GR_V121_SESSION','AUTOMATIZADOR_GR_V120_SESSION','AUTOMATIZADOR_GR_V119_SESSION','AUTOMATIZADOR_GR_V117_SESSION'];
 let jobReviewState={jobId:null,items:[],index:0,summary:false};
@@ -2637,19 +2637,19 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.31 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR (DBNet + PARSeq) · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.32 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR (OpenCV + DBNet + PARSeq) · motores seleccionables','ok');
     return;
   }
 
   if(mode==='audit'){
     document.getElementById('auditArea').style.display='block';
     document.querySelector('.consoleCard').style.display='block';
-    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · V1.31 escalonado · Tesseract C08→P02 · Paddle C06→C09 · autoguardado progresivo','info');
+    logEvent('Modo AUDITAR ARCHIVOS ANTERIORES · V1.32 escalonado · Tesseract C08→P02 · Paddle C06→C09 · autoguardado progresivo','info');
     return;
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.31 · auditoría histórica escalonada · módulo de pruebas aislado preservado','info');
+  logEvent('Modo NUEVA V1.32 · auditoría histórica escalonada · módulo de pruebas aislado preservado','info');
 }
 
 function backToModes(){
@@ -3722,10 +3722,10 @@ async function recognizeCrop(crop,psm='6',expected=null){
 
 
 // ============================================================
-// V1.25 · CONFIGURACIONES HISTÓRICAS CONSERVADAS (V1.31 ya no recorre 20 × 3)
+// V1.25 · CONFIGURACIONES HISTÓRICAS CONSERVADAS (V1.32 ya no recorre 20 × 3)
 // Base exclusiva V1.22. Sin módulo adicional y sin base de datos.
 // C01-C20 se conservan únicamente como catálogo histórico y para compatibilidad.
-// V1.31 NO las recorre en la auditoría operativa: usa C08→P02 en Tesseract
+// V1.32 NO las recorre en la auditoría operativa: usa C08→P02 en Tesseract
 // y C06→C09 en PaddleOCR, con comparación final 2/2.
 // ============================================================
 const AUDIT_V125_ZONES={
@@ -3829,7 +3829,7 @@ function auditV125Stable(readings,engine){
   return {value:(a&&a[1]>=2&&(!b||a[1]>b[1]))?a[0]:null,count:a?.[1]||0};
 }
 // ============================================================
-// V1.31 · AUDITORÍA HISTÓRICA ESCALONADA · 2 MOTORES
+// V1.32 · AUDITORÍA HISTÓRICA ESCALONADA · 2 MOTORES
 //
 // Tesseract:
 //   1) C08 histórica: 600 DPI · A4 · DESKEW RAW.
@@ -4032,7 +4032,7 @@ async function startHistoricalAudit(){
       logEvent(`Carpeta ${folder.name}: ${found.length} PDF encontrados (incluye subcarpetas)`,'info');
     }
     files.push(...collectAuditLooseFiles());
-    logEvent(`Auditoría V1.31: ${files.length} PDF · flujo escalonado Tesseract C08→P02 y Paddle C06→C09 · comparación final 2 motores`,'info');
+    logEvent(`Auditoría V1.32: ${files.length} PDF · flujo escalonado Tesseract C08→P02 y Paddle C06→C09 · comparación final 2 motores`,'info');
     if(!files.length){setAuditStatus('SIN PDF','st-wait');document.getElementById('auditProgressText').textContent='No se encontraron archivos PDF.';return;}
 
     historicalAuditTotalFiles=files.length;historicalAuditOcrStartedAt=historicalAuditOcrStartedAt||Date.now();
@@ -4120,16 +4120,16 @@ async function startHistoricalAudit(){
 
     buildHistoricalAuditReviewQueue();historicalAuditEndedAt=Date.now();updateAuditTiming();
     if(historicalAuditCancelRequested){setAuditStatus('CANCELADO · RECUPERABLE','st-wait');document.getElementById('auditProgressText').textContent=`Cancelado · avance guardado · ${historicalAuditProcessedFiles}/${files.length} PDF`;document.getElementById('auditCurrentFile').textContent='Procesando: cancelado';document.getElementById('auditStartBtn').textContent='REANUDAR AUDITORÍA';}
-    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');historicalAuditCheckpoint=null;document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await saveSessionSnapshotNow();logEvent(`Auditoría V1.31 terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');}
+    else{historicalAuditProcessedFiles=historicalAuditTotalFiles;document.getElementById('auditBar').style.width='100%';document.getElementById('auditProgressText').textContent=`Finalizado · ${processed} PDF auditados · ${historicalAuditSkippedOver10} omitidos >10 · ${historicalAuditItems.length} observaciones`;document.getElementById('auditCurrentFile').textContent='Procesando: finalizado';setAuditStatus('FINALIZADO','st-done');historicalAuditCheckpoint=null;document.getElementById('auditStartBtn').textContent='INICIAR AUDITORÍA';await saveSessionSnapshotNow();logEvent(`Auditoría V1.32 terminada · ${historicalAuditItems.length} observaciones · ${historicalAuditReviewQueue.length} revisiones humanas · duración ${formatAuditDuration(historicalAuditEndedAt-historicalAuditStartedAt)}`,'ok');}
     updateAuditCounters(processed,okCount,historicalAuditItems.length,historicalAuditItems.filter(x=>x.reviewed).length,historicalAuditSkippedOver10);
     document.getElementById('auditCopyBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditReviewBtn').disabled=historicalAuditReviewQueue.length===0;document.getElementById('auditReviewBtn').textContent=`AUDITAR / REVISAR TODO (${historicalAuditReviewQueue.length})`;document.getElementById('auditExcelBtn').disabled=historicalAuditItems.length===0;document.getElementById('auditExcelBtn2').disabled=historicalAuditItems.length===0;
-  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.31: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;await saveSessionSnapshotNow();}
+  }catch(err){console.error(err);historicalAuditEndedAt=Date.now();setAuditStatus('ERROR · RECUPERABLE','st-err');logEvent(`ERROR AUDITORÍA V1.32: ${err?.message||err}`,'err');document.getElementById('auditProgressText').textContent=`Error: ${err?.message||err}`;await saveSessionSnapshotNow();}
   finally{historicalAuditRunning=false;document.getElementById('auditStartBtn').disabled=false;document.getElementById('auditCancelBtn').disabled=true;stopAuditTimer();await terminateOCR();scheduleSessionSave();}
 }
 
 
 // ============================================================
-// V1.31 · MÓDULO AISLADO DE PRUEBAS OCR (sin cambios funcionales respecto de V1.30)
+// V1.32 · MÓDULO AISLADO DE PRUEBAS OCR (sin cambios funcionales respecto de V1.30)
 // 10 configuraciones candidatas × Tesseract + PaddleOCR + PARSeq.
 // No modifica ni renombra archivos. La verdad del nombre solo puntúa.
 // ============================================================
@@ -4237,7 +4237,7 @@ function testFindTruth(name,page=1){
   if(ei>=0){const head=base.slice(0,ei),c=findCandidates(head);if(c.length)return c[0];}
   return null;
 }
-// V1.31 · normalización exclusiva del MÓDULO DE PRUEBAS (heredada de V1.28).
+// V1.32 · normalización exclusiva del MÓDULO DE PRUEBAS (heredada de V1.28).
 // Corrige V1.27: NO elimina todos los espacios de toda la cadena.
 // Solo admite espacios DENTRO de una GR candidata o alrededor del guion.
 // Así, "T596 - 00023081" => "T596-00023081", pero
@@ -4301,7 +4301,7 @@ function testBump(bucket,status,read){
   if(status==='SIN_VERDAD')bucket.noTruth++;else{bucket.scored++;if(status==='CORRECTO')bucket.correct++;else if(status==='AMBIGUO')bucket.amb++;else if(status==='ERROR')bucket.wrong++;else bucket.none++;}
   bucket.ms+=Number(read?.ms)||0;const conf=Number(read?.confidence);if(Number.isFinite(conf)){bucket.conf+=conf;bucket.confN++;}
 }
-// V1.31 · ONNXTR COMPLETO EN NAVEGADOR · DBNet MobileNet V3 Large + PARSeq.
+// V1.32 · ONNXTR COMPLETO EN NAVEGADOR · DBNet MobileNet V3 Large + PARSeq.
 // DBNet localiza texto de forma independiente; PARSeq reconoce los recortes detectados.
 // La verdad humana del nombre NO participa en detección ni reconocimiento: solo puntúa después.
 let testParseqOrt=null;
@@ -4324,27 +4324,71 @@ const TEST_DB_SIZE=1024;
 const TEST_DB_BIN_THRESH=0.30;
 const TEST_DB_BOX_THRESH=0.10;
 
-async function testGetOpenCV(){
-  if(window.cv?.Mat)return window.cv;
-  if(testOpenCVPromise)return testOpenCVPromise;
-  testOpenCVPromise=new Promise((resolve,reject)=>{
-    const finish=async()=>{
+const TEST_OPENCV_URLS=[
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@5.0.0-release.1/dist/opencv.js',
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js',
+  'https://docs.opencv.org/5.0.0/opencv.js',
+  'https://docs.opencv.org/4.12.0/opencv.js',
+  'https://docs.opencv.org/4.10.0/opencv.js'
+];
+function testOpenCVHasRequiredAPI(c){
+  return !!(c?.Mat&&c?.MatVector&&c?.morphologyEx&&c?.findContours&&c?.boundingRect&&c?.contourArea&&c?.arcLength);
+}
+async function testWaitOpenCVReady(timeoutMs=60000){
+  const started=Date.now();
+  while(Date.now()-started<timeoutMs){
+    let c=window.cv;
+    if(c&&typeof c.then==='function'){
       try{
-        let c=window.cv;
-        if(c&&typeof c.then==='function')c=await c;
-        const limit=Date.now()+30000;
-        while((!c||!c.Mat)&&Date.now()<limit){await new Promise(r=>setTimeout(r,100));c=window.cv;if(c&&typeof c.then==='function')c=await c;}
-        if(!c?.Mat)throw new Error('OpenCV.js no terminó de inicializar.');
-        testCV=c;resolve(c);
-      }catch(e){reject(e);}
+        c=await Promise.race([c,new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout OpenCV Promise')),3000))]);
+      }catch(e){c=window.cv;}
+    }
+    if(testOpenCVHasRequiredAPI(c))return c;
+    await new Promise(r=>setTimeout(r,120));
+  }
+  throw new Error('OpenCV.js cargó pero no expuso la API requerida por DBNet.');
+}
+function testLoadOpenCVScript(url){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.dataset.testOpencv='1';script.dataset.testOpencvUrl=url;script.async=true;script.crossOrigin='anonymous';script.src=url;
+    let settled=false;
+    const fail=(msg)=>{if(settled)return;settled=true;try{script.remove();}catch(e){}reject(new Error(msg));};
+    const timer=setTimeout(()=>fail(`Tiempo agotado cargando OpenCV.js desde ${url}`),70000);
+    script.onerror=()=>{clearTimeout(timer);fail(`No se pudo descargar OpenCV.js desde ${url}`);};
+    script.onload=async()=>{
+      try{
+        const c=await testWaitOpenCVReady(60000);
+        clearTimeout(timer);if(settled)return;settled=true;resolve(c);
+      }catch(e){clearTimeout(timer);fail(`${e?.message||e} · fuente=${url}`);}
     };
-    let script=document.querySelector('script[data-test-opencv="1"]');
-    if(script){finish();return;}
-    script=document.createElement('script');script.dataset.testOpencv='1';script.async=true;
-    script.src='https://docs.opencv.org/4.10.0/opencv.js';
-    script.onload=finish;script.onerror=()=>reject(new Error('No se pudo cargar OpenCV.js para DBNet.'));
     document.head.appendChild(script);
   });
+}
+async function testGetOpenCV(){
+  if(testOpenCVHasRequiredAPI(testCV))return testCV;
+  if(testOpenCVHasRequiredAPI(window.cv)){testCV=window.cv;return testCV;}
+  if(testOpenCVPromise)return testOpenCVPromise;
+  testOpenCVPromise=(async()=>{
+    const errors=[];
+    for(let i=0;i<TEST_OPENCV_URLS.length;i++){
+      const url=TEST_OPENCV_URLS[i];
+      testLog(`OpenCV.js · intento ${i+1}/${TEST_OPENCV_URLS.length} · ${url}`,'info');
+      try{
+        const prior=[...document.querySelectorAll('script[data-test-opencv="1"]')];
+        for(const el of prior)try{el.remove();}catch(e){}
+        try{if(window.cv&&!testOpenCVHasRequiredAPI(window.cv))delete window.cv;}catch(e){try{window.cv=undefined;}catch(_) {}}
+        const c=await testLoadOpenCVScript(url);
+        if(!testOpenCVHasRequiredAPI(c))throw new Error('API OpenCV incompleta para DBNet');
+        testCV=c;
+        testLog(`OpenCV.js listo · fuente ${url}`,'ok');
+        return c;
+      }catch(e){
+        const msg=e?.message||String(e);errors.push(msg);testLog(`OpenCV.js falló en fuente ${i+1}: ${msg}`,'warn');
+      }
+    }
+    throw new Error(`No se pudo inicializar OpenCV.js para DBNet tras ${TEST_OPENCV_URLS.length} fuentes. ${errors.join(' | ')}`);
+  })().finally(()=>{testOpenCVPromise=null;});
   return testOpenCVPromise;
 }
 
@@ -4597,11 +4641,11 @@ async function startOcrTest(){
   testRunning=true;testCancelRequested=false;testRows=[];testPageSummaries=[];testStats=makeTestStats();testTotalPages=0;testPagesDone=0;testRunsDone=0;
   document.getElementById('testStartBtn').disabled=true;document.getElementById('testCancelBtn').disabled=false;document.getElementById('testCopyReportBtn').disabled=true;document.getElementById('testExcelBtn').disabled=true;
   document.getElementById('testReportRows').innerHTML='';document.getElementById('testRankingRows').innerHTML='';document.getElementById('testEngineRows').innerHTML='';clearTestConsole();
-  testSection(`INICIO · PRUEBAS OCR V1.31 · 10 CONFIGURACIONES × ${testActiveEngines.length} MOTOR(ES)`);
+  testSection(`INICIO · PRUEBAS OCR V1.32 · 10 CONFIGURACIONES × ${testActiveEngines.length} MOTOR(ES)`);
   testLog(`PDF seleccionados: ${testFiles.length}`,'info');
   testLog(`Motores activos: ${testActiveEngines.map(testEngineLabel).join(' + ')}`,'info');
   testLog('La verdad del nombre se usa SOLO para puntuar después del OCR. No se pasa como pista a ningún motor. Se aceptan “verdadero”, “verdero” y “estabien”.','warn');
-  testLog('V1.31: OnnxTR usa DBNet MobileNet V3 Large para detectar texto y PARSeq para reconocer cada recorte. Un motor desmarcado no se carga ni se ejecuta.','info');
+  testLog('V1.32: OnnxTR usa OpenCV + DBNet MobileNet V3 Large para detectar texto y PARSeq para reconocer cada recorte. Si OnnxTR no inicializa completo, la prueba se detiene antes de procesar PDF.','info');
   testLog('Configuraciones P06/P07/P08 preservan las configuraciones operativas elegidas C08 Tesseract, C06 Paddle y C09 Paddle respaldo.','info');
   try{
     document.getElementById('testProgressText').textContent='Contando páginas…';
@@ -4615,7 +4659,20 @@ async function startOcrTest(){
     document.getElementById('testProgressText').textContent='Inicializando motores…';
     if(testEngineSelected('TESSERACT')){testLog('Inicializando Tesseract…','info');await getOCRWorker();testLog('Tesseract listo.','ok');}
     if(testEngineSelected('PADDLEOCR')){testLog('Inicializando PaddleOCR…','info');await getPaddleOCR();testLog('PaddleOCR listo.','ok');}
-    if(testEngineSelected('ONNXTR')){testLog('Inicializando OnnxTR completo (DBNet + PARSeq)…','info');try{await testGetOnnxTR();testLog('OnnxTR listo.','ok');}catch(e){testLog(`OnnxTR no disponible: ${e?.message||e}. Sus lecturas se registrarán como SIN LECTURA.`,'err');}}
+    if(testEngineSelected('ONNXTR')){
+      testLog('Inicializando OnnxTR completo (OpenCV + DBNet + PARSeq)…','info');
+      try{
+        await testGetOnnxTR();
+        if(!testOpenCVHasRequiredAPI(testCV))throw new Error('OpenCV no quedó operativo para postprocesar DBNet.');
+        if(!testOnnxTRDetectorSession)throw new Error('DBNet no quedó operativo.');
+        if(!testParseqSession)throw new Error('PARSeq no quedó operativo.');
+        testLog('OnnxTR completo listo · OpenCV + DBNet + PARSeq verificados.','ok');
+      }catch(e){
+        const msg=e?.message||String(e);
+        testLog(`PRUEBA DETENIDA · OnnxTR no pudo inicializarse: ${msg}`,'err');
+        throw new Error(`OnnxTR no disponible. No se procesará ningún PDF para evitar falsos SIN LECTURA. ${msg}`);
+      }
+    }
 
     for(let fi=0;fi<testFiles.length;fi++){
       if(testCancelRequested)break;const f=testFiles[fi];let pdf=null;
@@ -5588,7 +5645,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.31 · auditoría histórica escalonada Tesseract→Paddle · módulo de pruebas OCR preservado","ok");
+logEvent("Sistema listo · V1.32 · auditoría histórica escalonada Tesseract→Paddle · módulo de pruebas OCR preservado","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
