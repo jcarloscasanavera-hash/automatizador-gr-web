@@ -427,7 +427,7 @@ th{background:#f1f3f4}
   font-family:Consolas,monospace;font-size:22px;text-transform:uppercase
 }
 .reviewHuman input:focus{outline:3px solid rgba(26,115,232,.22);outline-offset:1px}
-/* V1.37 · lectura humana prioritaria: inmediatamente debajo de la imagen y más visible. */
+/* V1.38 · lectura humana prioritaria: inmediatamente debajo de la imagen y más visible. */
 .jobReviewHumanPriority{
   margin-top:8px;padding:10px 12px 12px;border:2px solid #1a73e8;border-radius:10px;background:#f8fbff
 }
@@ -497,15 +497,29 @@ th{background:#f1f3f4}
 .testRankGood{font-weight:800;color:#137333}
 @media(max-width:950px){.testStats{grid-template-columns:1fr 1fr}.testGrid2{grid-template-columns:1fr}}
 
+
+/* V1.38 · portada principal reorganizada. Solo afecta el modo Inicio. */
+.homeMode{background:#eef4fb}
+.homeMode .app{max-width:1540px;padding:0 28px 28px}
+.homeMode .header,.homeMode .appFooter{display:none!important}
+.homeDashboard{margin:0;padding:0 0 22px;background:transparent;border:0;box-shadow:none}
+.homeHero{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:25px 34px;background:linear-gradient(120deg,#0a315f 0%,#0c4c88 58%,#0b3b70 100%);color:#fff;border-radius:0 0 15px 15px;box-shadow:0 8px 24px rgba(11,49,95,.18)}
+.homeBrand{display:flex;align-items:center;gap:18px;min-width:0}.homeLogo{width:64px;height:64px;display:grid;place-items:center;color:#9ed0ff;flex:0 0 auto}.homeLogo svg{width:58px;height:58px}.homeTitleRow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.homeTitleRow h1{margin:0;font-size:31px;line-height:1;font-weight:900;letter-spacing:.2px}.homeVersion{display:inline-flex;align-items:center;padding:8px 13px;border-radius:10px;background:#2683e8;font-size:18px;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}.homeSubtitle{margin-top:9px;font-size:15px;color:#d8e8f8}.homeEngineLine{font-size:15px;font-weight:700;color:#eef7ff;text-align:right;line-height:1.5}.homeEngineLine span{font-weight:500;color:#cfe3f6}
+.homeFlow{margin:22px 0 18px;padding:24px 28px;display:grid;grid-template-columns:1fr 42px 1fr 42px 1fr minmax(260px,1.15fr);gap:10px;align-items:center;background:linear-gradient(110deg,#f8fbff,#edf5ff);border:1px solid #d7e6f5;border-radius:16px;box-shadow:0 7px 18px rgba(37,74,115,.08)}.flowEngine{display:flex;align-items:center;gap:14px;min-width:0}.flowIcon{width:58px;height:58px;border-radius:14px;background:#e4f0ff;color:#0e4c86;display:grid;place-items:center;font-size:25px;font-weight:900;border:1px solid #d0e1f5;flex:0 0 auto}.flowEngine b,.flowEngine span,.flowEngine small{display:block}.flowEngine b{font-size:18px;color:#0f2742;margin-bottom:3px}.flowEngine span{font-size:14px;color:#304d6d;margin-bottom:2px}.flowEngine small{font-size:12px;color:#6b7f94}.flowArrow{font-size:34px;color:#527698;text-align:center}.flowDescription{border-left:1px solid #bdd2e8;padding-left:28px;font-size:17px;line-height:1.45;color:#41617e}
+.homeModules{display:grid;grid-template-columns:1fr 1fr;gap:20px}.homeModule{position:relative;display:grid!important;grid-template-columns:132px 1fr 72px;align-items:center;gap:20px;min-height:235px;padding:30px 28px!important;border-radius:18px!important;text-align:left!important;overflow:hidden;box-shadow:0 8px 20px rgba(36,65,94,.10);transition:transform .13s ease,box-shadow .13s ease,border-color .13s ease}.homeModule:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(36,65,94,.15)}.homeModule:after{content:"";position:absolute;right:-55px;top:-55px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}.moduleIcon{width:116px;height:116px;border-radius:22px;background:rgba(255,255,255,.82);display:grid;place-items:center;box-shadow:0 7px 18px rgba(0,0,0,.08);z-index:1}.moduleIcon svg{width:68px;height:68px}.moduleCopy{display:block;z-index:1}.moduleTag{display:inline-flex!important;align-items:center;width:auto!important;max-height:none!important;margin-bottom:14px;padding:7px 14px;border-radius:9px;background:rgba(0,0,0,.10);font-size:13px!important;font-weight:900!important;letter-spacing:.25px;color:inherit!important}.moduleCopy strong{display:block!important;min-height:0!important;margin:0 0 11px!important;font-size:28px!important;line-height:1.12!important;color:inherit!important}.moduleCopy strong em{font-style:normal;white-space:nowrap}.moduleCopy>span:last-child{display:block!important;max-height:none!important;font-size:17px!important;line-height:1.42!important;color:inherit!important;opacity:.92}.moduleGo{width:58px;height:58px;border-radius:50%;display:grid!important;place-items:center;max-height:none!important;background:rgba(255,255,255,.82);font-size:45px!important;font-weight:400!important;line-height:1!important;color:inherit!important;z-index:1}.modBlue{background:linear-gradient(135deg,#2788ef,#0965cf);border:1px solid #0b72df!important;color:#fff!important}.modGreen{background:linear-gradient(135deg,#24aa86,#048264);border:1px solid #0a9472!important;color:#fff!important}.modPurple{background:linear-gradient(135deg,#8e72ee,#6651d7);border:1px solid #755cdf!important;color:#fff!important}.modOrange{background:linear-gradient(135deg,#ffc477,#ffad5e);border:1px solid #f4ad62!important;color:#492700!important}.modOrange .moduleTag{background:rgba(210,105,0,.18)}
+.homeInfoStrip{margin-top:20px;display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8fbff;border:1px solid #d7e4f2;border-radius:14px;box-shadow:0 5px 14px rgba(36,65,94,.06)}.homeInfoStrip>div{padding:18px 24px;min-width:0}.homeInfoStrip>div+div{border-left:1px solid #d7e4f2}.homeInfoStrip b,.homeInfoStrip span{display:block}.homeInfoStrip b{font-size:14px;color:#102947;margin-bottom:5px}.homeInfoStrip span{font-size:12px;color:#637b93;line-height:1.4}
+@media(max-width:1180px){.homeFlow{grid-template-columns:1fr 34px 1fr 34px 1fr}.flowDescription{grid-column:1/-1;border-left:0;border-top:1px solid #bdd2e8;padding:16px 0 0}.homeModule{grid-template-columns:100px 1fr 56px;min-height:210px;padding:24px!important}.moduleIcon{width:88px;height:88px}.moduleIcon svg{width:56px;height:56px}.moduleCopy strong{font-size:23px!important}}
+@media(max-width:860px){.homeMode .app{padding:0 12px 18px}.homeHero{align-items:flex-start;flex-direction:column;padding:22px}.homeEngineLine{text-align:left}.homeFlow{grid-template-columns:1fr;gap:14px}.flowArrow{transform:rotate(90deg);height:24px}.flowDescription{grid-column:auto}.homeModules{grid-template-columns:1fr}.homeModule{grid-template-columns:82px 1fr 48px}.moduleIcon{width:72px;height:72px;border-radius:16px}.moduleIcon svg{width:46px;height:46px}.moduleCopy strong{font-size:21px!important}.moduleCopy>span:last-child{font-size:15px!important}.homeInfoStrip{grid-template-columns:1fr}.homeInfoStrip>div+div{border-left:0;border-top:1px solid #d7e4f2}}
+
 </style>
 </head>
 
-<body>
+<body class="homeMode">
 <div class="app">
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.37 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.38 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -513,29 +527,74 @@ th{background:#f1f3f4}
 </div>
 
 
-<div id="modeScreen" class="card modeScreen">
-  <div class="modeTitle">¿QUÉ QUIERES HACER?</div>
-  <div class="muted">La V1.3 estable permanece protegida. Las nuevas funciones se ejecutan por separado.</div>
-  <div class="modeGrid">
-    <button class="modeBtn" onclick="openStableVersion()">
-      <strong>VERSIÓN ESTABLE V1.3</strong>
-      <span>Abre una copia exacta del modo clásico en otra pestaña. No altera el automatizador V1.37.</span>
-      <span class="modeBadge">BASE ESTABLE</span>
+<div id="modeScreen" class="modeScreen homeDashboard">
+  <section class="homeHero">
+    <div class="homeBrand">
+      <div class="homeLogo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" role="img"><path d="M17 7h23l9 9v41H17z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M40 7v11h11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 29h18M24 37h14M24 45h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="homeTitleRow"><h1>AUTOMATIZADOR GR WEB</h1><span class="homeVersion">V1.38</span></div>
+        <div class="homeSubtitle">Lectura OCR · Renombrado · Control · Auditoría</div>
+      </div>
+    </div>
+    <div class="homeEngineLine">Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 <span>(condicional)</span></div>
+  </section>
+
+  <section class="homeFlow" aria-label="Flujo OCR de Artemisa Renombrar">
+    <div class="flowEngine">
+      <div class="flowIcon">I</div><div><b>Indra</b><span>P09 → P07</span><small>Extracción inicial</small></div>
+    </div>
+    <div class="flowArrow">→</div>
+    <div class="flowEngine">
+      <div class="flowIcon">P</div><div><b>Paddle</b><span>C06 → C09</span><small>Segunda lectura</small></div>
+    </div>
+    <div class="flowArrow">→</div>
+    <div class="flowEngine">
+      <div class="flowIcon">T</div><div><b>Tesseract</b><span>C08 → P02</span><small>Uso condicional</small></div>
+    </div>
+    <div class="flowDescription">Procesa PDF multipágina, identifica la GR y genera un PDF final con marcadores.</div>
+  </section>
+
+  <section class="homeModules">
+    <button class="homeModule modBlue" onclick="chooseMode('new')">
+      <span class="moduleIcon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11M24 29h18M24 37h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M38 48l11-11 5 5-11 11-7 2z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+      </span>
+      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.38</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
+      <span class="moduleGo">›</span>
     </button>
-    <button class="modeBtn" onclick="chooseMode('new')">
-      <strong>NUEVA VERSIÓN V1.36</strong>
-      <span>Flujo normal de trabajo preservado. El módulo de pruebas no modifica este proceso.</span>
+
+    <button class="homeModule modGreen" onclick="chooseMode('audit')">
+      <span class="moduleIcon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M15 7h25l9 9v29H15z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M40 7v11h11M23 28h18M23 36h12" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="43" cy="44" r="10" fill="none" stroke="currentColor" stroke-width="4"/><path d="M50 51l8 8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+      </span>
+      <span class="moduleCopy"><span class="moduleTag">AUDITORÍA</span><strong>HERMES AUDITORÍAS <em>V1.0</em></strong><span>Revisar y auditar PDF ya renombrados para comprobar las lecturas OCR y el número de GR.</span></span>
+      <span class="moduleGo">›</span>
     </button>
-    <button class="modeBtn" onclick="chooseMode('audit')">
-      <strong>AUDITAR ARCHIVOS ANTERIORES</strong>
-      <span>Revisa PDF anteriores con Tesseract C08→P02 y PaddleOCR C06→C09. Indra P09→P07 entra solo si uno o ambos motores quedan SIN LECTURA. V1.36 añade lecturas por motor en observaciones y consola detallada de cada espera/operación.</span>
+
+    <button class="homeModule modPurple" onclick="chooseMode('test')">
+      <span class="moduleIcon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11" fill="none" stroke="currentColor" stroke-width="4"/><text x="21" y="39" font-size="14" font-weight="800" fill="currentColor">OCR</text><path d="M24 48h20" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+      </span>
+      <span class="moduleCopy"><span class="moduleTag">PRUEBAS</span><strong>EFESTO TESTING <em>V1.0</em></strong><span>Ejecutar pruebas OCR, comparar configuraciones y validar precisión antes de aplicar mejoras al flujo normal.</span></span>
+      <span class="moduleGo">›</span>
     </button>
-    <button class="modeBtn" onclick="chooseMode('test')">
-      <strong>PRUEBAS OCR · 10 CONFIGURACIONES</strong>
-      <span>Módulo aislado de calibración. Aplica las mismas 10 configuraciones a los motores seleccionados: Tesseract, PaddleOCR y OnnxTR (OpenCV + DBNet + PARSeq). Mide aciertos verdaderos y no modifica los PDF.</span>
-      <span class="modeBadge">SOLO PRUEBAS</span>
+
+    <button class="homeModule modOrange" onclick="openStableVersion()">
+      <span class="moduleIcon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M16 8h32v48H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 22h16M24 31h16M24 40h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="45" cy="47" r="10" fill="none" stroke="currentColor" stroke-width="3"/><path d="M45 41v6l4 3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      </span>
+      <span class="moduleCopy"><span class="moduleTag">RESPALDO</span><strong>ARTEMISA RENOMBRAR <em>V1.3</em></strong><span>Abrir la versión estable del flujo clásico de renombrado como respaldo, sin modificar la versión actual.</span></span>
+      <span class="moduleGo">›</span>
     </button>
-  </div>
+  </section>
+
+  <section class="homeInfoStrip">
+    <div><b>Información</b><span>Automatización documental con OCR y marcadores PDF.</span></div>
+    <div><b>4 módulos disponibles</b><span>Renombrar actual · Renombrar estable · Testing · Auditorías</span></div>
+    <div><b>Estado</b><span>Listo para comenzar · Selecciona un módulo.</span></div>
+  </section>
 </div>
 
 <div id="processArea">
@@ -1002,7 +1061,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.36</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.38</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1433,9 +1492,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1 V1.37: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
+  // PASADA 1 V1.38: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.37 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.38 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1471,7 +1530,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.37 · ${source.file.name} pág. ${pn} · `+
+        `V1.38 · ${source.file.name} pág. ${pn} · `+
         `Indra ${dual.indraSource||'P09'}=${dual.indra1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'} · `+
         `Tesseract ${dual.tesseractSource||'NO EJECUTADO'}=${dual.tesseract1||'NO EJECUTADO'}`,
@@ -1560,12 +1619,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.37 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.38 · ${pending.length} página(s) pasan a REVISAR. `+
       `Se exige coincidencia exacta de dos motores independientes; no se confirma por mayoría.`,
       'warn'
     );
   }else{
-    logEvent('V1.37 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
+    logEvent('V1.38 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2121,7 +2180,7 @@ const OCR_PADDLE_FALLBACK={
 const OCR_TESSERACT_ONLY={
   id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
 };
-// V1.37 · cadena del automatizador con marcadores.
+// V1.38 · cadena del automatizador con marcadores.
 // Cada respaldo se ejecuta EXCLUSIVAMENTE si la primaria de ese mismo motor queda SIN LECTURA.
 const OCR_INDRA_PRIMARY={id:'P09',name:'INDRA P09 PRIMARIA',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'};
 const OCR_INDRA_FALLBACK={id:'P07',name:'INDRA P07 RESPALDO',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'};
@@ -2173,7 +2232,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
   const readings=[];
 
-  // V1.37 · ORDEN ESTRICTO SOLICITADO:
+  // V1.38 · ORDEN ESTRICTO SOLICITADO:
   // 1) Indra P09 → P07 solo si P09 queda SIN LECTURA.
   // 2) Paddle C06 → C09 solo si C06 queda SIN LECTURA.
   // 3) Tesseract C08 → P02 solo si Indra O Paddle termina SIN LECTURA.
@@ -2760,6 +2819,7 @@ function openStableVersion(){
 
 function chooseMode(mode){
   appMode=mode;
+  document.body.classList.remove('homeMode');
   const fm=document.getElementById('footerMode');
   if(fm)fm.textContent=mode==='audit'?'AUDITORÍA HISTÓRICA':mode==='test'?'PRUEBAS OCR':'NUEVA';
   document.getElementById('modeScreen').style.display='none';
@@ -2772,7 +2832,7 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.37 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.38 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
@@ -2784,7 +2844,7 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.37 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  logEvent('Modo NUEVA V1.38 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
 }
 
 function backToModes(){
@@ -2799,6 +2859,7 @@ function backToModes(){
   document.getElementById('auditArea').style.display='none';
   document.getElementById('testArea').style.display='none';
   document.getElementById('modeScreen').style.display='block';
+  document.body.classList.add('homeMode');
   document.getElementById('auditFolderModal')?.classList.remove('open');
   appMode=null;
   const fm=document.getElementById('footerMode');if(fm)fm.textContent='INICIO';
@@ -6236,7 +6297,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.37 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF + auditoría histórica preservados","ok");
+logEvent("Sistema listo · V1.38 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF + auditoría histórica preservados","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
