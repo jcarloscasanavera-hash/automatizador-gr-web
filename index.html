@@ -13,6 +13,9 @@
 {
   "imports": {
     "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort.min.mjs",
+    "js-yaml": "https://esm.sh/js-yaml@4.1.0?bundle",
+    "clipper-lib": "https://esm.sh/clipper-lib@6.4.2?bundle",
+    "@techstark/opencv-js": "https://esm.sh/@techstark/opencv-js@4.10.0-release.1?bundle",
     "@qduc/easyocr-core": "https://cdn.jsdelivr.net/npm/@qduc/easyocr-core@0.1.3/dist/index.js"
   }
 }
@@ -511,6 +514,23 @@ th{background:#f1f3f4}
 @media(max-width:1180px){.homeFlow{grid-template-columns:1fr 34px 1fr 34px 1fr}.flowDescription{grid-column:1/-1;border-left:0;border-top:1px solid #bdd2e8;padding:16px 0 0}.homeModule{grid-template-columns:100px 1fr 56px;min-height:210px;padding:24px!important}.moduleIcon{width:88px;height:88px}.moduleIcon svg{width:56px;height:56px}.moduleCopy strong{font-size:23px!important}}
 @media(max-width:860px){.homeMode .app{padding:0 12px 18px}.homeHero{align-items:flex-start;flex-direction:column;padding:22px}.homeEngineLine{text-align:left}.homeFlow{grid-template-columns:1fr;gap:14px}.flowArrow{transform:rotate(90deg);height:24px}.flowDescription{grid-column:auto}.homeModules{grid-template-columns:1fr}.homeModule{grid-template-columns:82px 1fr 48px}.moduleIcon{width:72px;height:72px;border-radius:16px}.moduleIcon svg{width:46px;height:46px}.moduleCopy strong{font-size:21px!important}.moduleCopy>span:last-child{font-size:15px!important}.homeInfoStrip{grid-template-columns:1fr}.homeInfoStrip>div+div{border-left:0;border-top:1px solid #d7e4f2}}
 
+/* V1.39 · autodiagnóstico de motores al entrar a Artemisa. */
+.engineHealthPanel{padding:16px 18px;margin-bottom:14px;border-left:5px solid #1a73e8}
+.engineHealthHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.engineHealthHead h3{margin:0 0 4px;font-size:17px}.engineHealthHead .muted{line-height:1.4}
+.engineHealthGrid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:10px;margin-top:12px}
+.engineHealthItem{border:1px solid #d9dee4;border-radius:9px;background:#fafafa;padding:12px;min-height:112px}
+.engineHealthTop{display:flex;justify-content:space-between;align-items:center;gap:10px}.engineHealthTop b{font-size:15px}
+.engineHealthState{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;background:#eef1f4;color:#5f6368}
+.engineHealthItem.checking .engineHealthState{background:#e8f0fe;color:#174ea6}
+.engineHealthItem.ready .engineHealthState{background:#e6f4ea;color:#137333}
+.engineHealthItem.error .engineHealthState{background:#fce8e6;color:#b3261e}
+.engineHealthDetail{margin-top:8px;font-size:12px;line-height:1.35;color:#5f6368;min-height:32px;overflow-wrap:anywhere}
+.engineRetry{display:none;margin-top:8px;padding:7px 10px;font-size:11px}.engineHealthItem.error .engineRetry{display:inline-block}
+.engineHealthSummary{margin-top:10px;font-size:12px;font-weight:700;color:#3c4043}
+.auditDecisionButtons{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+@media(max-width:850px){.engineHealthGrid{grid-template-columns:1fr}.auditDecisionButtons{justify-content:stretch}.auditDecisionButtons button{flex:1}}
+
 </style>
 </head>
 
@@ -519,7 +539,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.38 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.39 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -534,7 +554,7 @@ th{background:#f1f3f4}
         <svg viewBox="0 0 64 64" role="img"><path d="M17 7h23l9 9v41H17z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M40 7v11h11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 29h18M24 37h14M24 45h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
       </div>
       <div>
-        <div class="homeTitleRow"><h1>AUTOMATIZADOR GR WEB</h1><span class="homeVersion">V1.38</span></div>
+        <div class="homeTitleRow"><h1>AUTOMATIZADOR GR WEB</h1><span class="homeVersion">V1.39</span></div>
         <div class="homeSubtitle">Lectura OCR · Renombrado · Control · Auditoría</div>
       </div>
     </div>
@@ -561,7 +581,7 @@ th{background:#f1f3f4}
       <span class="moduleIcon" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11M24 29h18M24 37h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M38 48l11-11 5 5-11 11-7 2z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
       </span>
-      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.38</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
+      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.39</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
       <span class="moduleGo">›</span>
     </button>
 
@@ -598,6 +618,34 @@ th{background:#f1f3f4}
 </div>
 
 <div id="processArea">
+<div id="artemisaEnginePanel" class="card engineHealthPanel">
+  <div class="engineHealthHead">
+    <div>
+      <h3>COMPROBACIÓN AUTOMÁTICA DE MOTORES</h3>
+      <div class="muted small">Se ejecuta apenas entras a Artemisa, sin necesidad de seleccionar PDF ni escribir una GR.</div>
+    </div>
+    <button id="retryFailedEnginesBtn" class="light" onclick="retryFailedArtemisaEngines()" disabled>REINTENTAR MOTORES CON ERROR</button>
+  </div>
+  <div class="engineHealthGrid">
+    <div id="engineHealthIndra" class="engineHealthItem">
+      <div class="engineHealthTop"><b>INDRA</b><span id="engineHealthIndraState" class="engineHealthState">PENDIENTE</span></div>
+      <div id="engineHealthIndraDetail" class="engineHealthDetail">Esperando comprobación.</div>
+      <button id="engineHealthIndraRetry" class="light engineRetry" onclick="retryArtemisaEngine('INDRA')">REINTENTAR</button>
+    </div>
+    <div id="engineHealthPaddle" class="engineHealthItem">
+      <div class="engineHealthTop"><b>PADDLEOCR</b><span id="engineHealthPaddleState" class="engineHealthState">PENDIENTE</span></div>
+      <div id="engineHealthPaddleDetail" class="engineHealthDetail">Esperando comprobación.</div>
+      <button id="engineHealthPaddleRetry" class="light engineRetry" onclick="retryArtemisaEngine('PADDLEOCR')">REINTENTAR</button>
+    </div>
+    <div id="engineHealthTesseract" class="engineHealthItem">
+      <div class="engineHealthTop"><b>TESSERACT</b><span id="engineHealthTesseractState" class="engineHealthState">PENDIENTE</span></div>
+      <div id="engineHealthTesseractDetail" class="engineHealthDetail">Esperando comprobación.</div>
+      <button id="engineHealthTesseractRetry" class="light engineRetry" onclick="retryArtemisaEngine('TESSERACT')">REINTENTAR</button>
+    </div>
+  </div>
+  <div id="artemisaEngineSummary" class="engineHealthSummary">La comprobación comenzará automáticamente al abrir Artemisa.</div>
+</div>
+
 <div class="toolbar">
   <button class="primary" id="btnAdd" onclick="addJob()">+ AGREGAR RUTA / LOTE</button>
   <button class="green" id="btnStart" onclick="startQueue()">INICIAR COLA</button>
@@ -953,7 +1001,7 @@ th{background:#f1f3f4}
             <strong>AUDITAR REVISAR · <span id="jobReviewCounter">1 / 1</span></strong>
             <div id="jobReviewPath" class="small muted"></div>
           </div>
-          <button class="light" onclick="closeJobReviewModal()">CERRAR</button>
+          <button class="danger" onclick="discardJobReviewChanges()">SALIR SIN GUARDAR</button>
         </div>
 
         <div class="reviewPreviewWrap">
@@ -1015,8 +1063,9 @@ th{background:#f1f3f4}
           <div>
             <strong>RESUMEN DE AUDITORÍA HUMANA</strong>
             <div class="small muted">La lectura final será siempre la lectura humana confirmada.</div>
+            <div id="jobReviewDecisionSummary" class="small" style="margin-top:5px;font-weight:700"></div>
           </div>
-          <button class="light" onclick="closeJobReviewModal()">CERRAR</button>
+          <button class="danger" onclick="discardJobReviewChanges()">SALIR SIN GUARDAR</button>
         </div>
         <div class="reviewSummaryTableWrap">
           <table class="reviewSummaryTable">
@@ -1030,7 +1079,10 @@ th{background:#f1f3f4}
       <div class="reviewFooter">
         <div class="left"><button class="light" onclick="jobReviewBackToEditor()">← REGRESAR A REVISIÓN</button></div>
         <div class="center">RESUMEN FINAL</div>
-        <div class="right"><button id="jobReviewApplyBtn" class="green" onclick="applyJobReview()">APLICAR AUDITORÍA</button></div>
+        <div class="right auditDecisionButtons">
+          <button class="danger" onclick="discardJobReviewChanges()">SALIR SIN GUARDAR</button>
+          <button id="jobReviewApplyBtn" class="green" onclick="applyJobReview()">GUARDAR CAMBIOS</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1061,7 +1113,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.38</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.39</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1098,7 +1150,7 @@ th{background:#f1f3f4}
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const APP_VERSION='1.31';
+const APP_VERSION='1.39';
 
 const {
   PDFDocument, PDFName, PDFHexString
@@ -1112,10 +1164,17 @@ let cancelRequested=false;
 let globalPages=0;
 let stats={detected:0,verify:0,masters:0,errors:0};
 let ocrWorker=null;
+let ocrWorkerInitPromise=null;
 let paddleOCR=null;
 let paddleOCRInitPromise=null;
 let paddleOCRLastError=null;
 let appMode=null;
+let artemisaEngineCheckPromise=null;
+const artemisaEngineState={
+  INDRA:{status:'idle',detail:'Esperando comprobación.'},
+  PADDLEOCR:{status:'idle',detail:'Esperando comprobación.'},
+  TESSERACT:{status:'idle',detail:'Esperando comprobación.'}
+};
 
 let historicalAuditFolders=[];
 let historicalAuditLooseFiles=[];
@@ -1391,6 +1450,17 @@ function updateGlobalReviewButton(){
 async function startQueue(){
   if(queueRunning)return;
 
+  if(appMode==='new'){
+    await startArtemisaEngineCheck();
+    const failed=Object.entries(artemisaEngineState).filter(([,v])=>v.status!=='ready').map(([k])=>k);
+    if(failed.length){
+      const names=failed.map(x=>x==='PADDLEOCR'?'PaddleOCR':x==='TESSERACT'?'Tesseract':'Indra').join(', ');
+      logEvent(`INICIO BLOQUEADO · motor(es) no disponible(s): ${names}. Usa REINTENTAR antes de procesar.`,'err');
+      alert(`No se iniciará la cola porque ${names} no se inicializó correctamente. Usa REINTENTAR y confirma que los 3 motores estén en LISTO.`);
+      return;
+    }
+  }
+
   const list=[...jobs.values()];
 
   if(!list.length){
@@ -1492,9 +1562,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1 V1.38: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
+  // PASADA 1 V1.39: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.38 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.39 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1530,7 +1600,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.38 · ${source.file.name} pág. ${pn} · `+
+        `V1.39 · ${source.file.name} pág. ${pn} · `+
         `Indra ${dual.indraSource||'P09'}=${dual.indra1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'} · `+
         `Tesseract ${dual.tesseractSource||'NO EJECUTADO'}=${dual.tesseract1||'NO EJECUTADO'}`,
@@ -1619,12 +1689,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.38 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.39 · ${pending.length} página(s) pasan a REVISAR. `+
       `Se exige coincidencia exacta de dos motores independientes; no se confirma por mayoría.`,
       'warn'
     );
   }else{
-    logEvent('V1.38 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
+    logEvent('V1.39 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -1864,7 +1934,7 @@ async function getPaddleOCR(){
       ocrVersion:'PP-OCRv5',
       ortOptions:{
         backend:'wasm',
-        wasmPaths:'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/',
+        wasmPaths:'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/',
         numThreads:1,
         simd:true
       }
@@ -2180,7 +2250,7 @@ const OCR_PADDLE_FALLBACK={
 const OCR_TESSERACT_ONLY={
   id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
 };
-// V1.38 · cadena del automatizador con marcadores.
+// V1.39 · cadena del automatizador con marcadores.
 // Cada respaldo se ejecuta EXCLUSIVAMENTE si la primaria de ese mismo motor queda SIN LECTURA.
 const OCR_INDRA_PRIMARY={id:'P09',name:'INDRA P09 PRIMARIA',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'};
 const OCR_INDRA_FALLBACK={id:'P07',name:'INDRA P07 RESPALDO',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'};
@@ -2232,7 +2302,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
   const readings=[];
 
-  // V1.38 · ORDEN ESTRICTO SOLICITADO:
+  // V1.39 · ORDEN ESTRICTO SOLICITADO:
   // 1) Indra P09 → P07 solo si P09 queda SIN LECTURA.
   // 2) Paddle C06 → C09 solo si C06 queda SIN LECTURA.
   // 3) Tesseract C08 → P02 solo si Indra O Paddle termina SIN LECTURA.
@@ -2442,26 +2512,29 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
 
 async function getOCRWorker(){
   if(ocrWorker)return ocrWorker;
+  if(ocrWorkerInitPromise)return ocrWorkerInitPromise;
 
-  setQueueText('Inicializando OCR...');
-
-  ocrWorker=await Tesseract.createWorker('eng',1,{
-    logger:m=>{
-      if(m.status==='recognizing text'){
-        setQueueText(`OCR ${Math.round((m.progress||0)*100)}%`);
+  ocrWorkerInitPromise=(async()=>{
+    setQueueText('Inicializando OCR...');
+    const worker=await Tesseract.createWorker('eng',1,{
+      logger:m=>{
+        if(m.status==='recognizing text'){
+          setQueueText(`OCR ${Math.round((m.progress||0)*100)}%`);
+        }
       }
-    }
-  });
+    });
 
-  await ocrWorker.setParameters({
-    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
-    preserve_interword_spaces:'1',
-    tessedit_pageseg_mode:'6'
-  });
+    await worker.setParameters({
+      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+      preserve_interword_spaces:'1',
+      tessedit_pageseg_mode:'6'
+    });
+    ocrWorker=worker;
+    setQueueText('Procesando');
+    return ocrWorker;
+  })().finally(()=>{ocrWorkerInitPromise=null;});
 
-  setQueueText('Procesando');
-
-  return ocrWorker;
+  return ocrWorkerInitPromise;
 }
 
 async function terminateOCR(){
@@ -2469,6 +2542,7 @@ async function terminateOCR(){
     try{await ocrWorker.terminate()}catch(e){}
     ocrWorker=null;
   }
+  ocrWorkerInitPromise=null;
   if(paddleOCR){
     try{await paddleOCR.dispose()}catch(e){}
     paddleOCR=null;
@@ -2817,6 +2891,114 @@ function openStableVersion(){
   window.open('estable.html','_blank','noopener');
 }
 
+function engineHealthDomKey(engine){
+  return engine==='PADDLEOCR'?'Paddle':engine==='TESSERACT'?'Tesseract':'Indra';
+}
+
+function setArtemisaEngineStatus(engine,status,detail=''){
+  const key=engineHealthDomKey(engine);
+  const card=document.getElementById(`engineHealth${key}`);
+  const state=document.getElementById(`engineHealth${key}State`);
+  const detailEl=document.getElementById(`engineHealth${key}Detail`);
+  if(!card||!state||!detailEl)return;
+  artemisaEngineState[engine]={status,detail};
+  card.classList.remove('checking','ready','error');
+  if(status==='checking')card.classList.add('checking');
+  if(status==='ready')card.classList.add('ready');
+  if(status==='error')card.classList.add('error');
+  state.textContent=status==='checking'?'INICIALIZANDO':status==='ready'?'LISTO':status==='error'?'ERROR':'PENDIENTE';
+  detailEl.textContent=detail||'';
+  updateArtemisaEngineSummary();
+}
+
+function updateArtemisaEngineSummary(){
+  const summary=document.getElementById('artemisaEngineSummary');
+  const retry=document.getElementById('retryFailedEnginesBtn');
+  if(!summary)return;
+  const values=Object.values(artemisaEngineState);
+  const ready=values.filter(x=>x.status==='ready').length;
+  const errors=values.filter(x=>x.status==='error').length;
+  const checking=values.filter(x=>x.status==='checking').length;
+  if(checking)summary.textContent=`Comprobando motores: ${ready} listos · ${checking} inicializando · ${errors} con error.`;
+  else if(ready===3)summary.textContent='3/3 motores inicializados correctamente. Artemisa está lista para procesar.';
+  else if(errors)summary.textContent=`${ready}/3 motores listos · ${errors} con error. Puedes reintentar el motor afectado antes de procesar.`;
+  else summary.textContent='La comprobación comenzará automáticamente al abrir Artemisa.';
+  if(retry)retry.disabled=errors===0||checking>0;
+}
+
+async function resetArtemisaEngineForRetry(engine){
+  if(engine==='PADDLEOCR'){
+    if(paddleOCR){try{await paddleOCR.dispose()}catch(e){}}
+    paddleOCR=null;paddleOCRInitPromise=null;paddleOCRLastError=null;
+    return;
+  }
+  if(engine==='INDRA'){
+    if(auditIndraEngine){try{auditIndraEngine.terminate?.()}catch(e){}}
+    auditIndraEngine=null;auditIndraInitPromise=null;auditIndraLastError=null;
+    return;
+  }
+  if(engine==='TESSERACT'){
+    if(ocrWorker){try{await ocrWorker.terminate()}catch(e){}}
+    ocrWorker=null;ocrWorkerInitPromise=null;
+  }
+}
+
+async function initializeArtemisaEngine(engine,{retry=false}={}){
+  if(retry)await resetArtemisaEngineForRetry(engine);
+  setArtemisaEngineStatus(engine,'checking','Comprobando carga y disponibilidad del motor…');
+  const started=performance.now();
+  try{
+    if(engine==='INDRA')await auditGetIndra();
+    else if(engine==='PADDLEOCR')await getPaddleOCR();
+    else await getOCRWorker();
+    const ms=Math.round(performance.now()-started);
+    setArtemisaEngineStatus(engine,'ready',`Inicializado correctamente · ${ms} ms`);
+    logEvent(`AUTODIAGNÓSTICO ARTEMISA · ${engine} LISTO · ${ms} ms`,'ok');
+    return true;
+  }catch(err){
+    const msg=err?.message||String(err);
+    setArtemisaEngineStatus(engine,'error',msg);
+    logEvent(`AUTODIAGNÓSTICO ARTEMISA · ${engine} ERROR · ${msg}`,'err');
+    return false;
+  }
+}
+
+async function startArtemisaEngineCheck(){
+  if(artemisaEngineCheckPromise)return artemisaEngineCheckPromise;
+  for(const engine of ['INDRA','PADDLEOCR','TESSERACT']){
+    const current=artemisaEngineState[engine];
+    if(current?.status==='error')await resetArtemisaEngineForRetry(engine);
+    setArtemisaEngineStatus(engine,'checking','Comprobando carga y disponibilidad del motor…');
+  }
+  logEvent('AUTODIAGNÓSTICO ARTEMISA · iniciando comprobación automática de Indra, PaddleOCR y Tesseract','info');
+  artemisaEngineCheckPromise=(async()=>{
+    const results=await Promise.all([
+      initializeArtemisaEngine('INDRA'),
+      initializeArtemisaEngine('PADDLEOCR'),
+      initializeArtemisaEngine('TESSERACT')
+    ]);
+    const ok=results.filter(Boolean).length;
+    if(!queueRunning)setQueueText('Esperando');
+    logEvent(`AUTODIAGNÓSTICO ARTEMISA · finalizado · ${ok}/3 motores listos`,ok===3?'ok':'warn');
+    return results;
+  })().finally(()=>{artemisaEngineCheckPromise=null;updateArtemisaEngineSummary();});
+  return artemisaEngineCheckPromise;
+}
+
+async function retryArtemisaEngine(engine){
+  if(queueRunning)return;
+  await initializeArtemisaEngine(engine,{retry:true});
+  if(!queueRunning)setQueueText('Esperando');
+}
+
+async function retryFailedArtemisaEngines(){
+  if(queueRunning)return;
+  const failed=Object.entries(artemisaEngineState).filter(([,v])=>v.status==='error').map(([k])=>k);
+  if(!failed.length)return;
+  await Promise.all(failed.map(engine=>initializeArtemisaEngine(engine,{retry:true})));
+  if(!queueRunning)setQueueText('Esperando');
+}
+
 function chooseMode(mode){
   appMode=mode;
   document.body.classList.remove('homeMode');
@@ -2832,7 +3014,7 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.38 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.39 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
@@ -2844,7 +3026,8 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.38 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  logEvent('Modo NUEVA V1.39 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  startArtemisaEngineCheck();
 }
 
 function backToModes(){
@@ -5715,7 +5898,6 @@ function selectReviewEngine(engine,focusInput=false){
   const input=document.getElementById('jobReviewHumanGR');
   input.disabled=false;input.value=opt.value;
   renderReviewEngineChoices(item);
-  scheduleSessionSave();
   if(focusInput){setTimeout(()=>{input.focus();input.select();},0);}
 }
 
@@ -5779,10 +5961,10 @@ function openJobAudit(id){
   document.getElementById('jobReviewEditor').style.display='flex';
   document.getElementById('jobReviewSummary').style.display='none';
   const applyBtn=document.getElementById('jobReviewApplyBtn');
-  if(applyBtn){applyBtn.disabled=false;applyBtn.textContent='APLICAR AUDITORÍA';}
+  if(applyBtn){applyBtn.disabled=false;applyBtn.textContent='GUARDAR CAMBIOS';}
   showJobReviewItem();
-  scheduleSessionSave();
 }
+
 
 function openAllJobAudits(){
   if(queueRunning)return;
@@ -5808,9 +5990,10 @@ function openAllJobAudits(){
   document.getElementById('jobReviewEditor').style.display='flex';
   document.getElementById('jobReviewSummary').style.display='none';
   const applyBtn=document.getElementById('jobReviewApplyBtn');
-  if(applyBtn){applyBtn.disabled=false;applyBtn.textContent='APLICAR AUDITORÍA';}
-  showJobReviewItem();scheduleSessionSave();
+  if(applyBtn){applyBtn.disabled=false;applyBtn.textContent='GUARDAR CAMBIOS';}
+  showJobReviewItem();
 }
+
 
 function showJobReviewItem(){
   const st=jobReviewState;
@@ -5859,8 +6042,8 @@ function jobReviewNotGuideChanged(){
   if(checked){input.value='';item.humanReading='';item.selectedEngine=null;}
   else if(!input.value){input.value=item.previousReading||'';item.humanReading=input.value;}
   document.getElementById('jobReviewInlineError').textContent='';
-  scheduleSessionSave();
 }
+
 
 function saveCurrentJobReviewItem(){
   const st=jobReviewState;
@@ -5875,15 +6058,10 @@ function saveCurrentJobReviewItem(){
     return false;
   }
   if(err)err.textContent='';
+  // V1.39: la auditoría de Artemisa es transaccional.
+  // Mientras se revisa, solo se modifica jobReviewState; la página real no cambia
+  // hasta pulsar GUARDAR CAMBIOS en el resumen final.
   item.isOtherDocument=other;item.humanReading=other?'':value;item.reviewed=true;
-  if(item.pageRef){
-    item.pageRef.humanAudit={
-      previousReading:item.previousReading||'',humanReading:other?'':value,finalReading:other?'':value,
-      isOtherDocument:other,
-      result:other?'OTRO DOCUMENTO':(value===(item.previousReading||'')?'CONFIRMADA SIN CAMBIO':'CORREGIDA MANUALMENTE')
-    };
-  }
-  scheduleSessionSave();
   return true;
 }
 
@@ -5923,9 +6101,12 @@ function showJobReviewSummary(){
       <td class="${changed?'reviewChanged':'reviewSame'}">${item.isOtherDocument?'OTRO DOCUMENTO':(changed?'CORREGIDA MANUALMENTE':'CONFIRMADA SIN CAMBIO')}</td>`;
     body.appendChild(tr);
   }
+  const changedCount=jobReviewState.items.filter(x=>x.isOtherDocument||((x.previousReading||'')!==x.humanReading)).length;
+  const sameCount=jobReviewState.items.length-changedCount;
+  const decision=document.getElementById('jobReviewDecisionSummary');
+  if(decision)decision.textContent=`${jobReviewState.items.length} revisada(s) · ${changedCount} cambio(s) · ${sameCount} sin cambio`;
   const sumScroll=document.querySelector('#jobReviewSummary .reviewScrollArea');
   if(sumScroll)sumScroll.scrollTop=0;
-  scheduleSessionSave();
 }
 
 function jobReviewBackToEditor(){
@@ -5993,24 +6174,27 @@ async function applyJobReview(){
   }
 
   recalculateRecognitionStats();rebuildResultsTable();updateGlobalReviewButton();
-  logEvent(`AUDITORÍA HUMANA APLICADA · ${st.items.length} página(s) · ${touched.size} ruta(s)`,'ok');
+  logEvent(`AUDITORÍA ARTEMISA · CAMBIOS GUARDADOS · ${st.items.length} página(s) · ${touched.size} ruta(s)`,'ok');
   await saveSessionSnapshotNow();
-  const applyBtn=document.getElementById('jobReviewApplyBtn');if(applyBtn){applyBtn.disabled=true;applyBtn.textContent='AUDITORÍA APLICADA';}
+  const applyBtn=document.getElementById('jobReviewApplyBtn');if(applyBtn){applyBtn.disabled=true;applyBtn.textContent='CAMBIOS GUARDADOS';}
   closeJobReviewModal();
 }
 
 function closeJobReviewModal(){
-  if(jobReviewState.items.length && !jobReviewState.summary){
-    const item=jobReviewState.items[jobReviewState.index];
-    const other=!!document.getElementById('jobReviewNotGuide')?.checked;
-    const val=(document.getElementById('jobReviewHumanGR')?.value||'').trim().toUpperCase();
-    if(item && (other||/^T[A-Z0-9]+-\d+$/.test(val))){
-      item.isOtherDocument=other;item.humanReading=other?'':val;item.reviewed=true;
-    }
-  }
   document.getElementById('jobReviewModal').classList.remove('open');
-  scheduleSessionSave();updateGlobalReviewButton();
+  jobReviewState={jobId:null,items:[],index:0,summary:false};
+  updateGlobalReviewButton();
 }
+
+function discardJobReviewChanges(){
+  const count=jobReviewState.items?.length||0;
+  document.getElementById('jobReviewModal').classList.remove('open');
+  jobReviewState={jobId:null,items:[],index:0,summary:false};
+  logEvent(`AUDITORÍA ARTEMISA · salida sin guardar · ${count} revisión(es) provisionales descartadas · datos originales conservados`,'warn');
+  scheduleSessionSave();
+  updateGlobalReviewButton();
+}
+
 
 
 // ============================================================
@@ -6297,7 +6481,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.38 · automatizador Indra→Paddle→Tesseract condicional · marcadores PDF + auditoría histórica preservados","ok");
+logEvent("Sistema listo · V1.39 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + marcadores PDF + auditoría histórica preservados","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
