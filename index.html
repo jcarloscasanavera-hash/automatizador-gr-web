@@ -13,9 +13,6 @@
 {
   "imports": {
     "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort.min.mjs",
-    "js-yaml": "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm",
-    "clipper-lib": "https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/+esm",
-    "@techstark/opencv-js": "data:text/javascript,export%20default%20globalThis.cv%3B",
     "@qduc/easyocr-core": "https://cdn.jsdelivr.net/npm/@qduc/easyocr-core@0.1.3/dist/index.js"
   }
 }
@@ -514,7 +511,7 @@ th{background:#f1f3f4}
 @media(max-width:1180px){.homeFlow{grid-template-columns:1fr 34px 1fr 34px 1fr}.flowDescription{grid-column:1/-1;border-left:0;border-top:1px solid #bdd2e8;padding:16px 0 0}.homeModule{grid-template-columns:100px 1fr 56px;min-height:210px;padding:24px!important}.moduleIcon{width:88px;height:88px}.moduleIcon svg{width:56px;height:56px}.moduleCopy strong{font-size:23px!important}}
 @media(max-width:860px){.homeMode .app{padding:0 12px 18px}.homeHero{align-items:flex-start;flex-direction:column;padding:22px}.homeEngineLine{text-align:left}.homeFlow{grid-template-columns:1fr;gap:14px}.flowArrow{transform:rotate(90deg);height:24px}.flowDescription{grid-column:auto}.homeModules{grid-template-columns:1fr}.homeModule{grid-template-columns:82px 1fr 48px}.moduleIcon{width:72px;height:72px;border-radius:16px}.moduleIcon svg{width:46px;height:46px}.moduleCopy strong{font-size:21px!important}.moduleCopy>span:last-child{font-size:15px!important}.homeInfoStrip{grid-template-columns:1fr}.homeInfoStrip>div+div{border-left:0;border-top:1px solid #d7e4f2}}
 
-/* V1.40 · autodiagnóstico de motores al entrar a Artemisa. */
+/* V1.41 · autodiagnóstico de motores al entrar a Artemisa. */
 .engineHealthPanel{padding:16px 18px;margin-bottom:14px;border-left:5px solid #1a73e8}
 .engineHealthHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .engineHealthHead h3{margin:0 0 4px;font-size:17px}.engineHealthHead .muted{line-height:1.4}
@@ -539,7 +536,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>AUTOMATIZADOR GR WEB</h1>
-  <div class="muted"><strong>VERSIÓN 1.40 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.41 · AUTOMATIZADOR CON INDRA→PADDLE→TESSERACT + AUDITORÍA HISTÓRICA</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -554,7 +551,7 @@ th{background:#f1f3f4}
         <svg viewBox="0 0 64 64" role="img"><path d="M17 7h23l9 9v41H17z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M40 7v11h11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 29h18M24 37h14M24 45h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
       </div>
       <div>
-        <div class="homeTitleRow"><h1>AUTOMATIZADOR GR WEB</h1><span class="homeVersion">V1.40</span></div>
+        <div class="homeTitleRow"><h1>AUTOMATIZADOR GR WEB</h1><span class="homeVersion">V1.41</span></div>
         <div class="homeSubtitle">Lectura OCR · Renombrado · Control · Auditoría</div>
       </div>
     </div>
@@ -581,7 +578,7 @@ th{background:#f1f3f4}
       <span class="moduleIcon" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11M24 29h18M24 37h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M38 48l11-11 5 5-11 11-7 2z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
       </span>
-      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.40</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
+      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.41</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
       <span class="moduleGo">›</span>
     </button>
 
@@ -1113,7 +1110,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>AUTOMATIZADOR GR WEB · V1.40</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>AUTOMATIZADOR GR WEB · V1.41</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1150,7 +1147,7 @@ th{background:#f1f3f4}
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const APP_VERSION='1.40';
+const APP_VERSION='1.41';
 
 const {
   PDFDocument, PDFName, PDFHexString
@@ -1168,9 +1165,6 @@ let ocrWorkerInitPromise=null;
 let paddleOCR=null;
 let paddleOCRInitPromise=null;
 let paddleOCRLastError=null;
-let paddleOpenCvLoadPromise=null;
-let paddleOpenCvLastError=null;
-let paddleOpenCvScript=null;
 let paddleModuleImportAttempt=0;
 let appMode=null;
 let artemisaEngineCheckPromise=null;
@@ -1566,9 +1560,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1 V1.40: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
+  // PASADA 1 V1.41: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.40 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.41 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1604,7 +1598,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.40 · ${source.file.name} pág. ${pn} · `+
+        `V1.41 · ${source.file.name} pág. ${pn} · `+
         `Indra ${dual.indraSource||'P09'}=${dual.indra1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'} · `+
         `Tesseract ${dual.tesseractSource||'NO EJECUTADO'}=${dual.tesseract1||'NO EJECUTADO'}`,
@@ -1693,12 +1687,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.40 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.41 · ${pending.length} página(s) pasan a REVISAR. `+
       `Se exige coincidencia exacta de dos motores independientes; no se confirma por mayoría.`,
       'warn'
     );
   }else{
-    logEvent('V1.40 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
+    logEvent('V1.41 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -1902,70 +1896,14 @@ function detectFromTextLayer(content,page){
 // Las 4 lecturas deben ser idénticas. Cualquier duda => REVISAR.
 // ============================================================
 
-function paddleOpenCvBrowserUrls(){
-  return [
-    'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js',
-    'https://unpkg.com/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js'
-  ];
-}
+function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 
-function resetPaddleOpenCvBrowserLoader(){
-  paddleOpenCvLoadPromise=null;
-  paddleOpenCvLastError=null;
-  if(paddleOpenCvScript){
-    try{paddleOpenCvScript.remove()}catch(e){}
-    paddleOpenCvScript=null;
-  }
-  const old=document.getElementById('paddleOpenCvBrowserScript');
-  if(old){try{old.remove()}catch(e){}}
-  try{globalThis.cv=undefined}catch(e){}
-}
-
-function loadPaddleOpenCvClassicScript(url){
-  return new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    script.id='paddleOpenCvBrowserScript';
-    script.src=url;
-    script.async=true;
-    script.referrerPolicy='no-referrer';
-    script.onload=()=>{
-      if(globalThis.cv)resolve(globalThis.cv);
-      else reject(new Error('OpenCV se descargó pero no publicó el objeto global cv.'));
-    };
-    script.onerror=()=>reject(new Error(`No se pudo descargar OpenCV desde ${new URL(url).hostname}.`));
-    paddleOpenCvScript=script;
-    document.head.appendChild(script);
+function promiseWithTimeout(promise,ms,label){
+  let timer=null;
+  const timeout=new Promise((_,reject)=>{
+    timer=setTimeout(()=>reject(new Error(`${label} excedió ${Math.round(ms/1000)} s`)),ms);
   });
-}
-
-async function ensurePaddleOpenCvBrowser(){
-  if(globalThis.cv)return globalThis.cv;
-  if(paddleOpenCvLoadPromise)return paddleOpenCvLoadPromise;
-
-  paddleOpenCvLoadPromise=(async()=>{
-    const errors=[];
-    for(const url of paddleOpenCvBrowserUrls()){
-      try{
-        const previous=document.getElementById('paddleOpenCvBrowserScript');
-        if(previous){try{previous.remove()}catch(e){}}
-        paddleOpenCvScript=null;
-        const cv=await loadPaddleOpenCvClassicScript(url);
-        paddleOpenCvLastError=null;
-        logEvent(`PaddleOCR dependencia OpenCV browser lista · ${new URL(url).hostname}`,'ok');
-        return cv;
-      }catch(err){
-        errors.push(err?.message||String(err));
-      }
-    }
-    throw new Error(`OpenCV browser no disponible · ${errors.join(' | ')}`);
-  })().catch(err=>{
-    paddleOpenCvLastError=err?.message||String(err);
-    throw err;
-  }).finally(()=>{
-    paddleOpenCvLoadPromise=null;
-  });
-
-  return paddleOpenCvLoadPromise;
+  return Promise.race([promise,timeout]).finally(()=>{if(timer)clearTimeout(timer);});
 }
 
 async function getPaddleOCR(){
@@ -1977,13 +1915,13 @@ async function getPaddleOCR(){
     setQueueText('Inicializando PaddleOCR...');
     logEvent('Inicializando motor alternativo PaddleOCR PP-OCRv5 (EN)','info');
 
-    // V1.40: OpenCV se carga como build clásico de navegador. No se transforma
-    // mediante polyfills Node/unenv, evitando process.binding en Opera/Chromium.
-    await ensurePaddleOpenCvBrowser();
-
+    // V1.41: NO se precarga OpenCV como script clásico en el hilo principal.
+    // Esa estrategia de V1.40 podía bloquear Opera/Chromium durante la compilación.
+    // Se usan proveedores ESM que resuelven/bundlean las dependencias del SDK.
     const moduleUrls=[
-      'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/dist/index.mjs',
-      'https://unpkg.com/@paddleocr/paddleocr-js@0.4.2/dist/index.mjs'
+      'https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle',
+      'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm',
+      'https://esm.run/@paddleocr/paddleocr-js@0.4.2'
     ];
 
     let mod=null;
@@ -1991,10 +1929,15 @@ async function getPaddleOCR(){
     paddleModuleImportAttempt++;
 
     for(const baseUrl of moduleUrls){
-      const sep=baseUrl.includes('?')?'&':'?';
-      const url=`${baseUrl}${sep}artemisa=140r${paddleModuleImportAttempt}`;
       try{
-        const candidate=await import(url);
+        // El primer intento usa la URL exacta que funcionó en V1.22–V1.38.
+        // En reintentos se agrega un parámetro para no reutilizar un import fallido cacheado.
+        let url=baseUrl;
+        if(paddleModuleImportAttempt>1){
+          const sep=url.includes('?')?'&':'?';
+          url=`${url}${sep}artemisa=141r${paddleModuleImportAttempt}`;
+        }
+        const candidate=await promiseWithTimeout(import(url),20000,`Carga PaddleOCR desde ${new URL(baseUrl).hostname}`);
         if(candidate&&candidate.PaddleOCR){
           mod=candidate;
           logEvent(`PaddleOCR SDK ESM cargado · ${new URL(baseUrl).hostname}`,'ok');
@@ -2002,7 +1945,11 @@ async function getPaddleOCR(){
         }
         errors.push(`${new URL(baseUrl).hostname}: módulo sin exportación PaddleOCR`);
       }catch(err){
-        errors.push(`${new URL(baseUrl).hostname}: ${err?.message||String(err)}`);
+        const msg=err?.message||String(err);
+        errors.push(`${new URL(baseUrl).hostname}: ${msg}`);
+        logEvent(`PaddleOCR proveedor falló · ${new URL(baseUrl).hostname} · ${msg}`,'warn');
+        // Cede el hilo a la interfaz antes de intentar el siguiente proveedor.
+        await delay(60);
       }
     }
 
@@ -2010,8 +1957,8 @@ async function getPaddleOCR(){
       throw new Error(`No se pudo cargar el SDK de PaddleOCR · ${errors.join(' | ')}`);
     }
 
-    // Un solo hilo para no exigir cabeceras COOP/COEP en GitHub Pages.
-    paddleOCR=await mod.PaddleOCR.create({
+    // Conservamos exactamente PP-OCRv5 y la misma configuración de inferencia.
+    paddleOCR=await promiseWithTimeout(mod.PaddleOCR.create({
       lang:'en',
       ocrVersion:'PP-OCRv5',
       ortOptions:{
@@ -2020,7 +1967,7 @@ async function getPaddleOCR(){
         numThreads:1,
         simd:true
       }
-    });
+    }),30000,'Inicialización PaddleOCR PP-OCRv5');
 
     paddleOCRLastError=null;
     setQueueText('Procesando');
@@ -2332,7 +2279,7 @@ const OCR_PADDLE_FALLBACK={
 const OCR_TESSERACT_ONLY={
   id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
 };
-// V1.40 · cadena del automatizador con marcadores.
+// V1.41 · cadena del automatizador con marcadores.
 // Cada respaldo se ejecuta EXCLUSIVAMENTE si la primaria de ese mismo motor queda SIN LECTURA.
 const OCR_INDRA_PRIMARY={id:'P09',name:'INDRA P09 PRIMARIA',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'};
 const OCR_INDRA_FALLBACK={id:'P07',name:'INDRA P07 RESPALDO',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'};
@@ -2384,7 +2331,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
   const readings=[];
 
-  // V1.40 · ORDEN ESTRICTO SOLICITADO:
+  // V1.41 · ORDEN ESTRICTO SOLICITADO:
   // 1) Indra P09 → P07 solo si P09 queda SIN LECTURA.
   // 2) Paddle C06 → C09 solo si C06 queda SIN LECTURA.
   // 3) Tesseract C08 → P02 solo si Indra O Paddle termina SIN LECTURA.
@@ -3014,7 +2961,6 @@ async function resetArtemisaEngineForRetry(engine){
   if(engine==='PADDLEOCR'){
     if(paddleOCR){try{await paddleOCR.dispose()}catch(e){}}
     paddleOCR=null;paddleOCRInitPromise=null;paddleOCRLastError=null;
-    if(paddleOpenCvLastError||!globalThis.cv)resetPaddleOpenCvBrowserLoader();
     return;
   }
   if(engine==='INDRA'){
@@ -3057,11 +3003,13 @@ async function startArtemisaEngineCheck(){
   }
   logEvent('AUTODIAGNÓSTICO ARTEMISA · iniciando comprobación automática de Indra, PaddleOCR y Tesseract','info');
   artemisaEngineCheckPromise=(async()=>{
-    const results=await Promise.all([
-      initializeArtemisaEngine('INDRA'),
-      initializeArtemisaEngine('PADDLEOCR'),
-      initializeArtemisaEngine('TESSERACT')
-    ]);
+    // V1.41: inicialización secuencial para evitar picos simultáneos de WASM/ONNX/OpenCV.
+    const results=[];
+    results.push(await initializeArtemisaEngine('INDRA'));
+    await delay(80);
+    results.push(await initializeArtemisaEngine('TESSERACT'));
+    await delay(80);
+    results.push(await initializeArtemisaEngine('PADDLEOCR'));
     const ok=results.filter(Boolean).length;
     if(!queueRunning)setQueueText('Esperando');
     logEvent(`AUTODIAGNÓSTICO ARTEMISA · finalizado · ${ok}/3 motores listos`,ok===3?'ok':'warn');
@@ -3080,7 +3028,10 @@ async function retryFailedArtemisaEngines(){
   if(queueRunning)return;
   const failed=Object.entries(artemisaEngineState).filter(([,v])=>v.status==='error').map(([k])=>k);
   if(!failed.length)return;
-  await Promise.all(failed.map(engine=>initializeArtemisaEngine(engine,{retry:true})));
+  for(const engine of failed){
+    await initializeArtemisaEngine(engine,{retry:true});
+    await delay(80);
+  }
   if(!queueRunning)setQueueText('Esperando');
 }
 
@@ -3099,7 +3050,7 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.40 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.41 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
@@ -3111,8 +3062,8 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.40 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
-  startArtemisaEngineCheck();
+  logEvent('Modo NUEVA V1.41 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  requestAnimationFrame(()=>setTimeout(()=>{startArtemisaEngineCheck();},60));
 }
 
 function backToModes(){
@@ -6143,7 +6094,7 @@ function saveCurrentJobReviewItem(){
     return false;
   }
   if(err)err.textContent='';
-  // V1.40: la auditoría de Artemisa es transaccional.
+  // V1.41: la auditoría de Artemisa es transaccional.
   // Mientras se revisa, solo se modifica jobReviewState; la página real no cambia
   // hasta pulsar GUARDAR CAMBIOS en el resumen final.
   item.isOtherDocument=other;item.humanReading=other?'':value;item.reviewed=true;
@@ -6566,7 +6517,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.40 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + marcadores PDF + auditoría histórica preservados","ok");
+logEvent("Sistema listo · V1.41 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + marcadores PDF + auditoría histórica preservados","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
