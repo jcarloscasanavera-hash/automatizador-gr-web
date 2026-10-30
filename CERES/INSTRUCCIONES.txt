@@ -1,0 +1,57 @@
+CERES V1.0 — INSTALACIÓN Y PRIMERA PRUEBA
+OLIMPO · Solo lectura OCR de encabezados · INDRA
+
+QUÉ CONTIENE
+- CERES/index.html: aplicación web de pruebas independiente.
+- No altera ARTEMISA, ni el HTML principal de OLIMPO ni sus datos.
+- Requiere conexión a internet para cargar PDF.js y el motor/modelos INDRA.
+- Serie T596: perfil PROVISIONAL hasta obtener una guía representativa.
+- Ningún resultado OCR debe considerarse correcto sin revisión humana.
+
+OPCIÓN A: PROBAR CERES SIN INTEGRARLO A OLIMPO (RECOMENDADA)
+1. Extrae este ZIP en una carpeta de tu PC, por ejemplo C:\OLIMPO_PRUEBAS.
+2. Abre la subcarpeta CERES.
+3. Haz doble clic en index.html; usa Chrome, Edge u Opera.
+4. Presiona «Comprobar INDRA» y verifica «INDRA listo».
+5. Pulsa «Arrastra PDFs o imágenes» y selecciona varias guías; también puedes arrastrar archivos.
+6. Presiona «Procesar con INDRA» y espera a que termine el lote.
+7. En «Guías procesadas», selecciona una fila para revisar el recorte y los campos.
+8. Corrige los datos dudosos y presiona «Confirmar campos revisados» solo después de contrastarlos con la guía.
+9. Exporta «CSV» para abrir en Excel o «JSON + OCR» para auditoría.
+10. Guarda el CSV y el JSON en una carpeta de resultados fuera de CERES.
+
+SI INDRA NO INICIA AL ABRIR EL HTML
+- Confirma que el navegador esté conectado a internet y que las descargas externas no estén bloqueadas.
+- Revisa el «Registro del proceso» dentro de CERES.
+- Alternativa: abre la carpeta que contiene CERES con una terminal y, SI tienes Python instalado,
+  ejecuta: py -m http.server 8000
+  y abre http://localhost:8000/CERES/ en el navegador.
+- Si aparece un error, no interpretes la prueba como exitosa ni uses un OCR sustituto sin verificar.
+
+OPCIÓN B: AÑADIR UN ACCESO A CERES DESDE EL HTML DE OLIMPO
+1. Haz una COPIA DE SEGURIDAD del HTML principal de OLIMPO.
+2. Copia la carpeta CERES completa al directorio donde está el index.html principal de OLIMPO.
+3. Asegúrate de que la estructura sea:
+     OLIMPO/
+       index.html          (el archivo principal de OLIMPO, si existe)
+       CERES/
+         index.html        (este módulo independiente)
+4. Inserta en el menú de OLIMPO, si es HTML editable, un enlace equivalente a:
+     <a href="./CERES/index.html" target="_blank" rel="noopener">CERES · Encabezados GR</a>
+5. Guarda la copia modificada y prueba que el enlace abra CERES en otra pestaña.
+6. Verifica que el resto de OLIMPO y ARTEMISA sigan funcionando igual.
+
+IMPORTANTE SOBRE LA OPCIÓN B
+El enlace solo crea un ACCESO directo. No integra bases de datos, autenticación,
+almacenamiento ni lógica de ARTEMISA. La integración real depende de la arquitectura
+actual de OLIMPO y requiere trabajar sobre su código fuente.
+
+LIMITACIONES DE ESTA VERSIÓN
+- Lee solo la parte superior anterior al detalle de productos.
+- T611, T454, T596 (provisional) aprox. 31%; T192 y T132 aprox. 46%; TS32 aprox. 39%.
+- Campos que están debajo del detalle de productos quedan fuera del alcance de OCR.
+- Una página de un PDF se procesa como una guía independiente.
+- No guarda automáticamente resultados al cerrar o recargar el navegador: exporta antes de salir.
+- No se ha validado la extracción de encabezados con un banco de pruebas completo ni la ejecución
+  en tu equipo: «V1.0» describe la primera versión, NO una certificación de producción.
+- Requiere verificar licencias de dependencias/modelos antes de uso comercial.
