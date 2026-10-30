@@ -1,57 +1,63 @@
-CERES V1.0 — INSTALACIÓN Y PRIMERA PRUEBA
-OLIMPO · Solo lectura OCR de encabezados · INDRA
+CERES V1.1 — ACTUALIZACIÓN EN OLIMPO
 
-QUÉ CONTIENE
-- CERES/index.html: aplicación web de pruebas independiente.
-- No altera ARTEMISA, ni el HTML principal de OLIMPO ni sus datos.
-- Requiere conexión a internet para cargar PDF.js y el motor/modelos INDRA.
-- Serie T596: perfil PROVISIONAL hasta obtener una guía representativa.
-- Ningún resultado OCR debe considerarse correcto sin revisión humana.
+NOMBRE EXACTO DEL COMMIT EN GITHUB:
+CERES V1.1
 
-OPCIÓN A: PROBAR CERES SIN INTEGRARLO A OLIMPO (RECOMENDADA)
-1. Extrae este ZIP en una carpeta de tu PC, por ejemplo C:\OLIMPO_PRUEBAS.
-2. Abre la subcarpeta CERES.
-3. Haz doble clic en index.html; usa Chrome, Edge u Opera.
-4. Presiona «Comprobar INDRA» y verifica «INDRA listo».
-5. Pulsa «Arrastra PDFs o imágenes» y selecciona varias guías; también puedes arrastrar archivos.
-6. Presiona «Procesar con INDRA» y espera a que termine el lote.
-7. En «Guías procesadas», selecciona una fila para revisar el recorte y los campos.
-8. Corrige los datos dudosos y presiona «Confirmar campos revisados» solo después de contrastarlos con la guía.
-9. Exporta «CSV» para abrir en Excel o «JSON + OCR» para auditoría.
-10. Guarda el CSV y el JSON en una carpeta de resultados fuera de CERES.
+REPOSITORIO DE OLIMPO (SEGÚN LAS CAPTURAS COMPARTIDAS):
+https://github.com/jcarloscasanavera-hash/automatizador-gr-web
 
-SI INDRA NO INICIA AL ABRIR EL HTML
-- Confirma que el navegador esté conectado a internet y que las descargas externas no estén bloqueadas.
-- Revisa el «Registro del proceso» dentro de CERES.
-- Alternativa: abre la carpeta que contiene CERES con una terminal y, SI tienes Python instalado,
-  ejecuta: py -m http.server 8000
-  y abre http://localhost:8000/CERES/ en el navegador.
-- Si aparece un error, no interpretes la prueba como exitosa ni uses un OCR sustituto sin verificar.
+IMPORTANTE:
+- Esta actualización SOLO sustituye CERES/index.html y CERES/INSTRUCCIONES.txt.
+- NO sustituir el index.html que está en la RAÍZ del repositorio (ARTEMISA V1.41).
+- NO modificar estable.html, PRUEBAOCR20VARIANTES3M.html ni ningún otro módulo.
+- No subir PDFs comerciales al repositorio.
+- Conservar una copia de seguridad del estado anterior si se desea volver a V1.0.
 
-OPCIÓN B: AÑADIR UN ACCESO A CERES DESDE EL HTML DE OLIMPO
-1. Haz una COPIA DE SEGURIDAD del HTML principal de OLIMPO.
-2. Copia la carpeta CERES completa al directorio donde está el index.html principal de OLIMPO.
-3. Asegúrate de que la estructura sea:
-     OLIMPO/
-       index.html          (el archivo principal de OLIMPO, si existe)
-       CERES/
-         index.html        (este módulo independiente)
-4. Inserta en el menú de OLIMPO, si es HTML editable, un enlace equivalente a:
-     <a href="./CERES/index.html" target="_blank" rel="noopener">CERES · Encabezados GR</a>
-5. Guarda la copia modificada y prueba que el enlace abra CERES en otra pestaña.
-6. Verifica que el resto de OLIMPO y ARTEMISA sigan funcionando igual.
+ACTUALIZAR EN GITHUB (MISMO MÉTODO DE ARTEMISA):
+1. Descarga CERES_V1_1_PAQUETE.zip.
+2. En Windows, haz clic derecho al ZIP y selecciona «Extraer todo».
+3. Abre GitHub e ingresa al repositorio automatizador-gr-web, rama main.
+4. En la raíz del repositorio pulsa «Add file» > «Upload files».
+5. Arrastra la carpeta CERES COMPLETA desde la carpeta descomprimida.
+6. Verifica que SOLO se cambien estos dos archivos dentro de CERES:
+   CERES/index.html
+   CERES/INSTRUCCIONES.txt
+7. En Commit message escribe exactamente: CERES V1.1
+8. Confirma «Commit changes».
+9. Abre la aplicación desde:
+   https://jcarloscasanavera-hash.github.io/automatizador-gr-web/CERES/
+10. Actualiza la página mediante Ctrl+F5 y confirma que diga VERSIÓN 1.1.
 
-IMPORTANTE SOBRE LA OPCIÓN B
-El enlace solo crea un ACCESO directo. No integra bases de datos, autenticación,
-almacenamiento ni lógica de ARTEMISA. La integración real depende de la arquitectura
-actual de OLIMPO y requiere trabajar sobre su código fuente.
+NOVEDADES DE LA V1.1:
+- Elegir 1, 2 o 3 motores OCR para procesar.
+- Seleccionar motor 1, motor 2 y motor 3, con cualquier orden y sin repetir motores.
+- Orden predeterminado: 1 INDRA, 2 PaddleOCR, 3 Tesseract.
+- Con dos o tres seleccionados, el primer y segundo motor se ejecutan para leer y comparar el encabezado.
+- Si alguno de los dos NO identifica un número de GR completo, el tercer motor, si está seleccionado, entra como respaldo.
+- Si los dos primeros obtienen número de GR pero discrepan en cualquier campo no vacío, el resultado queda REVISAR y NO se ejecuta el tercer motor.
+- Si dos motores tienen lecturas útiles, se comparan campo a campo. Los campos diferentes se señalan.
+- Si los dos primeros tienen GR y coinciden, no se ejecuta el tercero; el resultado sigue «Por validar» hasta la revisión humana.
+- El estado de INDRA, PaddleOCR y Tesseract se comprueba automáticamente al abrir la página.
+- Cada motor muestra LISTO / ERROR y dispone de «Reconectar».
+- Botón «Recomprobar los tres motores».
+- CSV incluye orden de motores, comparaciones, discrepancias y activación del respaldo.
+- JSON conserva lecturas, errores y posiciones OCR por motor para auditoría.
 
-LIMITACIONES DE ESTA VERSIÓN
-- Lee solo la parte superior anterior al detalle de productos.
-- T611, T454, T596 (provisional) aprox. 31%; T192 y T132 aprox. 46%; TS32 aprox. 39%.
-- Campos que están debajo del detalle de productos quedan fuera del alcance de OCR.
-- Una página de un PDF se procesa como una guía independiente.
-- No guarda automáticamente resultados al cerrar o recargar el navegador: exporta antes de salir.
-- No se ha validado la extracción de encabezados con un banco de pruebas completo ni la ejecución
-  en tu equipo: «V1.0» describe la primera versión, NO una certificación de producción.
-- Requiere verificar licencias de dependencias/modelos antes de uso comercial.
+REGLAS DE SEGURIDAD Y PRECISIÓN:
+- El motor 3 nunca se usa como voto de mayoría si los dos primeros discrepan: debe revisar el usuario.
+- Una «lectura útil» implica que el motor detectó un número de GR completo de las series configuradas. Puede haber otros textos leídos, pero sin número completo se activa el respaldo.
+- «LISTO» en el autodiagnóstico significa MOTOR INICIALIZADO; no certifica que todos sus textos sean verdaderos.
+- No se procesan los ítems, sus códigos ni las secciones posteriores al detalle.
+- T596 continúa con perfil provisional por falta de PDF representativo.
+- La V1.1 es experimental; revisar contra las guías originales antes de usar comercialmente los datos.
+- La aplicación se ejecuta en el navegador. Requiere conexión a los CDN y repositorios de los modelos OCR.
+- Si aparece ERROR al abrir (o al procesar), pulsa «Reconectar» para ese motor. No se sustituye silenciosamente por otro.
+
+PRUEBA DE ACEPTACIÓN:
+A) Abre CERES V1.1 y verifica que los tres controles indiquen LISTO.
+B) Selecciona 3 motores: INDRA, PaddleOCR y Tesseract.
+C) Procesa dos GR de series distintas.
+D) Abre una fila de la tabla, comprueba el detalle de cada lectura y la concordancia.
+E) Confirma que el tercero se marque NO EJECUTADO cuando ambos primeros reconozcan el número de GR.
+F) Si aparece REVISAR, compara el campo discrepante con el documento.
+G) Exporta CSV y JSON y revisa las columnas de trazabilidad.
