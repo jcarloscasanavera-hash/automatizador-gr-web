@@ -1,63 +1,70 @@
-CERES V1.1 — ACTUALIZACIÓN EN OLIMPO
+CERES V1.2 — ACTUALIZACIÓN DE OLIMPO
 
-NOMBRE EXACTO DEL COMMIT EN GITHUB:
-CERES V1.1
+COMMIT EN GITHUB (NOMBRE EXACTO):
+CERES V1.2
 
-REPOSITORIO DE OLIMPO (SEGÚN LAS CAPTURAS COMPARTIDAS):
+REPOSITORIO DE OLIMPO:
 https://github.com/jcarloscasanavera-hash/automatizador-gr-web
 
+PÁGINA DE CERES:
+https://jcarloscasanavera-hash.github.io/automatizador-gr-web/CERES/
+
+INSTALACIÓN / ACTUALIZACIÓN PASO A PASO:
+1. Guarda CERES_V1_2_PAQUETE.zip y haz clic derecho en Windows -> «Extraer todo».
+2. Dentro de los archivos descomprimidos comprueba la carpeta «CERES» con:
+   - CERES/index.html
+   - CERES/INSTRUCCIONES.txt
+3. Abre el repositorio indicado arriba y verifica que estás en la rama «main».
+4. En la RAÍZ del repositorio selecciona «Add file» -> «Upload files».
+5. Arrastra la carpeta CERES COMPLETA, preservando sus rutas.
+6. Comprueba que SOLO se reemplazarán:
+   - /CERES/index.html
+   - /CERES/INSTRUCCIONES.txt
+   Si aparece /index.html en la raíz SIN /CERES/, CANCELA: sería ARTEMISA.
+7. En «Commit message» escribe exactamente: CERES V1.2
+8. Haz clic en «Commit changes» y comprueba que GitHub muestra la actualización.
+9. Abre la dirección pública de CERES indicada arriba.
+10. Presiona Ctrl + F5 para recargar los archivos nuevos y comprueba «VERSIÓN 1.2».
+
+CAMBIOS RESPECTO A CERES V1.1:
+- Autodiagnóstico automático de tres motores con ejecución SECUENCIAL y visible:
+  INDRA -> PaddleOCR -> Tesseract.
+- La página deja un intervalo para presentar el estado antes de cada inicialización.
+- Los otros motores indican EN ESPERA mientras se inicializa el que está en curso.
+- Procesar guías permanece deshabilitado durante el diagnóstico, para que no compita
+  con la inicialización de motores.
+- Continúan disponibles «Reconectar» para cada motor y «Recomprobar los tres motores».
+- La comprobación global reutiliza motores que ya están LISTO en vez de cargarlos de nuevo.
+- El registro de eventos conserva el historial íntegro DE LA SESIÓN en memoria y muestra
+  en pantalla los últimos 400 para que la interfaz no se ralentice.
+- Nuevos botones «Copiar eventos» y «Descargar registro TXT» para todo el historial.
+- Opción de desplazamiento automático del registro.
+- Mensajes adicionales con el resultado de las comparaciones y los fallos de la página.
+- Conserva el orden configurable de 1, 2 o 3 motores y la regla de respaldo condicional.
+- Conserva los recortes superiores, los seis perfiles, las correcciones manuales,
+  y exportaciones CSV/JSON de CERES V1.1.
+
 IMPORTANTE:
-- Esta actualización SOLO sustituye CERES/index.html y CERES/INSTRUCCIONES.txt.
-- NO sustituir el index.html que está en la RAÍZ del repositorio (ARTEMISA V1.41).
-- NO modificar estable.html, PRUEBAOCR20VARIANTES3M.html ni ningún otro módulo.
-- No subir PDFs comerciales al repositorio.
-- Conservar una copia de seguridad del estado anterior si se desea volver a V1.0.
+- La actualización solo cambia la carpeta CERES.
+- NO reemplaces index.html de la raíz (ARTEMISA), estable.html ni archivos de EFESTO.
+- Esta es una versión de PRUEBA y no debe considerarse validada para uso productivo.
+- El modo secuencial reduce el riesgo de saturación, pero si uno de los motores usa
+  demasiada memoria por sí solo, el navegador podría seguir sufriendo bloqueos.
+- La prueba de interfaz con modelos simulados pasó; los modelos OCR reales deben
+  verificarse en tu navegador con los PDFs de OLIMPO.
+- «LISTO» significa inicialización del motor, no precisión perfecta del reconocimiento.
+- Los motores leen solo la cabecera, no los productos.
+- Si un motor falla, espera a que finalice el diagnóstico y utiliza «Reconectar».
+- Si vuelve a haber un bloqueo, descarga el registro TXT y compártelo para diagnosticar.
+- Antes de cerrar o actualizar la página, exporta los resultados y el registro:
+  el historial de eventos no se guarda automáticamente entre sesiones.
 
-ACTUALIZAR EN GITHUB (MISMO MÉTODO DE ARTEMISA):
-1. Descarga CERES_V1_1_PAQUETE.zip.
-2. En Windows, haz clic derecho al ZIP y selecciona «Extraer todo».
-3. Abre GitHub e ingresa al repositorio automatizador-gr-web, rama main.
-4. En la raíz del repositorio pulsa «Add file» > «Upload files».
-5. Arrastra la carpeta CERES COMPLETA desde la carpeta descomprimida.
-6. Verifica que SOLO se cambien estos dos archivos dentro de CERES:
-   CERES/index.html
-   CERES/INSTRUCCIONES.txt
-7. En Commit message escribe exactamente: CERES V1.1
-8. Confirma «Commit changes».
-9. Abre la aplicación desde:
-   https://jcarloscasanavera-hash.github.io/automatizador-gr-web/CERES/
-10. Actualiza la página mediante Ctrl+F5 y confirma que diga VERSIÓN 1.1.
-
-NOVEDADES DE LA V1.1:
-- Elegir 1, 2 o 3 motores OCR para procesar.
-- Seleccionar motor 1, motor 2 y motor 3, con cualquier orden y sin repetir motores.
-- Orden predeterminado: 1 INDRA, 2 PaddleOCR, 3 Tesseract.
-- Con dos o tres seleccionados, el primer y segundo motor se ejecutan para leer y comparar el encabezado.
-- Si alguno de los dos NO identifica un número de GR completo, el tercer motor, si está seleccionado, entra como respaldo.
-- Si los dos primeros obtienen número de GR pero discrepan en cualquier campo no vacío, el resultado queda REVISAR y NO se ejecuta el tercer motor.
-- Si dos motores tienen lecturas útiles, se comparan campo a campo. Los campos diferentes se señalan.
-- Si los dos primeros tienen GR y coinciden, no se ejecuta el tercero; el resultado sigue «Por validar» hasta la revisión humana.
-- El estado de INDRA, PaddleOCR y Tesseract se comprueba automáticamente al abrir la página.
-- Cada motor muestra LISTO / ERROR y dispone de «Reconectar».
-- Botón «Recomprobar los tres motores».
-- CSV incluye orden de motores, comparaciones, discrepancias y activación del respaldo.
-- JSON conserva lecturas, errores y posiciones OCR por motor para auditoría.
-
-REGLAS DE SEGURIDAD Y PRECISIÓN:
-- El motor 3 nunca se usa como voto de mayoría si los dos primeros discrepan: debe revisar el usuario.
-- Una «lectura útil» implica que el motor detectó un número de GR completo de las series configuradas. Puede haber otros textos leídos, pero sin número completo se activa el respaldo.
-- «LISTO» en el autodiagnóstico significa MOTOR INICIALIZADO; no certifica que todos sus textos sean verdaderos.
-- No se procesan los ítems, sus códigos ni las secciones posteriores al detalle.
-- T596 continúa con perfil provisional por falta de PDF representativo.
-- La V1.1 es experimental; revisar contra las guías originales antes de usar comercialmente los datos.
-- La aplicación se ejecuta en el navegador. Requiere conexión a los CDN y repositorios de los modelos OCR.
-- Si aparece ERROR al abrir (o al procesar), pulsa «Reconectar» para ese motor. No se sustituye silenciosamente por otro.
-
-PRUEBA DE ACEPTACIÓN:
-A) Abre CERES V1.1 y verifica que los tres controles indiquen LISTO.
-B) Selecciona 3 motores: INDRA, PaddleOCR y Tesseract.
-C) Procesa dos GR de series distintas.
-D) Abre una fila de la tabla, comprueba el detalle de cada lectura y la concordancia.
-E) Confirma que el tercero se marque NO EJECUTADO cuando ambos primeros reconozcan el número de GR.
-F) Si aparece REVISAR, compara el campo discrepante con el documento.
-G) Exporta CSV y JSON y revisa las columnas de trazabilidad.
+PRUEBA DE ACEPTACIÓN EN OPERA:
+A) Abre CERES V1.2. Verifica que la interfaz responda durante el diagnóstico.
+B) Comprueba los estados de cada motor: «COMPROBANDO», luego «LISTO» o «ERROR», uno por vez.
+C) Si aparece ERROR, prueba «Reconectar» en ese motor.
+D) Carga dos guías de distintas series y procesa con motores 1 INDRA, 2 PaddleOCR,
+   3 Tesseract en respaldo.
+E) Revisa coincidencias y discrepancias. Si ambos primeros tienen número de GR pero
+   discrepan, el tercero no se ejecuta y se marca REVISAR.
+F) Descarga el TXT del historial completo y los resultados CSV/JSON.
