@@ -13,9 +13,6 @@
 {
   "imports": {
     "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort.min.mjs",
-    "js-yaml": "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm",
-    "clipper-lib": "https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/+esm",
-    "@techstark/opencv-js": "data:text/javascript,export%20default%20globalThis.cv%3B",
     "@qduc/easyocr-core": "https://cdn.jsdelivr.net/npm/@qduc/easyocr-core@0.1.3/dist/index.js"
   }
 }
@@ -1168,9 +1165,6 @@ let ocrWorkerInitPromise=null;
 let paddleOCR=null;
 let paddleOCRInitPromise=null;
 let paddleOCRLastError=null;
-let paddleOpenCvLoadPromise=null;
-let paddleOpenCvLastError=null;
-let paddleOpenCvScript=null;
 let paddleModuleImportAttempt=0;
 let appMode=null;
 let artemisaEngineCheckPromise=null;
@@ -1902,70 +1896,14 @@ function detectFromTextLayer(content,page){
 // Las 4 lecturas deben ser idénticas. Cualquier duda => REVISAR.
 // ============================================================
 
-function paddleOpenCvBrowserUrls(){
-  return [
-    'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js',
-    'https://unpkg.com/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js'
-  ];
-}
+function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 
-function resetPaddleOpenCvBrowserLoader(){
-  paddleOpenCvLoadPromise=null;
-  paddleOpenCvLastError=null;
-  if(paddleOpenCvScript){
-    try{paddleOpenCvScript.remove()}catch(e){}
-    paddleOpenCvScript=null;
-  }
-  const old=document.getElementById('paddleOpenCvBrowserScript');
-  if(old){try{old.remove()}catch(e){}}
-  try{globalThis.cv=undefined}catch(e){}
-}
-
-function loadPaddleOpenCvClassicScript(url){
-  return new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    script.id='paddleOpenCvBrowserScript';
-    script.src=url;
-    script.async=true;
-    script.referrerPolicy='no-referrer';
-    script.onload=()=>{
-      if(globalThis.cv)resolve(globalThis.cv);
-      else reject(new Error('OpenCV se descargó pero no publicó el objeto global cv.'));
-    };
-    script.onerror=()=>reject(new Error(`No se pudo descargar OpenCV desde ${new URL(url).hostname}.`));
-    paddleOpenCvScript=script;
-    document.head.appendChild(script);
+function promiseWithTimeout(promise,ms,label){
+  let timer=null;
+  const timeout=new Promise((_,reject)=>{
+    timer=setTimeout(()=>reject(new Error(`${label} excedió ${Math.round(ms/1000)} s`)),ms);
   });
-}
-
-async function ensurePaddleOpenCvBrowser(){
-  if(globalThis.cv)return globalThis.cv;
-  if(paddleOpenCvLoadPromise)return paddleOpenCvLoadPromise;
-
-  paddleOpenCvLoadPromise=(async()=>{
-    const errors=[];
-    for(const url of paddleOpenCvBrowserUrls()){
-      try{
-        const previous=document.getElementById('paddleOpenCvBrowserScript');
-        if(previous){try{previous.remove()}catch(e){}}
-        paddleOpenCvScript=null;
-        const cv=await loadPaddleOpenCvClassicScript(url);
-        paddleOpenCvLastError=null;
-        logEvent(`PaddleOCR dependencia OpenCV browser lista · ${new URL(url).hostname}`,'ok');
-        return cv;
-      }catch(err){
-        errors.push(err?.message||String(err));
-      }
-    }
-    throw new Error(`OpenCV browser no disponible · ${errors.join(' | ')}`);
-  })().catch(err=>{
-    paddleOpenCvLastError=err?.message||String(err);
-    throw err;
-  }).finally(()=>{
-    paddleOpenCvLoadPromise=null;
-  });
-
-  return paddleOpenCvLoadPromise;
+  return Promise.race([promise,timeout]).finally(()=>{if(timer)clearTimeout(timer);});
 }
 
 async function getPaddleOCR(){
@@ -1977,13 +1915,13 @@ async function getPaddleOCR(){
     setQueueText('Inicializando PaddleOCR...');
     logEvent('Inicializando motor alternativo PaddleOCR PP-OCRv5 (EN)','info');
 
-    // V1.42 · comportamiento preservado de V1.41: OpenCV se carga como build clásico de navegador. No se transforma
-    // mediante polyfills Node/unenv, evitando process.binding en Opera/Chromium.
-    await ensurePaddleOpenCvBrowser();
-
+    // V1.42: NO se precarga OpenCV como script clásico en el hilo principal.
+    // Esa estrategia de V1.40 podía bloquear Opera/Chromium durante la compilación.
+    // Se usan proveedores ESM que resuelven/bundlean las dependencias del SDK.
     const moduleUrls=[
       'https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle',
-      'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm'
+      'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm',
+      'https://esm.run/@paddleocr/paddleocr-js@0.4.2'
     ];
 
     let mod=null;
@@ -1991,22 +1929,27 @@ async function getPaddleOCR(){
     paddleModuleImportAttempt++;
 
     for(const baseUrl of moduleUrls){
-      const sep=baseUrl.includes('?')?'&':'?';
-      const url=`${baseUrl}${sep}artemisa=141r${paddleModuleImportAttempt}`;
       try{
-        const candidate=await import(url);
+        // El primer intento usa la URL exacta que funcionó en V1.22–V1.38.
+        // En reintentos se agrega un parámetro para no reutilizar un import fallido cacheado.
+        let url=baseUrl;
+        if(paddleModuleImportAttempt>1){
+          const sep=url.includes('?')?'&':'?';
+          url=`${url}${sep}artemisa=141r${paddleModuleImportAttempt}`;
+        }
+        const candidate=await promiseWithTimeout(import(url),20000,`Carga PaddleOCR desde ${new URL(baseUrl).hostname}`);
         if(candidate&&candidate.PaddleOCR){
           mod=candidate;
           logEvent(`PaddleOCR SDK ESM cargado · ${new URL(baseUrl).hostname}`,'ok');
           break;
         }
-        const msg='módulo sin exportación PaddleOCR';
-        errors.push(`${new URL(baseUrl).hostname}: ${msg}`);
-        logEvent(`PaddleOCR proveedor falló · ${new URL(baseUrl).hostname} · ${msg}`,'warn');
+        errors.push(`${new URL(baseUrl).hostname}: módulo sin exportación PaddleOCR`);
       }catch(err){
         const msg=err?.message||String(err);
         errors.push(`${new URL(baseUrl).hostname}: ${msg}`);
         logEvent(`PaddleOCR proveedor falló · ${new URL(baseUrl).hostname} · ${msg}`,'warn');
+        // Cede el hilo a la interfaz antes de intentar el siguiente proveedor.
+        await delay(60);
       }
     }
 
@@ -2014,8 +1957,8 @@ async function getPaddleOCR(){
       throw new Error(`No se pudo cargar el SDK de PaddleOCR · ${errors.join(' | ')}`);
     }
 
-    // Un solo hilo para no exigir cabeceras COOP/COEP en GitHub Pages.
-    paddleOCR=await mod.PaddleOCR.create({
+    // Conservamos exactamente PP-OCRv5 y la misma configuración de inferencia.
+    paddleOCR=await promiseWithTimeout(mod.PaddleOCR.create({
       lang:'en',
       ocrVersion:'PP-OCRv5',
       ortOptions:{
@@ -2024,7 +1967,7 @@ async function getPaddleOCR(){
         numThreads:1,
         simd:true
       }
-    });
+    }),30000,'Inicialización PaddleOCR PP-OCRv5');
 
     paddleOCRLastError=null;
     setQueueText('Procesando');
@@ -3018,7 +2961,6 @@ async function resetArtemisaEngineForRetry(engine){
   if(engine==='PADDLEOCR'){
     if(paddleOCR){try{await paddleOCR.dispose()}catch(e){}}
     paddleOCR=null;paddleOCRInitPromise=null;paddleOCRLastError=null;
-    if(paddleOpenCvLastError||!globalThis.cv)resetPaddleOpenCvBrowserLoader();
     return;
   }
   if(engine==='INDRA'){
@@ -3061,11 +3003,13 @@ async function startArtemisaEngineCheck(){
   }
   logEvent('AUTODIAGNÓSTICO ARTEMISA · iniciando comprobación automática de Indra, PaddleOCR y Tesseract','info');
   artemisaEngineCheckPromise=(async()=>{
-    const results=await Promise.all([
-      initializeArtemisaEngine('INDRA'),
-      initializeArtemisaEngine('PADDLEOCR'),
-      initializeArtemisaEngine('TESSERACT')
-    ]);
+    // V1.42: inicialización secuencial para evitar picos simultáneos de WASM/ONNX/OpenCV.
+    const results=[];
+    results.push(await initializeArtemisaEngine('INDRA'));
+    await delay(80);
+    results.push(await initializeArtemisaEngine('TESSERACT'));
+    await delay(80);
+    results.push(await initializeArtemisaEngine('PADDLEOCR'));
     const ok=results.filter(Boolean).length;
     if(!queueRunning)setQueueText('Esperando');
     logEvent(`AUTODIAGNÓSTICO ARTEMISA · finalizado · ${ok}/3 motores listos`,ok===3?'ok':'warn');
@@ -3084,7 +3028,10 @@ async function retryFailedArtemisaEngines(){
   if(queueRunning)return;
   const failed=Object.entries(artemisaEngineState).filter(([,v])=>v.status==='error').map(([k])=>k);
   if(!failed.length)return;
-  await Promise.all(failed.map(engine=>initializeArtemisaEngine(engine,{retry:true})));
+  for(const engine of failed){
+    await initializeArtemisaEngine(engine,{retry:true});
+    await delay(80);
+  }
   if(!queueRunning)setQueueText('Esperando');
 }
 
@@ -3116,7 +3063,7 @@ function chooseMode(mode){
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
   logEvent('Modo NUEVA V1.42 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
-  startArtemisaEngineCheck();
+  requestAnimationFrame(()=>setTimeout(()=>{startArtemisaEngineCheck();},60));
 }
 
 function backToModes(){
