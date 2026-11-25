@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script type="importmap">
 {
   "imports": {
@@ -511,7 +512,7 @@ th{background:#f1f3f4}
 @media(max-width:1180px){.homeFlow{grid-template-columns:1fr 34px 1fr 34px 1fr}.flowDescription{grid-column:1/-1;border-left:0;border-top:1px solid #bdd2e8;padding:16px 0 0}.homeModule{grid-template-columns:100px 1fr 56px;min-height:210px;padding:24px!important}.moduleIcon{width:88px;height:88px}.moduleIcon svg{width:56px;height:56px}.moduleCopy strong{font-size:23px!important}}
 @media(max-width:860px){.homeMode .app{padding:0 12px 18px}.homeHero{align-items:flex-start;flex-direction:column;padding:22px}.homeEngineLine{text-align:left}.homeFlow{grid-template-columns:1fr;gap:14px}.flowArrow{transform:rotate(90deg);height:24px}.flowDescription{grid-column:auto}.homeModules{grid-template-columns:1fr}.homeModule{grid-template-columns:82px 1fr 48px}.moduleIcon{width:72px;height:72px;border-radius:16px}.moduleIcon svg{width:46px;height:46px}.moduleCopy strong{font-size:21px!important}.moduleCopy>span:last-child{font-size:15px!important}.homeInfoStrip{grid-template-columns:1fr}.homeInfoStrip>div+div{border-left:0;border-top:1px solid #d7e4f2}}
 
-/* V1.43 · autodiagnóstico de motores al entrar a Artemisa. */
+/* V1.44 · autodiagnóstico de motores al entrar a Artemisa. */
 .engineHealthPanel{padding:16px 18px;margin-bottom:14px;border-left:5px solid #1a73e8}
 .engineHealthHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .engineHealthHead h3{margin:0 0 4px;font-size:17px}.engineHealthHead .muted{line-height:1.4}
@@ -536,7 +537,7 @@ th{background:#f1f3f4}
 
 <div class="card header">
   <h1>ARTEMISA / OLIMPO</h1>
-  <div class="muted"><strong>VERSIÓN 1.43 · ARTEMISA · EXTRACCIÓN Y AUDITORÍA OCR</strong></div>
+  <div class="muted"><strong>VERSIÓN 1.44 · ARTEMISA · EXTRACCIÓN Y AUDITORÍA OCR</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -551,7 +552,7 @@ th{background:#f1f3f4}
         <svg viewBox="0 0 64 64" role="img"><path d="M17 7h23l9 9v41H17z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M40 7v11h11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 29h18M24 37h14M24 45h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
       </div>
       <div>
-        <div class="homeTitleRow"><h1>ARTEMISA / OLIMPO</h1><span class="homeVersion">V1.43</span></div>
+        <div class="homeTitleRow"><h1>ARTEMISA / OLIMPO</h1><span class="homeVersion">V1.44</span></div>
         <div class="homeSubtitle">Lectura OCR · Renombrado · Control · Auditoría</div>
       </div>
     </div>
@@ -578,7 +579,7 @@ th{background:#f1f3f4}
       <span class="moduleIcon" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11M24 29h18M24 37h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M38 48l11-11 5 5-11 11-7 2z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
       </span>
-      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.43</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
+      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.44</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
       <span class="moduleGo">›</span>
     </button>
 
@@ -1110,7 +1111,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>ARTEMISA / OLIMPO · V1.43</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>ARTEMISA / OLIMPO · V1.44</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1147,7 +1148,7 @@ th{background:#f1f3f4}
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const APP_VERSION='1.43';
+const APP_VERSION='1.44';
 
 const {
   PDFDocument, PDFName, PDFHexString
@@ -1262,17 +1263,17 @@ function addJob(){
       </div>
 
       <div>
-        <label>CARPETA DESTINO</label>
+        <label>CARPETA DESTINO (OPCIONAL)</label>
         <div class="filebox">
           <div class="filelist dropzone" id="folder-${id}" style="max-height:39px"
             ondragover="folderDragOver(event,${id})"
             ondragleave="folderDragLeave(event,${id})"
             ondrop="folderDrop(event,${id})"
-            title="Selecciona o arrastra aquí la carpeta destino">Ninguna carpeta seleccionada · selecciona o arrastra aquí</div>
+            title="Opcional: selecciona/arrastra una carpeta o usa modo descarga">Sin carpeta · modo descarga disponible</div>
           <button class="light" onclick="pickFolder(${id})">SELECCIONAR</button>
           <button class="light" id="folderauth-${id}" style="display:none" onclick="authorizeDroppedFolder(${id})">AUTORIZAR</button>
         </div>
-        <div class="small muted fileHint" id="folderhint-${id}">Puedes seleccionar la carpeta o arrastrarla aquí desde el Explorador.</div>
+        <div class="small muted fileHint" id="folderhint-${id}">Opcional. Con carpeta: guarda directo. Sin carpeta: ARTEMISA descarga los resultados.</div>
       </div>
 
       <div>
@@ -1306,9 +1307,9 @@ function addJob(){
 
     <div class="actions" id="actions-${id}">
       <button class="amber" id="jobAuditBtn-${id}" onclick="openJobAudit(${id})" style="display:none">AUDITAR REVISAR (0)</button>
-      <button class="green" onclick="saveMaster(${id})">GUARDAR CONSOLIDADO</button>
-      <button class="light" onclick="splitEveryPage(${id})">DIVIDIR CADA PÁGINA</button>
-      <button class="primary" onclick="groupByGR(${id})">AGRUPAR POR GR</button>
+      <button class="green" onclick="saveMaster(${id})">GUARDAR / DESCARGAR CONSOLIDADO</button>
+      <button class="light" onclick="splitEveryPage(${id})">DIVIDIR / DESCARGAR PÁGINAS</button>
+      <button class="primary" onclick="groupByGR(${id})">AGRUPAR / DESCARGAR POR GR</button>
     </div>
   `;
 
@@ -1397,6 +1398,23 @@ function acceptFolderHandle(id,h,source='selector'){
   return true;
 }
 
+function activateDownloadMode(id,reason='selector no disponible'){
+  const job=jobs.get(id);if(!job)return;
+  job.folder=null;
+  job.pendingFolder=null;
+  folderAuthButton(id,false);
+  const box=document.getElementById(`folder-${id}`);
+  if(box){
+    box.textContent='SIN CARPETA · MODO DESCARGA';
+    box.title='Los resultados se descargarán desde el navegador';
+    box.classList.remove('dragover');
+  }
+  folderHint(id,'Modo descarga activo · no necesitas carpeta destino. Los resultados se descargarán al finalizar.');
+  checkReady(id);
+  scheduleSessionSave();
+  logEvent(`CARPETA DESTINO · MODO DESCARGA ACTIVO · ${reason}`,'warn');
+}
+
 async function ensureWritePermission(h,{request=true}={}){
   try{
     const opts={mode:'readwrite'};
@@ -1421,8 +1439,8 @@ async function pickFolder(id){
   logEvent('CARPETA DESTINO · abriendo selector nativo','info');
 
   if(!window.showDirectoryPicker){
-    logEvent('CARPETA DESTINO · selector nativo no disponible · usa arrastrar carpeta','warn');
-    folderHint(id,'Este navegador no ofrece selector escribible. Arrastra aquí la carpeta desde el Explorador.',true);
+    logEvent('CARPETA DESTINO · selector nativo no disponible','warn');
+    activateDownloadMode(id,'API showDirectoryPicker no disponible');
     return;
   }
 
@@ -1446,9 +1464,9 @@ async function pickFolder(id){
     // Chromium 157 en Windows puede devolver AbortError incluso después de escoger una carpeta.
     // No bloqueamos el trabajo: se ofrece un camino que obtiene el mismo DirectoryHandle por arrastre.
     if(name==='AbortError'){
-      folderHint(id,'El navegador no entregó la carpeta. Arrástrala aquí desde el Explorador para continuar.',true);
+      activateDownloadMode(id,'selector nativo abortado por el navegador');
     }else{
-      folderHint(id,`No se pudo abrir la carpeta (${name}). Arrástrala aquí desde el Explorador.`,true);
+      activateDownloadMode(id,`selector nativo falló · ${name}`);
     }
   }
 }
@@ -1491,8 +1509,8 @@ async function folderDrop(ev,id){
 
   if(!handle){
     const detail=lastError?` · ${lastError?.name||'Error'}: ${lastError?.message||lastError}`:'';
-    logEvent(`CARPETA DESTINO · no se obtuvo un DirectoryHandle desde el arrastre${detail}`,'err');
-    folderHint(id,'No se detectó una carpeta escribible. Arrastra la carpeta completa desde Windows Explorer.',true);
+    logEvent(`CARPETA DESTINO · no se obtuvo un DirectoryHandle desde el arrastre${detail}`,'warn');
+    activateDownloadMode(id,'arrastre sin DirectoryHandle escribible');
     return;
   }
 
@@ -1538,10 +1556,11 @@ function checkReady(id){
   const j=jobs.get(id);
   const el=document.getElementById(`status-${id}`);
 
-  const ready=!!(j.name && j.files.length && j.folder && j.dpi);
+  // V1.44: carpeta destino opcional. El OCR puede procesar en memoria y descargar resultados.
+  const ready=!!(j.name && j.files.length && j.dpi);
 
   j.status=ready?'Listo':'Incompleto';
-  el.textContent=ready?'LISTO':'INCOMPLETO';
+  el.textContent=ready?(j.folder?'LISTO':'LISTO · DESCARGA'):'INCOMPLETO';
   el.className=`status ${ready?'st-ready':'st-wait'}`;
 
   updateSummary();
@@ -1691,9 +1710,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1 V1.43: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
+  // PASADA 1 V1.44: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.43 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.44 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1729,7 +1748,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.43 · ${source.file.name} pág. ${pn} · `+
+        `V1.44 · ${source.file.name} pág. ${pn} · `+
         `Indra ${dual.indraSource||'P09'}=${dual.indra1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'} · `+
         `Tesseract ${dual.tesseractSource||'NO EJECUTADO'}=${dual.tesseract1||'NO EJECUTADO'}`,
@@ -1818,12 +1837,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.43 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.44 · ${pending.length} página(s) pasan a REVISAR. `+
       `Se exige coincidencia exacta de dos motores independientes; no se confirma por mayoría.`,
       'warn'
     );
   }else{
-    logEvent('V1.43 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
+    logEvent('V1.44 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -2046,7 +2065,7 @@ async function getPaddleOCR(){
     setQueueText('Inicializando PaddleOCR...');
     logEvent('Inicializando motor alternativo PaddleOCR PP-OCRv5 (EN)','info');
 
-    // V1.43 preserva la estrategia anti-bloqueo introducida en V1.41:
+    // V1.44 preserva la estrategia anti-bloqueo introducida en V1.41:
     // no se precarga OpenCV como script clásico en el hilo principal.
     const moduleUrls=[
       'https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle',
@@ -2405,7 +2424,7 @@ const OCR_PADDLE_FALLBACK={
 const OCR_TESSERACT_ONLY={
   id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
 };
-// V1.43 · cadena del automatizador con marcadores.
+// V1.44 · cadena del automatizador con marcadores.
 // Cada respaldo se ejecuta EXCLUSIVAMENTE si la primaria de ese mismo motor queda SIN LECTURA.
 const OCR_INDRA_PRIMARY={id:'P09',name:'INDRA P09 PRIMARIA',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'};
 const OCR_INDRA_FALLBACK={id:'P07',name:'INDRA P07 RESPALDO',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'};
@@ -2457,7 +2476,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
   const readings=[];
 
-  // V1.43 · ORDEN ESTRICTO SOLICITADO:
+  // V1.44 · ORDEN ESTRICTO SOLICITADO:
   // 1) Indra P09 → P07 solo si P09 queda SIN LECTURA.
   // 2) Paddle C06 → C09 solo si C06 queda SIN LECTURA.
   // 3) Tesseract C08 → P02 solo si Indra O Paddle termina SIN LECTURA.
@@ -2624,7 +2643,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
 
   const suggested=agreement||iValue||pValue||tValue||deriveSuggestedFromReadings(readings)||null;
 
-  // V1.43: la revisión humana muestra el recorte de un motor que SÍ obtuvo lectura.
+  // V1.44: la revisión humana muestra el recorte de un motor que SÍ obtuvo lectura.
   // Solo si ningún motor leyó una GR se usa el recorte general de la página.
   const previewCandidates=[
     {engine:'INDRA',value:iValue,built:indraFinalBuilt,read:null},
@@ -2813,6 +2832,42 @@ function addBookmarks(pdfDoc,items){
   pdfDoc.catalog.set(PDFName.of('PageMode'),PDFName.of('UseOutlines'));
 }
 
+
+function downloadBlobFile(name,blob){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=name;
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
+}
+
+function downloadBytesFile(name,bytes,mime='application/pdf'){
+  const blob=bytes instanceof Blob?bytes:new Blob([bytes],{type:mime});
+  downloadBlobFile(name,blob);
+}
+
+function uniqueArchiveName(used,name){
+  let candidate=name;
+  let n=2;
+  const dot=name.toLowerCase().endsWith('.pdf')?name.length-4:-1;
+  const base=dot>=0?name.slice(0,dot):name;
+  const ext=dot>=0?'.pdf':'';
+  while(used.has(candidate.toLowerCase()))candidate=`${base}_${n++}${ext}`;
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+async function downloadZipArchive(name,files){
+  if(typeof JSZip==='undefined')throw new Error('JSZip no disponible para crear el paquete de descarga');
+  const zip=new JSZip();
+  for(const f of files)zip.file(f.name,f.bytes);
+  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+  downloadBlobFile(name,blob);
+}
+
 async function saveMaster(id){
   const job=jobs.get(id);
 
@@ -2823,9 +2878,15 @@ async function saveMaster(id){
 
   const name=`${safeName(job.name)}_CONSOLIDADO_${job.dpi}DPI.pdf`;
 
-  await writeUnique(job.folder,name,job.masterBytes);
-
-  alert(`Consolidado guardado:\n${name}`);
+  if(job.folder){
+    await writeUnique(job.folder,name,job.masterBytes);
+    logEvent(`SALIDA · consolidado guardado en carpeta · ${name}`,'ok');
+    alert(`Consolidado guardado:
+${name}`);
+  }else{
+    downloadBytesFile(name,job.masterBytes);
+    logEvent(`SALIDA · consolidado descargado · ${name}`,'ok');
+  }
 }
 
 async function splitEveryPage(id){
@@ -2837,29 +2898,38 @@ async function splitEveryPage(id){
   }
 
   setJobStatus(id,'DIVIDIENDO','st-run');
-
   const src=await PDFDocument.load(job.masterBytes);
+  const downloadable=[];
+  const used=new Set();
 
   for(let i=0;i<job.pages.length;i++){
     await waitIfPaused();
-
     if(cancelRequested)break;
 
     const out=await PDFDocument.create();
     const [p]=await out.copyPages(src,[job.pages[i].pageIndex]);
     out.addPage(p);
-
     const bytes=await out.save({useObjectStreams:true});
-    const name=`${safeName(job.pages[i].marker)}.pdf`;
+    const baseName=`${safeName(job.pages[i].marker)}.pdf`;
 
-    await writeUnique(job.folder,name,bytes);
+    if(job.folder){
+      await writeUnique(job.folder,baseName,bytes);
+    }else{
+      downloadable.push({name:uniqueArchiveName(used,baseName),bytes});
+    }
 
-    document.getElementById(`pt-${id}`).textContent=
-      `Dividiendo ${i+1} / ${job.pages.length}`;
+    document.getElementById(`pt-${id}`).textContent=`Dividiendo ${i+1} / ${job.pages.length}`;
+  }
+
+  if(!job.folder && downloadable.length){
+    const zipName=`${safeName(job.name)}_PAGINAS.zip`;
+    document.getElementById(`pt-${id}`).textContent='Preparando ZIP de páginas…';
+    await downloadZipArchive(zipName,downloadable);
+    logEvent(`SALIDA · páginas descargadas en ZIP · ${zipName} · ${downloadable.length} PDF`,'ok');
   }
 
   setJobStatus(id,'FINALIZADO','st-done');
-  document.getElementById(`pt-${id}`).textContent='División por página terminada.';
+  document.getElementById(`pt-${id}`).textContent=job.folder?'División por página terminada.':'División terminada · ZIP descargado.';
 }
 
 async function groupByGR(id){
@@ -2871,13 +2941,8 @@ async function groupByGR(id){
   }
 
   setJobStatus(id,'AGRUPANDO','st-run');
-
   const src=await PDFDocument.load(job.masterBytes);
-
-  // GR válidas agrupadas por baseGR.
   const groups=new Map();
-
-  // VERIFICAR y OTRO DOCUMENTO siempre independientes.
   const verifies=[];
 
   for(const p of job.pages){
@@ -2893,41 +2958,46 @@ async function groupByGR(id){
 
   let done=0;
   const total=groups.size+verifies.length;
+  const downloadable=[];
+  const used=new Set();
 
   for(const [gr,indexes] of groups.entries()){
     const out=await PDFDocument.create();
     const pages=await out.copyPages(src,indexes);
-
     for(const p of pages)out.addPage(p);
-
     const bytes=await out.save({useObjectStreams:true});
+    const baseName=`${safeName(gr)}.pdf`;
 
-    // Si ya existe de una ejecución anterior:
-    // GR.pdf, GR_2.pdf, GR_3.pdf...
-    await writeUnique(job.folder,`${safeName(gr)}.pdf`,bytes);
+    if(job.folder)await writeUnique(job.folder,baseName,bytes);
+    else downloadable.push({name:uniqueArchiveName(used,baseName),bytes});
 
     done++;
-    document.getElementById(`pt-${id}`).textContent=
-      `Agrupando ${done} / ${total}`;
+    document.getElementById(`pt-${id}`).textContent=`Agrupando ${done} / ${total}`;
   }
 
-  // VERIFICAR nunca se agrupa.
   for(const v of verifies){
     const out=await PDFDocument.create();
     const [p]=await out.copyPages(src,[v.pageIndex]);
     out.addPage(p);
-
     const bytes=await out.save({useObjectStreams:true});
+    const baseName=`${safeName(v.marker)}.pdf`;
 
-    await writeUnique(job.folder,`${safeName(v.marker)}.pdf`,bytes);
+    if(job.folder)await writeUnique(job.folder,baseName,bytes);
+    else downloadable.push({name:uniqueArchiveName(used,baseName),bytes});
 
     done++;
-    document.getElementById(`pt-${id}`).textContent=
-      `Agrupando ${done} / ${total}`;
+    document.getElementById(`pt-${id}`).textContent=`Agrupando ${done} / ${total}`;
+  }
+
+  if(!job.folder && downloadable.length){
+    const zipName=`${safeName(job.name)}_AGRUPADO_GR.zip`;
+    document.getElementById(`pt-${id}`).textContent='Preparando ZIP agrupado…';
+    await downloadZipArchive(zipName,downloadable);
+    logEvent(`SALIDA · agrupación descargada en ZIP · ${zipName} · ${downloadable.length} PDF`,'ok');
   }
 
   setJobStatus(id,'FINALIZADO','st-done');
-  document.getElementById(`pt-${id}`).textContent='Agrupación por GR terminada.';
+  document.getElementById(`pt-${id}`).textContent=job.folder?'Agrupación por GR terminada.':'Agrupación terminada · ZIP descargado.';
 }
 
 async function writeUnique(folder,name,bytes){
@@ -3189,7 +3259,7 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.43 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.44 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
@@ -3201,7 +3271,7 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.43 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  logEvent('Modo NUEVA V1.44 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
   requestAnimationFrame(()=>setTimeout(()=>{startArtemisaEngineCheck();},60));
 }
 
@@ -6233,7 +6303,7 @@ function saveCurrentJobReviewItem(){
     return false;
   }
   if(err)err.textContent='';
-  // V1.43: la auditoría de Artemisa es transaccional.
+  // V1.44: la auditoría de Artemisa es transaccional.
   // Mientras se revisa, solo se modifica jobReviewState; la página real no cambia
   // hasta pulsar GUARDAR CAMBIOS en el resumen final.
   item.isOtherDocument=other;item.humanReading=other?'':value;item.reviewed=true;
@@ -6656,7 +6726,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.43 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + marcadores PDF + auditoría histórica preservados","ok");
+logEvent("Sistema listo · V1.44 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + salida carpeta/descarga universal + marcadores PDF + auditoría histórica preservados","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
