@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OLIMPO</title>
+<title>ARTEMISA / OLIMPO</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -511,7 +511,7 @@ th{background:#f1f3f4}
 @media(max-width:1180px){.homeFlow{grid-template-columns:1fr 34px 1fr 34px 1fr}.flowDescription{grid-column:1/-1;border-left:0;border-top:1px solid #bdd2e8;padding:16px 0 0}.homeModule{grid-template-columns:100px 1fr 56px;min-height:210px;padding:24px!important}.moduleIcon{width:88px;height:88px}.moduleIcon svg{width:56px;height:56px}.moduleCopy strong{font-size:23px!important}}
 @media(max-width:860px){.homeMode .app{padding:0 12px 18px}.homeHero{align-items:flex-start;flex-direction:column;padding:22px}.homeEngineLine{text-align:left}.homeFlow{grid-template-columns:1fr;gap:14px}.flowArrow{transform:rotate(90deg);height:24px}.flowDescription{grid-column:auto}.homeModules{grid-template-columns:1fr}.homeModule{grid-template-columns:82px 1fr 48px}.moduleIcon{width:72px;height:72px;border-radius:16px}.moduleIcon svg{width:46px;height:46px}.moduleCopy strong{font-size:21px!important}.moduleCopy>span:last-child{font-size:15px!important}.homeInfoStrip{grid-template-columns:1fr}.homeInfoStrip>div+div{border-left:0;border-top:1px solid #d7e4f2}}
 
-/* V1.42 · autodiagnóstico de motores al entrar a Artemisa. */
+/* V1.43 · autodiagnóstico de motores al entrar a Artemisa. */
 .engineHealthPanel{padding:16px 18px;margin-bottom:14px;border-left:5px solid #1a73e8}
 .engineHealthHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .engineHealthHead h3{margin:0 0 4px;font-size:17px}.engineHealthHead .muted{line-height:1.4}
@@ -535,8 +535,8 @@ th{background:#f1f3f4}
 <div class="app">
 
 <div class="card header">
-  <h1>ARTEMISA</h1>
-  <div class="muted"><strong>VERSIÓN 1.42 · ARTEMISA · EXTRACCIÓN Y AUDITORÍA OCR</strong></div>
+  <h1>ARTEMISA / OLIMPO</h1>
+  <div class="muted"><strong>VERSIÓN 1.43 · ARTEMISA · EXTRACCIÓN Y AUDITORÍA OCR</strong></div>
   <div class="muted" style="margin-top:3px">
     Flujo operativo base preservado · auditoría histórica escalonada · módulo de pruebas independiente · motores seleccionables
   </div>
@@ -551,7 +551,7 @@ th{background:#f1f3f4}
         <svg viewBox="0 0 64 64" role="img"><path d="M17 7h23l9 9v41H17z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M40 7v11h11" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 29h18M24 37h14M24 45h10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
       </div>
       <div>
-        <div class="homeTitleRow"><h1>OLIMPO</h1><span class="homeVersion">V1.42</span></div>
+        <div class="homeTitleRow"><h1>ARTEMISA / OLIMPO</h1><span class="homeVersion">V1.43</span></div>
         <div class="homeSubtitle">Lectura OCR · Renombrado · Control · Auditoría</div>
       </div>
     </div>
@@ -578,7 +578,7 @@ th{background:#f1f3f4}
       <span class="moduleIcon" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M16 7h26l9 9v41H16z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M42 7v11h11M24 29h18M24 37h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M38 48l11-11 5 5-11 11-7 2z" fill="none" stroke="currentColor" stroke-width="3"/></svg>
       </span>
-      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.42</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
+      <span class="moduleCopy"><span class="moduleTag">USO NORMAL</span><strong>ARTEMISA RENOMBRAR <em>V1.43</em></strong><span>Procesar PDF multipágina, identificar la GR, generar marcadores y crear el PDF final renombrado.</span></span>
       <span class="moduleGo">›</span>
     </button>
 
@@ -1110,7 +1110,7 @@ th{background:#f1f3f4}
 </div>
 
 <div id="appFooter" class="appFooter">
-  <div><strong>ARTEMISA · V1.42</strong> <span id="footerMode" class="muted">INICIO</span></div>
+  <div><strong>ARTEMISA / OLIMPO · V1.43</strong> <span id="footerMode" class="muted">INICIO</span></div>
   <div class="footerActions">
     <span id="footerSessionText" class="small">DATOS DE SESIÓN SIN CAMBIOS</span>
     <button class="light footerBtn" onclick="clearWorkingSession()">NUEVA SESIÓN / LIMPIAR</button>
@@ -1147,7 +1147,7 @@ th{background:#f1f3f4}
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const APP_VERSION='1.42';
+const APP_VERSION='1.43';
 
 const {
   PDFDocument, PDFName, PDFHexString
@@ -1218,6 +1218,7 @@ function addJob(){
     name:'',
     files:[],
     folder:null,
+    pendingFolder:null,
     dpi:200,
     status:'Incompleto',
     pages:[],
@@ -1263,9 +1264,15 @@ function addJob(){
       <div>
         <label>CARPETA DESTINO</label>
         <div class="filebox">
-          <div class="filelist" id="folder-${id}" style="max-height:39px">Ninguna carpeta seleccionada</div>
+          <div class="filelist dropzone" id="folder-${id}" style="max-height:39px"
+            ondragover="folderDragOver(event,${id})"
+            ondragleave="folderDragLeave(event,${id})"
+            ondrop="folderDrop(event,${id})"
+            title="Selecciona o arrastra aquí la carpeta destino">Ninguna carpeta seleccionada · selecciona o arrastra aquí</div>
           <button class="light" onclick="pickFolder(${id})">SELECCIONAR</button>
+          <button class="light" id="folderauth-${id}" style="display:none" onclick="authorizeDroppedFolder(${id})">AUTORIZAR</button>
         </div>
+        <div class="small muted fileHint" id="folderhint-${id}">Puedes seleccionar la carpeta o arrastrarla aquí desde el Explorador.</div>
       </div>
 
       <div>
@@ -1363,43 +1370,167 @@ function jobDrop(ev,id){
   setFiles(id,ev.dataTransfer.files);
 }
 
+function folderHint(id,message,isError=false){
+  const el=document.getElementById(`folderhint-${id}`);
+  if(!el)return;
+  el.textContent=message;
+  el.className=`small fileHint ${isError?'bad':'muted'}`;
+}
+
+function folderAuthButton(id,show){
+  const btn=document.getElementById(`folderauth-${id}`);
+  if(btn)btn.style.display=show?'inline-block':'none';
+}
+
+function acceptFolderHandle(id,h,source='selector'){
+  const job=jobs.get(id);
+  if(!job||!h||h.kind!=='directory')return false;
+  job.folder=h;
+  job.pendingFolder=null;
+  const box=document.getElementById(`folder-${id}`);
+  if(box){box.textContent=h.name;box.title=`Carpeta destino: ${h.name}`;box.classList.remove('dragover');}
+  folderAuthButton(id,false);
+  folderHint(id,`Carpeta destino lista · ${h.name}`);
+  logEvent(`CARPETA DESTINO · ${h.name} · acceso de escritura confirmado · ${source}`,'ok');
+  checkReady(id);
+  scheduleSessionSave();
+  return true;
+}
+
+async function ensureWritePermission(h,{request=true}={}){
+  try{
+    const opts={mode:'readwrite'};
+    let state='prompt';
+    if(typeof h.queryPermission==='function')state=await h.queryPermission(opts);
+    logEvent(`CARPETA DESTINO · permiso escritura · ${state}`,'info');
+    if(state==='granted')return true;
+    if(!request||typeof h.requestPermission!=='function')return false;
+    state=await h.requestPermission(opts);
+    logEvent(`CARPETA DESTINO · permiso escritura tras autorización · ${state}`,state==='granted'?'ok':'warn');
+    return state==='granted';
+  }catch(e){
+    const msg=e?.message||String(e);
+    logEvent(`CARPETA DESTINO · ERROR DE PERMISO · ${e?.name||'Error'} · ${msg}`,'err');
+    return false;
+  }
+}
+
 async function pickFolder(id){
   if(queueRunning)return;
+  const job=jobs.get(id);if(!job)return;
+  logEvent('CARPETA DESTINO · abriendo selector nativo','info');
 
   if(!window.showDirectoryPicker){
-    alert('Este navegador no permite seleccionar carpetas directamente. Usa Chrome o Edge actualizado.');
+    logEvent('CARPETA DESTINO · selector nativo no disponible · usa arrastrar carpeta','warn');
+    folderHint(id,'Este navegador no ofrece selector escribible. Arrastra aquí la carpeta desde el Explorador.',true);
     return;
   }
 
   try{
     const h=await window.showDirectoryPicker({mode:'readwrite'});
-    const ok=await ensureWritePermission(h);
-
+    logEvent(`CARPETA DESTINO · carpeta recibida · ${h?.name||'sin nombre'}`,'info');
+    const ok=await ensureWritePermission(h,{request:true});
     if(!ok){
-      alert('No se concedió permiso de escritura para la carpeta.');
+      job.pendingFolder=h;
+      folderAuthButton(id,true);
+      folderHint(id,`Carpeta recibida: ${h.name}. Pulsa AUTORIZAR para conceder escritura.`,true);
+      logEvent(`CARPETA DESTINO · ${h.name} · pendiente de autorización`,'warn');
       return;
     }
-
-    jobs.get(id).folder=h;
-    document.getElementById(`folder-${id}`).textContent=h.name;
-    checkReady(id);
-    scheduleSessionSave();
-
+    acceptFolderHandle(id,h,'selector nativo');
   }catch(e){
-    if(e.name!=='AbortError'){
-      console.error(e);
-      alert('No se pudo acceder a la carpeta.');
+    const name=e?.name||'Error';
+    const msg=e?.message||String(e);
+    console.warn('Selector de carpeta no entregó handle',e);
+    logEvent(`CARPETA DESTINO · selector nativo · ${name} · ${msg}`,name==='AbortError'?'warn':'err');
+    // Chromium 157 en Windows puede devolver AbortError incluso después de escoger una carpeta.
+    // No bloqueamos el trabajo: se ofrece un camino que obtiene el mismo DirectoryHandle por arrastre.
+    if(name==='AbortError'){
+      folderHint(id,'El navegador no entregó la carpeta. Arrástrala aquí desde el Explorador para continuar.',true);
+    }else{
+      folderHint(id,`No se pudo abrir la carpeta (${name}). Arrástrala aquí desde el Explorador.`,true);
     }
   }
 }
 
-async function ensureWritePermission(h){
-  try{
-    const opts={mode:'readwrite'};
-    if(await h.queryPermission(opts)==='granted')return true;
-    return await h.requestPermission(opts)==='granted';
-  }catch(e){
-    return true;
+function folderDragOver(ev,id){
+  ev.preventDefault();
+  ev.stopPropagation();
+  if(queueRunning)return;
+  if(ev.dataTransfer)ev.dataTransfer.dropEffect='copy';
+  document.getElementById(`folder-${id}`)?.classList.add('dragover');
+}
+
+function folderDragLeave(ev,id){
+  ev.preventDefault();
+  ev.stopPropagation();
+  document.getElementById(`folder-${id}`)?.classList.remove('dragover');
+}
+
+async function folderDrop(ev,id){
+  ev.preventDefault();
+  ev.stopPropagation();
+  document.getElementById(`folder-${id}`)?.classList.remove('dragover');
+  if(queueRunning)return;
+  const job=jobs.get(id);if(!job)return;
+
+  logEvent('CARPETA DESTINO · carpeta arrastrada · comprobando acceso','info');
+  const items=Array.from(ev.dataTransfer?.items||[]);
+  let handle=null;
+  let lastError=null;
+
+  for(const item of items){
+    if(item.kind!=='file')continue;
+    try{
+      if(typeof item.getAsFileSystemHandle==='function'){
+        const h=await item.getAsFileSystemHandle();
+        if(h?.kind==='directory'){handle=h;break;}
+      }
+    }catch(e){lastError=e;}
+  }
+
+  if(!handle){
+    const detail=lastError?` · ${lastError?.name||'Error'}: ${lastError?.message||lastError}`:'';
+    logEvent(`CARPETA DESTINO · no se obtuvo un DirectoryHandle desde el arrastre${detail}`,'err');
+    folderHint(id,'No se detectó una carpeta escribible. Arrastra la carpeta completa desde Windows Explorer.',true);
+    return;
+  }
+
+  logEvent(`CARPETA DESTINO · carpeta recibida por arrastre · ${handle.name}`,'info');
+  const granted=await ensureWritePermission(handle,{request:false});
+  if(granted){
+    acceptFolderHandle(id,handle,'arrastre');
+    return;
+  }
+
+  job.pendingFolder=handle;
+  job.folder=null;
+  const box=document.getElementById(`folder-${id}`);
+  if(box){box.textContent=`${handle.name} · pendiente de autorización`;box.title=handle.name;}
+  folderAuthButton(id,true);
+  folderHint(id,`Carpeta detectada: ${handle.name}. Pulsa AUTORIZAR para habilitar escritura.`);
+  checkReady(id);
+  scheduleSessionSave();
+  logEvent(`CARPETA DESTINO · ${handle.name} · requiere autorización de escritura`,'warn');
+}
+
+async function authorizeDroppedFolder(id){
+  if(queueRunning)return;
+  const job=jobs.get(id);const h=job?.pendingFolder;
+  if(!h){
+    folderAuthButton(id,false);
+    folderHint(id,'No hay una carpeta pendiente. Selecciona o arrastra una carpeta.',true);
+    return;
+  }
+  logEvent(`CARPETA DESTINO · solicitando autorización · ${h.name}`,'info');
+  const ok=await ensureWritePermission(h,{request:true});
+  if(ok){
+    acceptFolderHandle(id,h,'arrastre autorizado');
+  }else{
+    job.folder=null;
+    folderHint(id,`No se concedió escritura para ${h.name}. Vuelve a pulsar AUTORIZAR o arrastra otra carpeta.`,true);
+    checkReady(id);
+    logEvent(`CARPETA DESTINO · autorización no concedida · ${h.name}`,'warn');
   }
 }
 
@@ -1560,9 +1691,9 @@ async function processJob(job){
   let verifySeq=1;
 
   // ==========================================================
-  // PASADA 1 V1.42: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
+  // PASADA 1 V1.43: INDRA P09→P07 · PADDLE C06→C09 · TESSERACT C08→P02 SOLO SI FALTA LECTURA
   // ==========================================================
-  logEvent(`PASADA 1 iniciada · V1.42 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
+  logEvent(`PASADA 1 iniciada · V1.43 · Indra P09→P07 · Paddle C06→C09 · Tesseract C08→P02 solo si Indra o Paddle quedan SIN LECTURA · ${totalPages} páginas`,'info');
 
   for(const source of sources){
     for(let pn=1;pn<=source.pdf.numPages;pn++){
@@ -1598,7 +1729,7 @@ async function processJob(job){
       }
 
       logEvent(
-        `V1.42 · ${source.file.name} pág. ${pn} · `+
+        `V1.43 · ${source.file.name} pág. ${pn} · `+
         `Indra ${dual.indraSource||'P09'}=${dual.indra1||'NINGUNA'} · `+
         `Paddle ${dual.paddleSource||'C06'}=${dual.paddle1||'NINGUNA'} · `+
         `Tesseract ${dual.tesseractSource||'NO EJECUTADO'}=${dual.tesseract1||'NO EJECUTADO'}`,
@@ -1687,12 +1818,12 @@ async function processJob(job){
   if(pending.length){
     setJobStatus(job.id,'REVISIÓN MANUAL PENDIENTE','st-wait');
     logEvent(
-      `V1.42 · ${pending.length} página(s) pasan a REVISAR. `+
+      `V1.43 · ${pending.length} página(s) pasan a REVISAR. `+
       `Se exige coincidencia exacta de dos motores independientes; no se confirma por mayoría.`,
       'warn'
     );
   }else{
-    logEvent('V1.42 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
+    logEvent('V1.43 · todas las páginas superaron la comparación estricta de dos motores independientes','ok');
   }
 
   // En V1.18, cualquier discrepancia o lectura incompleta entra a la cola manual.
@@ -1915,9 +2046,8 @@ async function getPaddleOCR(){
     setQueueText('Inicializando PaddleOCR...');
     logEvent('Inicializando motor alternativo PaddleOCR PP-OCRv5 (EN)','info');
 
-    // V1.42: NO se precarga OpenCV como script clásico en el hilo principal.
-    // Esa estrategia de V1.40 podía bloquear Opera/Chromium durante la compilación.
-    // Se usan proveedores ESM que resuelven/bundlean las dependencias del SDK.
+    // V1.43 preserva la estrategia anti-bloqueo introducida en V1.41:
+    // no se precarga OpenCV como script clásico en el hilo principal.
     const moduleUrls=[
       'https://esm.sh/@paddleocr/paddleocr-js@0.4.2?bundle',
       'https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm',
@@ -1930,8 +2060,6 @@ async function getPaddleOCR(){
 
     for(const baseUrl of moduleUrls){
       try{
-        // El primer intento usa la URL exacta que funcionó en V1.22–V1.38.
-        // En reintentos se agrega un parámetro para no reutilizar un import fallido cacheado.
         let url=baseUrl;
         if(paddleModuleImportAttempt>1){
           const sep=url.includes('?')?'&':'?';
@@ -1948,7 +2076,6 @@ async function getPaddleOCR(){
         const msg=err?.message||String(err);
         errors.push(`${new URL(baseUrl).hostname}: ${msg}`);
         logEvent(`PaddleOCR proveedor falló · ${new URL(baseUrl).hostname} · ${msg}`,'warn');
-        // Cede el hilo a la interfaz antes de intentar el siguiente proveedor.
         await delay(60);
       }
     }
@@ -1957,7 +2084,6 @@ async function getPaddleOCR(){
       throw new Error(`No se pudo cargar el SDK de PaddleOCR · ${errors.join(' | ')}`);
     }
 
-    // Conservamos exactamente PP-OCRv5 y la misma configuración de inferencia.
     paddleOCR=await promiseWithTimeout(mod.PaddleOCR.create({
       lang:'en',
       ocrVersion:'PP-OCRv5',
@@ -2279,7 +2405,7 @@ const OCR_PADDLE_FALLBACK={
 const OCR_TESSERACT_ONLY={
   id:'C08',name:'600 A4 DESKEW RAW',dpi:600,zone:'a4',deskew:true,prep:'raw',psm:'6'
 };
-// V1.42 · cadena del automatizador con marcadores.
+// V1.43 · cadena del automatizador con marcadores.
 // Cada respaldo se ejecuta EXCLUSIVAMENTE si la primaria de ese mismo motor queda SIN LECTURA.
 const OCR_INDRA_PRIMARY={id:'P09',name:'INDRA P09 PRIMARIA',dpi:600,zone:'tight',deskew:true,prep:'hq',psm:'7'};
 const OCR_INDRA_FALLBACK={id:'P07',name:'INDRA P07 RESPALDO',dpi:600,zone:'a4',deskew:true,prep:'hq',psm:'6'};
@@ -2331,7 +2457,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
   const cache={raw:new Map(),deskew:new Map()};
   const readings=[];
 
-  // V1.42 · ORDEN ESTRICTO SOLICITADO:
+  // V1.43 · ORDEN ESTRICTO SOLICITADO:
   // 1) Indra P09 → P07 solo si P09 queda SIN LECTURA.
   // 2) Paddle C06 → C09 solo si C06 queda SIN LECTURA.
   // 3) Tesseract C08 → P02 solo si Indra O Paddle termina SIN LECTURA.
@@ -2496,10 +2622,22 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
     reason='No se obtuvo confirmación por dos motores independientes; REVISAR';
   }
 
-  const humanMaster=paddleFinalBuilt?.image||indraFinalBuilt?.image||tesseractFinalBuilt?.image||paddlePrimaryBuilt?.raw||indraPrimaryBuilt?.raw;
-  const tessForPreview=tFallback?.value?tFallback:tPrimary;
-  const humanPreview=humanMaster?createHQHumanPreview(humanMaster,tessForPreview):null;
   const suggested=agreement||iValue||pValue||tValue||deriveSuggestedFromReadings(readings)||null;
+
+  // V1.43: la revisión humana muestra el recorte de un motor que SÍ obtuvo lectura.
+  // Solo si ningún motor leyó una GR se usa el recorte general de la página.
+  const previewCandidates=[
+    {engine:'INDRA',value:iValue,built:indraFinalBuilt,read:null},
+    {engine:'PADDLEOCR',value:pValue,built:paddleFinalBuilt,read:null},
+    {engine:'TESSERACT',value:tValue,built:tesseractFinalBuilt,read:(tFallback?.value?tFallback:tPrimary)}
+  ].filter(x=>x.value&&x.built);
+  const previewTarget=agreement||suggested||null;
+  const previewChoice=previewCandidates.find(x=>x.value===previewTarget)||previewCandidates[0]||null;
+  const humanMaster=previewChoice
+    ? (previewChoice.built?.image||previewChoice.built?.raw||null)
+    : (paddlePrimaryBuilt?.raw||indraPrimaryBuilt?.raw||tesseractFinalBuilt?.raw||null);
+  const humanPreviewRead=previewChoice?.engine==='TESSERACT'?previewChoice.read:null;
+  const humanPreview=humanMaster?createHQHumanPreview(humanMaster,humanPreviewRead):null;
 
   return {
     confirmed,
@@ -2507,6 +2645,7 @@ async function detectByDualEngineStrict(page,expected=null,textGR=null){
     suggestedValue:suggested,
     reason,
     previewDataUrl:humanPreview?humanPreview.toDataURL('image/jpeg',0.96):'',
+    previewSource:previewChoice?.engine||'GENERAL',
     originalPreviewDataUrl:(paddlePrimaryBuilt?.raw||indraPrimaryBuilt?.raw)?.toDataURL('image/jpeg',0.92)||'',
     zoomPreviewDataUrl:humanPreview?humanPreview.toDataURL('image/jpeg',0.96):'',
     negativePreviewDataUrl:'',
@@ -3003,7 +3142,7 @@ async function startArtemisaEngineCheck(){
   }
   logEvent('AUTODIAGNÓSTICO ARTEMISA · iniciando comprobación automática de Indra, PaddleOCR y Tesseract','info');
   artemisaEngineCheckPromise=(async()=>{
-    // V1.42: inicialización secuencial para evitar picos simultáneos de WASM/ONNX/OpenCV.
+    // Secuencial: evita picos simultáneos de WASM/ONNX y preserva el comportamiento V1.41.
     const results=[];
     results.push(await initializeArtemisaEngine('INDRA'));
     await delay(80);
@@ -3050,7 +3189,7 @@ function chooseMode(mode){
     document.querySelector('.consoleCard').style.display='none';
     renderTestConfigTable();
     testEngineSelectionChanged();
-    testLog('Módulo de pruebas OCR V1.42 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
+    testLog('Módulo de pruebas OCR V1.43 · 10 configuraciones · Tesseract + PaddleOCR + OnnxTR + EasyOCR + Indra OCR · motores seleccionables','ok');
     return;
   }
 
@@ -3062,7 +3201,7 @@ function chooseMode(mode){
   }
   document.getElementById('processArea').style.display='block';
   document.querySelector('.consoleCard').style.display='block';
-  logEvent('Modo NUEVA V1.42 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
+  logEvent('Modo NUEVA V1.43 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico de motores · marcadores PDF preservados · auditoría histórica y pruebas preservadas','info');
   requestAnimationFrame(()=>setTimeout(()=>{startArtemisaEngineCheck();},60));
 }
 
@@ -6094,7 +6233,7 @@ function saveCurrentJobReviewItem(){
     return false;
   }
   if(err)err.textContent='';
-  // V1.42: la auditoría de Artemisa es transaccional.
+  // V1.43: la auditoría de Artemisa es transaccional.
   // Mientras se revisa, solo se modifica jobReviewState; la página real no cambia
   // hasta pulsar GUARDAR CAMBIOS en el resumen final.
   item.isOtherDocument=other;item.humanReading=other?'':value;item.reviewed=true;
@@ -6517,7 +6656,7 @@ function setProgress(id,pct,text){
 
 
 // ============================================================
-logEvent("Sistema listo · V1.42 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + marcadores PDF + auditoría histórica preservados","ok");
+logEvent("Sistema listo · V1.43 · automatizador Indra→Paddle→Tesseract condicional · autodiagnóstico Artemisa + Paddle browser estable + marcadores PDF + auditoría histórica preservados","ok");
 addJob();
 testEngineSelectionChanged();
 </script>
